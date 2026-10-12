@@ -1,68 +1,68 @@
-# Architettura e agenti
+# Architecture and agents
 
-## Struttura proposta
+## Proposed structure
 
-Separare il piano di ricerca dal piano operativo. Gli agenti ragionano, propongono e usano strumenti con contratti definiti; servizi deterministici gestiscono dati, simulazioni, limiti di rischio e invio ordini.
+Separate the research plane from the operational plane. Agents reason, propose changes, and use tools with defined contracts; deterministic services manage data, simulations, risk limits, and order submission.
 
 ```mermaid
 flowchart TD
-    A["Fonti e idee"] --> B["Laboratorio strategie"]
-    B --> C["Registro delle versioni"]
-    C --> D["Test storici e paper trading"]
+    A["Sources and ideas"] --> B["Strategy lab"]
+    B --> C["Version registry"]
+    C --> D["Historical tests and paper trading"]
     D --> B
-    D --> E["Versioni abilitate"]
-    E --> F["Segnali live"]
-    F --> G["Agente portfolio"]
-    G --> H["Controlli di rischio"]
-    H --> I["Esecuzione e riconciliazione"]
+    D --> E["Enabled versions"]
+    E --> F["Live signals"]
+    F --> G["Portfolio agent"]
+    G --> H["Risk checks"]
+    H --> I["Execution and reconciliation"]
     I --> G
 ```
 
-La promozione a versione abilitata richiede evidenze di validazione e, per l'esecuzione reale, attivazione esplicita dell'utente.
+Promotion to an enabled version requires validation evidence and, for live execution, explicit user activation.
 
-## Ruoli degli agenti
+## Agent roles
 
-| Ruolo | Responsabilità | Output |
+| Role | Responsibility | Output |
 | --- | --- | --- |
-| Orchestratore | Pianificare il lavoro, assegnare strumenti, rispettare budget e dipendenze | Stato del workflow e registro dei passaggi |
-| Analista delle fonti | Estrarre regole e distinguere affermazioni, evidenze e informazioni mancanti | Scheda fonte e bozza della specifica |
-| Ricercatore quant | Formalizzare logica, ipotesi, indicatori e varianti | Specifica strategia versionata |
-| Sviluppatore | Tradurre la specifica in codice e verificarne la corrispondenza | Implementazione e verifiche delle regole |
-| Validatore | Configurare esperimenti e valutare robustezza e limiti | Report, criticità e proposta di promozione |
-| Agente portfolio | Coordinare allocazioni, segnali e aperture/chiusure | Proposta di allocazione e intenti di posizione |
-| Supervisore operativo | Leggere anomalie, deriva e stato dei servizi | Allarmi e proposte di pausa o revisione |
+| Orchestrator | Plan work, assign tools, and respect budgets and dependencies | Workflow state and step log |
+| Source analyst | Extract rules and distinguish claims, evidence, and missing information | Source record and draft specification |
+| Quant researcher | Formalize logic, assumptions, indicators, and variants | Versioned strategy specification |
+| Developer | Translate the specification into code and verify its alignment | Implementation and rule checks |
+| Validator | Configure experiments and assess robustness and limitations | Report, issues, and promotion proposal |
+| Portfolio agent | Coordinate allocations, signals, and position openings/closures | Allocation proposal and position intents |
+| Operational supervisor | Inspect anomalies, drift, and service health | Alerts and pause or review proposals |
 
-Questi sono ruoli logici: non implicano sette processi o modelli sempre attivi. L'orchestrazione potrà riutilizzare modelli e avviare agenti quando il workflow lo richiede.
+These are logical roles: they do not imply seven continuously running processes or models. Orchestration may reuse models and invoke agents when the workflow requires them.
 
-## Componenti applicativi
+## Application components
 
-- **Connettori fonti:** recupero dei contenuti autorizzati, trascrizioni, immagini e codice accessibile.
-- **Servizio dati:** normalizzazione dello storico e dei feed live, metadati e qualità.
-- **Registro strategie:** specifiche, codice, dipendenze, versioni e stati.
-- **Runner isolato:** esecuzione del codice generato con risorse e accessi limitati.
-- **Motore di test:** simulazione, replay, valutazione e report riproducibili.
-- **Runtime strategie:** calcolo dei segnali da versioni immutabili.
-- **Gestione portfolio e rischio:** allocazioni proposte, controlli vincolanti e stato aggregato.
-- **Gateway esecuzione:** adattatori broker/exchange, ordini e riconciliazione.
-- **Archivio e osservabilità:** evidenze, esperimenti, eventi, metriche e audit.
+- **Source connectors:** retrieve authorized content, transcripts, images, and accessible code.
+- **Data service:** normalize historical data and live feeds, metadata, and quality.
+- **Strategy registry:** store specifications, code, dependencies, versions, and states.
+- **Isolated runner:** execute generated code with limited resources and access.
+- **Testing engine:** provide simulation, replay, evaluation, and reproducible reports.
+- **Strategy runtime:** compute signals from immutable versions.
+- **Portfolio and risk management:** manage proposed allocations, binding checks, and aggregate state.
+- **Execution gateway:** provide broker/exchange adapters, orders, and reconciliation.
+- **Storage and observability:** retain evidence, experiments, events, metrics, and audit records.
 
-## Contratti principali
+## Core contracts
 
-| Oggetto | Informazioni minime |
+| Object | Minimum information |
 | --- | --- |
-| SourceArtifact | URL/origine, autore se noto, data di acquisizione, contenuto disponibile, hash e permessi di utilizzo |
-| StrategySpec | Regole, parametri, strumenti, timeframe, ipotesi e riferimenti alle fonti |
-| StrategyVersion | Spec, codice, dipendenze, parent, hash e stato |
-| ExperimentRun | Versione, dataset, protocollo, costi, seed ove rilevante, risultati e log |
-| Signal | Strategia/versione, strumento, timestamp, validità, azione o esposizione desiderata e motivazione |
-| PortfolioProposal | Stato di riferimento, allocazioni, intenti di posizione e motivazione |
-| OrderIntent | Conto, strumento, lato, quantità, tipo, limiti, versioni e identificatore idempotente |
-| ExecutionEvent | Ordine, stato, fill, quantità, prezzo, costi e timestamp |
+| SourceArtifact | URL/origin, author if known, acquisition date, available content, hash, and usage permissions |
+| StrategySpec | Rules, parameters, instruments, timeframe, assumptions, and source references |
+| StrategyVersion | Specification, code, dependencies, parent, hash, and state |
+| ExperimentRun | Version, dataset, protocol, costs, seed where relevant, results, and logs |
+| Signal | Strategy/version, instrument, timestamp, validity, action or desired exposure, and rationale |
+| PortfolioProposal | Reference state, allocations, position intents, and rationale |
+| OrderIntent | Account, instrument, side, quantity, type, limits, versions, and idempotency identifier |
+| ExecutionEvent | Order, state, fill, quantity, price, costs, and timestamp |
 
-Una raccomandazione testuale non è un ordine. Ogni proposta passa attraverso validazione strutturale, controlli di rischio e adattatore operativo.
+A textual recommendation is not an order. Every proposal passes through structural validation, risk checks, and an operational adapter.
 
-## Proprietà del runtime
+## Runtime properties
 
-Salvare checkpoint dei job, permettere cancellazione e ripartenza, deduplicare gli eventi e rendere espliciti timeout e retry. Il runtime live non deve attendere la generazione di nuovo codice. In caso di indisponibilità di un agente, applica una politica predefinita per nuovi segnali e posizioni esistenti; la riconciliazione continua indipendentemente dagli agenti.
+Persist job checkpoints, support cancellation and resumption, deduplicate events, and make timeouts and retries explicit. The live runtime must not wait for new code generation. If an agent is unavailable, it applies a predefined policy for new signals and existing positions; reconciliation continues independently of agents.
 
-Linguaggio, framework agentico, database, coda e motore di backtest saranno selezionati con prove di compatibilità. Questa struttura definisce responsabilità e contratti senza fissare prematuramente lo stack.
+The language, agent framework, database, queue, and backtesting engine will be selected through compatibility checks. This structure defines responsibilities and contracts without prematurely fixing the technology stack.

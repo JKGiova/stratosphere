@@ -1,44 +1,44 @@
-# Visione e piano di prodotto
+# Product vision and plan
 
-## Obiettivo
+## Objective
 
-Stratosphere permette di creare, sviluppare, modificare e migliorare strategie quantitative attraverso agenti, testarle su dati passati o in tempo reale e attivarle con trade reali. La gestione del portfolio coordina capitale e posizioni delle strategie selezionate.
+stratosphere enables users to create, develop, modify, and improve quantitative strategies through agents, test them on historical or real-time data, and activate them with live trades. Portfolio management coordinates the capital and positions of selected strategies.
 
-Il ruolo nella suite Trading Sphere è trasformare idee di trading in strategie verificabili e gestibili nel tempo. Le interfacce con gli altri software della suite saranno definite separatamente; il funzionamento di Stratosphere non deve dipendere da integrazioni ancora inesistenti.
+Its role within the tradingsphere suite is to turn trading ideas into strategies that can be verified and managed over time. Interfaces with the other suite components will be defined separately; stratosphere must not depend on integrations that do not yet exist.
 
-## Casi d'uso principali
+## Primary use cases
 
-| Caso | Risultato atteso |
+| Use case | Expected result |
 | --- | --- |
-| Importare un Reel, video, articolo o post | Regole estratte, riferimenti alle fonti, ambiguità visibili |
-| Importare una strategia TradingView o GitHub | Analisi del materiale accessibile, dipendenze e semantica da verificare |
-| Descrivere una strategia originale | Specifica completa e prima implementazione |
-| Modificare una strategia | Nuova versione e confronto con la precedente |
-| Richiedere miglioramenti | Varianti motivate, budget di ricerca e risultati separati per esperimento |
-| Testare su storico | Report riproducibile con operazioni, costi e limiti del test |
-| Testare con dati live | Segnali osservati o paper trading senza inviare ordini reali |
-| Attivare più strategie | Allocazioni e posizioni coordinate entro un mandato esplicito |
-| Gestire una strategia in produzione | Monitoraggio, pausa, disattivazione e aggiornamento controllato |
+| Import a Reel, video, article, or post | Extracted rules, source references, and visible ambiguities |
+| Import a TradingView or GitHub strategy | Analysis of accessible material, dependencies, and semantics to verify |
+| Describe an original strategy | Complete specification and initial implementation |
+| Modify a strategy | New version and comparison with its predecessor |
+| Request improvements | Justified variants, a research budget, and separate results for each experiment |
+| Test on historical data | Reproducible report with trades, costs, and test limitations |
+| Test with live data | Observed signals or paper trading without submitting live orders |
+| Activate multiple strategies | Coordinated allocations and positions within an explicit mandate |
+| Manage a production strategy | Monitoring, pausing, deactivation, and controlled updates |
 
-## Esperienza prevista
+## Planned experience
 
-L'utente crea un progetto strategia, aggiunge fonti o una descrizione e vede cosa è stato ricostruito e cosa manca. Può correggere le regole prima dell'implementazione, lanciare esperimenti e confrontare versioni con lo stesso protocollo di test.
+The user creates a strategy project, adds sources or a description, and sees what has been reconstructed and what is missing. They can correct the rules before implementation, launch experiments, and compare versions under the same testing protocol.
 
-Ogni strategia presenta una scheda con origine, regole, versioni, risultati, stato operativo e motivi delle decisioni. La vista portfolio mostra capitale, allocazioni, posizioni aggregate, contributo delle strategie, limiti e ordini. Le spiegazioni degli agenti sono collegate alle evidenze disponibili.
+Each strategy has a profile containing its origin, rules, versions, results, operational state, and decision rationale. The portfolio view shows capital, allocations, aggregate positions, strategy contributions, limits, and orders. Agent explanations are linked to available evidence.
 
-Prima dell'attivazione reale, l'utente seleziona versione, conto, capitale, strumenti e limiti operativi. La piattaforma rende visibile la differenza tra risultati storici, risultati simulati live e risultati reali.
+Before live activation, the user selects the version, account, capital, instruments, and operational limits. The platform clearly distinguishes historical results, simulated live results, and actual live results.
 
-## Requisiti trasversali
+## Cross-cutting requirements
 
-- Tracciabilità dalla fonte alla regola, dalla regola al segnale e dal segnale all'ordine.
-- Riproducibilità dei test attraverso versioni di strategia, dataset e configurazione.
-- Separazione tra ricerca e runtime operativo: un esperimento non modifica una strategia attiva.
-- Budget configurabili per chiamate ai modelli, durata dei job e numero di varianti.
-- Gestione esplicita di dati incompleti, fonti inaccessibili e operazioni fallite.
-- Credenziali esterne ai documenti di ricerca e agli input dei modelli.
+- Traceability from source to rule, rule to signal, and signal to order.
+- Reproducible tests through strategy, dataset, and configuration versions.
+- Separation between research and the operational runtime: an experiment cannot modify an active strategy.
+- Configurable budgets for model calls, job duration, and the number of variants.
+- Explicit handling of incomplete data, inaccessible sources, and failed operations.
+- Credentials kept outside research documents and model inputs.
 
-## Confini iniziali
+## Initial boundaries
 
-La visione include tutte le fonti elencate e il trading reale, ma il primo MVP si concentra sulla ricerca e sul backtest. Non sono ancora scelti asset class, broker, frequenze operative, interfaccia o modalità di hosting. Il supporto a trading ad alta frequenza, gestione di conti di terzi e marketplace di strategie non fa parte del piano iniziale.
+The vision includes all listed sources and live trading, but the first MVP focuses on research and backtesting. Asset classes, brokers, operating frequencies, interface, and hosting have not yet been selected. High-frequency trading, managing third-party accounts, and a strategy marketplace are outside the initial plan.
 
-Il successo iniziale si misura con un flusso completo e verificabile, la qualità delle regole ricostruite e la riproducibilità degli esperimenti. Un rendimento elevato su un singolo test non è un criterio sufficiente.
+Initial success is measured by a complete, verifiable workflow, the quality of reconstructed rules, and experiment reproducibility. High returns in a single test are not a sufficient criterion.

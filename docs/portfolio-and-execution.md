@@ -1,46 +1,46 @@
-# Portfolio, posizioni ed esecuzione reale
+# Portfolio, positions, and live execution
 
-## Mandato di gestione
+## Management mandate
 
-L'agente portfolio coordina le strategie attive: propone il capitale da assegnare, decide quali segnali accogliere e propone aperture, incrementi, riduzioni o chiusure in funzione dello stato complessivo. I limiti configurati dall'utente vengono applicati da controlli deterministici esterni al modello.
+The portfolio agent coordinates active strategies: it proposes capital allocation, decides which signals to accept, and proposes position openings, increases, reductions, or closures according to overall state. User-configured limits are enforced by deterministic checks outside the model.
 
-Il mandato comprende conto, strumenti ammessi, capitale, strategie/versioni attive, limiti per posizione e strategia, esposizione complessiva, leva ove prevista, concentrazione, perdita e drawdown massimi, frequenza di ribilanciamento e modalità di approvazione degli ordini. Le soglie e il metodo di allocazione sono decisioni ancora aperte.
+The mandate includes the account, permitted instruments, capital, active strategies/versions, per-position and per-strategy limits, overall exposure, leverage where supported, concentration, maximum loss and drawdown, rebalancing frequency, and order approval mode. Thresholds and allocation methodology remain open decisions.
 
-## Dagli agenti alle posizioni
+## From agents to positions
 
-1. Le strategie producono segnali strutturati con versione, timestamp e scadenza.
-2. Il sistema raccoglie capitale, posizioni, ordini aperti e stato dei feed.
-3. L'agente portfolio propone allocazioni e variazioni delle esposizioni.
-4. I controlli validano proposta, freschezza dello stato, disponibilità del capitale e limiti.
-5. Il gateway traduce gli intenti approvati in ordini compatibili con il provider.
-6. Fill e riconciliazione aggiornano il ledger; il portfolio viene rivalutato sullo stato effettivo.
+1. Strategies produce structured signals with a version, timestamp, and expiry.
+2. The system collects capital, positions, open orders, and feed health.
+3. The portfolio agent proposes allocations and exposure changes.
+4. Checks validate the proposal, state freshness, available capital, and limits.
+5. The gateway translates approved intents into provider-compatible orders.
+6. Fills and reconciliation update the ledger; the portfolio is reevaluated against actual state.
 
-Segnali di strategie diverse sullo stesso strumento non devono creare ordini indipendenti incompatibili. Definire una politica per netting, segnali opposti, attribuzione del capitale e priorità. Mantenere posizioni virtuali per strategia e posizioni aggregate del conto, con attribuzione dei fill e del P&L.
+Signals from different strategies on the same instrument must not create incompatible independent orders. Define a policy for netting, opposing signals, capital attribution, and priority. Maintain virtual positions per strategy and aggregate account positions, with fill and P&L attribution.
 
-## Aperture e chiusure
+## Openings and closures
 
-Le uscite possono essere richieste dalla logica della strategia, dal ribilanciamento o da un limite di rischio. Il sistema identifica l'origine della decisione e applica le precedenze previste dal mandato. L'agente non può annullare un vincolo di rischio o ampliare autonomamente il proprio mandato.
+Exits may be requested by strategy logic, rebalancing, or a risk limit. The system identifies the decision's origin and applies the precedence defined in the mandate. The agent cannot override a risk constraint or autonomously expand its mandate.
 
-Le protezioni operative essenziali devono funzionare anche senza modello disponibile. Dove il provider lo consente, valutare ordini protettivi lato broker; dove non lo consente, dichiarare la dipendenza dal runtime e verificare la relativa procedura di emergenza.
+Essential operational protections must work even when the model is unavailable. Where the provider supports them, evaluate broker-side protective orders; otherwise, state the dependency on the runtime and verify the corresponding emergency procedure.
 
-## Requisiti dell'esecuzione
+## Execution requirements
 
-- Identificatori idempotenti e deduplicazione per evitare ordini ripetuti dopo retry.
-- Gestione di ordini accettati, rifiutati, parzialmente eseguiti, cancellati e scaduti.
-- Validazione di quantità, tick size, minimi, saldo/margine e stato del mercato.
-- Riconciliazione con il provider dopo timeout, disconnessioni e riavvii.
-- Stato ambiguo di un ordine trattato come da riconciliare, senza reinvio automatico alla cieca.
-- Tracciamento di slippage, costi, fill e differenze dal target.
-- Separazione delle credenziali paper e live e accessi limitati alle operazioni necessarie.
+- Idempotency identifiers and deduplication to avoid duplicate orders after retries.
+- Handling of accepted, rejected, partially filled, canceled, and expired orders.
+- Validation of quantity, tick size, minimums, balance/margin, and market state.
+- Reconciliation with the provider after timeouts, disconnections, and restarts.
+- Ambiguous order state treated as requiring reconciliation, without blind automatic resubmission.
+- Tracking of slippage, costs, fills, and deviations from target.
+- Separate paper and live credentials with access limited to required operations.
 
-## Attivazione e arresto
+## Activation and shutdown
 
-Il trading reale è disabilitato per impostazione iniziale. L'attivazione identifica esplicitamente versione, conto e mandato. È un requisito della futura piattaforma; la stesura di questi documenti non configura conti né abilita operazioni.
+Live trading is disabled by default. Activation explicitly identifies the version, account, and mandate. This is a requirement of the future platform; writing these documents does not configure accounts or enable trades.
 
-Prevedere almeno tre azioni distinte: **bloccare nuovi ingressi**, **cancellare gli ordini pendenti** e **richiedere la chiusura delle posizioni**. La richiesta di chiusura non garantisce un fill immediato: monitorare l'esposizione residua e notificare eventuali fallimenti.
+Provide at least three distinct actions: **block new entries**, **cancel pending orders**, and **request position closure**. A closure request does not guarantee an immediate fill: monitor residual exposure and notify the user of failures.
 
-Dati obsoleti, errori di riconciliazione, violazioni dei limiti e anomalie del provider bloccano nuove aperture secondo politiche definite in anticipo. Stabilire separatamente come gestire le posizioni esistenti. Una nuova versione non sostituisce quella attiva senza verificare anche ordini pendenti e piano di transizione.
+Stale data, reconciliation errors, limit violations, and provider anomalies block new openings according to policies defined in advance. Separately establish how existing positions are managed. A new version cannot replace the active version without checking pending orders and the transition plan.
 
-## Osservabilità
+## Observability
 
-La vista operativa mostra capitale, esposizioni, posizioni, ordini, P&L realizzato/non realizzato, contributi per strategia, stato del modello e dei servizi, limiti utilizzati e motivi di blocco. Ogni ordine è collegato a segnali, proposta portfolio, controlli e fill. Gli allarmi includono un'azione operativa chiara e un registro verificabile.
+The operational view shows capital, exposures, positions, orders, realized/unrealized P&L, strategy contributions, model and service health, utilized limits, and block reasons. Every order is linked to signals, the portfolio proposal, checks, and fills. Alerts include a clear operational action and a verifiable record.

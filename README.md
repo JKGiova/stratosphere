@@ -1,49 +1,53 @@
-# Stratosphere
+# stratosphere
 
-**Strategie quantitative create, testate e gestite attraverso agenti.**
+**Quantitative strategies created, tested, and managed through agents.**
 
-Stratosphere è il software della suite **Trading Sphere** dedicato al ciclo completo di una strategia quant: partire da un'idea o da una fonte esterna, trasformarla in regole eseguibili, verificarla su dati storici e in tempo reale, migliorarla e attivarla su un conto reale con gestione coordinata del portfolio.
+stratosphere is the component of the **tradingsphere** suite dedicated to the complete lifecycle of a quantitative trading strategy: starting from an idea or external source, turning it into executable rules, evaluating it on historical and real-time data, improving it, and activating it on a live account with coordinated portfolio management.
 
-Le fonti previste comprendono video YouTube, Reel Instagram, articoli, post e thread X, strategie TradingView e repository GitHub. Gli agenti ricostruiscono le regole, evidenziano le informazioni mancanti e propongono implementazioni e varianti. Un agente di portfolio management valuta insieme i segnali delle strategie attive e propone allocazioni, aperture, riduzioni e chiusure delle posizioni, entro limiti applicati dal sistema di rischio.
+Planned sources include YouTube videos, Instagram Reels, articles, X posts and threads, TradingView strategies, and GitHub repositories. Agents reconstruct the rules, highlight missing information, and propose implementations and variants. A portfolio management agent evaluates the signals from active strategies together and proposes allocations and position openings, reductions, and closures within limits enforced by the risk system.
 
-## Stato del progetto
+## Project status
 
-**Fase di pianificazione.** Il repository contiene il piano iniziale e la struttura della documentazione. Non contiene ancora un'applicazione funzionante, connettori, motori di backtest o integrazioni per inviare ordini. Le funzionalità descritte sono obiettivi di sviluppo; stack, mercati e primo broker restano da scegliere.
+**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives; the technology stack, markets, and first broker remain to be selected.
 
-## Funzionalità previste
+## Planned capabilities
 
-- Importazione di fonti e conservazione dei riferimenti alle regole estratte.
-- Creazione, modifica e miglioramento di strategie tramite agenti specializzati.
-- Specifiche e implementazioni versionate, con ipotesi e parametri espliciti.
-- Backtest riproducibili con costi, controlli sui dati e validazione fuori campione.
-- Forward test e paper trading su dati in tempo reale.
-- Gestione congiunta di capitale, esposizioni e posizioni di più strategie.
-- Attivazione reale di versioni validate, con monitoraggio, riconciliazione e arresto operativo.
+- Import sources and preserve references to the evidence behind extracted rules.
+- Create, modify, and improve strategies through specialized agents.
+- Version strategy specifications and implementations, with explicit assumptions and parameters.
+- Run reproducible backtests with costs, data quality checks, and out-of-sample validation.
+- Run forward tests and paper trading on real-time data.
+- Coordinate capital, exposures, and positions across multiple strategies.
+- Activate validated versions for live trading, with monitoring, reconciliation, and operational shutdown controls.
 
-## Percorso di una strategia
+## Strategy workflow
 
-1. Importare una fonte o descrivere un'idea.
-2. Estrarre le regole e risolvere le ambiguità.
-3. Generare una specifica e un'implementazione verificabili.
-4. Eseguire backtest, validazione e confronti tra versioni.
-5. Provare la versione selezionata con dati live e capitale simulato.
-6. Attivarla esplicitamente per il trading reale entro un mandato di rischio.
-7. Monitorare risultati e posizioni; sviluppare eventuali miglioramenti come nuove versioni.
+1. Import a source or describe an idea.
+2. Extract the rules and resolve ambiguities.
+3. Generate a verifiable specification and implementation.
+4. Run backtests, validation, and comparisons between versions.
+5. Evaluate the selected version with live data and simulated capital.
+6. Explicitly activate it for live trading within a defined risk mandate.
+7. Monitor results and positions; develop improvements as new versions.
 
-Il risultato di un backtest e le affermazioni della fonte non costituiscono una garanzia di rendimento futuro.
+Backtest results and claims made by a source do not guarantee future returns.
 
-## Documentazione
+## Documentation
 
-| Documento | Contenuto |
+| Document | Contents |
 | --- | --- |
-| [Indice del piano](docs/README.md) | Percorso di lettura e stato dei documenti |
-| [Visione e prodotto](docs/product-plan.md) | Obiettivi, casi d'uso, confini e requisiti |
-| [Architettura e agenti](docs/architecture.md) | Componenti, responsabilità e contratti |
-| [Fonti e strategie](docs/strategy-lifecycle.md) | Importazione, specifica, versioni e miglioramenti |
-| [Dati e validazione](docs/testing-and-validation.md) | Backtest, prove live e criteri di promozione |
-| [Portfolio ed esecuzione](docs/portfolio-and-execution.md) | Allocazione, posizioni, rischio e ordini |
-| [Roadmap e decisioni](docs/roadmap.md) | MVP, fasi successive e scelte aperte |
+| [Plan index](docs/README.md) | Reading order and document status |
+| [Product vision and plan](docs/product-plan.md) | Objectives, use cases, boundaries, and requirements |
+| [Architecture and agents](docs/architecture.md) | Components, responsibilities, and contracts |
+| [Sources and strategy lifecycle](docs/strategy-lifecycle.md) | Importing, specifications, versions, and improvements |
+| [Data and validation](docs/testing-and-validation.md) | Backtests, live evaluation, and promotion criteria |
+| [Portfolio and execution](docs/portfolio-and-execution.md) | Allocation, positions, risk, and orders |
+| [Roadmap and decisions](docs/roadmap.md) | MVP, subsequent phases, and open decisions |
 
-## Primo obiettivo di sviluppo
+## First development objective
 
-Completare un percorso riproducibile da **articolo o testo fornito dall'utente → specifica → strategia eseguibile → backtest → report**, su un solo mercato e un solo formato dati. Le integrazioni multimediali, il paper trading e l'esecuzione reale seguiranno nelle fasi definite dalla [roadmap](docs/roadmap.md).
+Complete a reproducible workflow from **article or user-provided text → specification → executable strategy → backtest → report**, using one market and one data format. Multimedia integrations, paper trading, and live execution follow in the phases defined in the [roadmap](docs/roadmap.md).
+
+## Development conventions
+
+GitHub is the shared source of truth for development. Code, comments, documentation, commit messages, and GitHub development discussions must be written in English. The product and suite names are always written as **stratosphere** and **tradingsphere**, respectively.

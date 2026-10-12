@@ -1,22 +1,23 @@
-# Piano di Stratosphere
+# stratosphere plan
 
-Questa cartella raccoglie il piano iniziale di **Stratosphere**, componente della suite **Trading Sphere** dedicato alle strategie quantitative agentiche.
+This directory contains the initial plan for **stratosphere**, the component of the **tradingsphere** suite dedicated to agent-driven quantitative strategies.
 
-**Stato:** proposta iniziale, 12 ottobre 2026. Nessuna funzionalità applicativa è ancora implementata. I requisiti di prodotto derivano dalla visione del progetto; architettura, ordine delle fasi e criteri operativi sono proposte da sviluppare e verificare.
+**Status:** initial proposal, October 12, 2026. No application functionality has been implemented yet. Product requirements come from the project vision; the architecture, phase ordering, and operational criteria are proposals to develop and verify.
 
-## Percorso di lettura
+## Reading order
 
-1. [Visione e prodotto](product-plan.md): cosa deve permettere la piattaforma.
-2. [Architettura e agenti](architecture.md): come separare ricerca, test, gestione ed esecuzione.
-3. [Fonti e strategie](strategy-lifecycle.md): come trasformare contenuti in strategie versionate.
-4. [Dati e validazione](testing-and-validation.md): come produrre evidenze confrontabili.
-5. [Portfolio ed esecuzione](portfolio-and-execution.md): come passare dai segnali alle posizioni reali.
-6. [Roadmap e decisioni](roadmap.md): cosa costruire prima e cosa resta aperto.
+1. [Product vision and plan](product-plan.md): what the platform should enable.
+2. [Architecture and agents](architecture.md): how to separate research, testing, management, and execution.
+3. [Sources and strategy lifecycle](strategy-lifecycle.md): how to turn content into versioned strategies.
+4. [Data and validation](testing-and-validation.md): how to produce comparable evidence.
+5. [Portfolio and execution](portfolio-and-execution.md): how to move from signals to live positions.
+6. [Roadmap and decisions](roadmap.md): what to build first and what remains open.
 
-## Come mantenere il piano
+## Maintaining the plan
 
-- Aggiornare lo stato quando una funzionalità viene implementata e verificata.
-- Registrare le scelte tecniche con motivazione e conseguenze nella roadmap; introdurre documenti di decisione dedicati quando necessario.
-- Tenere separati requisiti, proposte e risultati misurati.
-- Collegare le future attività e pull request alla fase e al criterio di completamento corrispondenti.
-- Conservare solo esempi privi di credenziali e dati di conto personali nel repository.
+- Update the status when a feature has been implemented and verified.
+- Record technical decisions, their rationale, and consequences in the roadmap; introduce dedicated decision records when needed.
+- Keep requirements, proposals, and measured results separate.
+- Link future tasks and pull requests to the relevant phase and completion criterion.
+- Keep only examples without credentials or personal account data in the repository.
+- Write all documentation and development material in English and use the lowercase names stratosphere and tradingsphere.

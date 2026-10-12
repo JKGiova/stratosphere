@@ -1,55 +1,55 @@
-# Dati, test e validazione
+# Data, testing, and validation
 
-## Modalità di prova
+## Evaluation modes
 
-| Modalità | Dati | Ordini | Obiettivo |
+| Mode | Data | Orders | Objective |
 | --- | --- | --- | --- |
-| Backtest | Storico versionato | Simulati | Ricostruire il comportamento passato |
-| Replay | Eventi storici riprodotti in ordine | Simulati | Verificare il runtime e i casi operativi |
-| Forward test | Feed in tempo reale | Nessuno | Osservare segnali, ritardi e disponibilità dati |
-| Paper trading | Feed in tempo reale | Simulati o ambiente paper del provider | Valutare portfolio ed esecuzione simulata |
-| Live | Feed in tempo reale | Reali | Operare entro il mandato attivato |
+| Backtest | Versioned historical data | Simulated | Reconstruct past behavior |
+| Replay | Historical events reproduced in order | Simulated | Verify the runtime and operational cases |
+| Forward test | Real-time feed | None | Observe signals, delays, and data availability |
+| Paper trading | Real-time feed | Simulated or provider paper environment | Evaluate the portfolio and simulated execution |
+| Live | Real-time feed | Real | Operate within the activated mandate |
 
-La simulazione deve rendere visibili le proprie assunzioni: paper e backtest non riproducono necessariamente liquidità, priorità degli ordini e fill reali.
+Simulation must expose its assumptions: paper trading and backtesting do not necessarily reproduce liquidity, order priority, and actual fills.
 
-## Contratto dei dati
+## Data contract
 
-Registrare provider, strumenti, intervallo, timezone, frequenza, timestamp dell'evento e di disponibilità, trasformazioni, hash o snapshot immutabile. Verificare duplicati, ordinamento, buchi, barre incomplete e cambi di simbolo. Le strategie usano soltanto informazioni disponibili al momento del segnale.
+Record provider, instruments, interval, timezone, frequency, event and availability timestamps, transformations, and a hash or immutable snapshot. Check duplicates, ordering, gaps, incomplete bars, and symbol changes. Strategies use only information available at signal time.
 
-Considerare sessioni e corporate action per gli asset che le richiedono; includere funding, prestito titoli, scadenze o rollover quando applicabili. Un dataset non adatto al mercato scelto blocca la validazione o limita esplicitamente il significato del report.
+Account for sessions and corporate actions where relevant; include funding, securities borrowing, expiries, or rollovers when applicable. A dataset unsuitable for the selected market blocks validation or explicitly limits the report's interpretation.
 
-## Protocollo storico
+## Historical protocol
 
-1. Fissare ipotesi, benchmark, metriche, costi e criteri prima degli esperimenti.
-2. Separare temporalmente dati di sviluppo, validazione e campione finale fuori campione.
-3. Applicare warm-up e regole per evitare contaminazione tra finestre; usare walk-forward quando appropriato.
-4. Simulare commissioni, spread, slippage, latenza e vincoli di esecuzione rilevanti.
-5. Confrontare la strategia con baseline semplici e versioni precedenti sullo stesso protocollo.
-6. Verificare sensibilità ai parametri, regimi, periodi e peggioramento dei costi.
-7. Conservare configurazione, codice, dataset, operazioni e risultati di ogni tentativo.
+1. Fix hypotheses, benchmarks, metrics, costs, and criteria before experiments.
+2. Split development, validation, and final out-of-sample holdout data chronologically.
+3. Apply warm-up and rules to avoid contamination between windows; use walk-forward evaluation where appropriate.
+4. Simulate relevant commissions, spreads, slippage, latency, and execution constraints.
+5. Compare the strategy with simple baselines and previous versions under the same protocol.
+6. Check sensitivity to parameters, regimes, periods, and increased costs.
+7. Retain configuration, code, dataset, trades, and results for every attempt.
 
-Il campione finale non è uno strumento di ottimizzazione. Se viene usato per scegliere nuove varianti, non è più una verifica indipendente e serve un nuovo protocollo. Tenere conto del numero di tentativi quando si interpreta la variante selezionata.
+The final holdout is not an optimization tool. If it is used to select new variants, it is no longer an independent assessment and a new protocol is needed. Account for the number of attempts when interpreting the selected variant.
 
-## Errori da verificare
+## Errors to check
 
-- Look-ahead: uso di prezzi o indicatori non ancora disponibili.
-- Survivorship bias e selezione opportunistica degli strumenti o dei periodi.
-- Repainting, specialmente nelle conversioni da TradingView.
-- Differenze tra segnale a chiusura e riempimento allo stesso prezzo.
-- Stop e take profit toccati nella stessa barra senza dati per ricostruirne l'ordine.
-- Costi omessi, liquidità irrealistica e operazioni superiori alla capacità del mercato.
-- Overfitting dei parametri e selezione ripetuta sul fuori campione.
+- Look-ahead: using prices or indicators that were not yet available.
+- Survivorship bias and opportunistic selection of instruments or periods.
+- Repainting, especially in TradingView conversions.
+- Differences between a close-of-bar signal and a fill at the same price.
+- Stop loss and take profit touched within the same bar without enough data to reconstruct their order.
+- Omitted costs, unrealistic liquidity, and trades exceeding market capacity.
+- Parameter overfitting and repeated selection on out-of-sample data.
 
-Quando lo storico non consente di determinare un fill, adottare una convenzione dichiarata e conservativa oppure richiedere dati più granulari.
+When historical data cannot determine a fill, adopt a declared, conservative convention or require more granular data.
 
-## Report minimo
+## Minimum report
 
-Ogni report contiene versione, fonti, ipotesi, dataset, finestre, modello dei costi, baseline, rendimento lordo/netto, curva del capitale, drawdown, numero di trade, turnover, esposizione e distribuzione dei risultati. Riporta metriche di rendimento aggiustato per il rischio solo con convenzioni e frequenza esplicite; segnala campioni insufficienti e concentrazione del risultato in pochi trade.
+Every report contains the version, sources, assumptions, dataset, windows, cost model, baseline, gross/net returns, equity curve, drawdown, trade count, turnover, exposure, and result distribution. Include risk-adjusted return metrics only with explicit conventions and frequency; flag insufficient samples and results concentrated in a few trades.
 
-Includere operazioni consultabili, confronto tra sviluppo e fuori campione, stress test, limiti e motivazione della proposta del validatore. Salvare i valori calcolati dal motore: il modello li commenta senza ricostruirli dal testo.
+Include inspectable trades, development versus out-of-sample comparisons, stress tests, limitations, and the validator's proposal rationale. Store values calculated by the engine: the model comments on them without reconstructing them from text.
 
-## Criteri di promozione
+## Promotion criteria
 
-Le soglie numeriche dipendono da mercato, strategia e mandato e restano da definire prima dei test. La promozione richiede comunque correttezza delle regole, dati adeguati, risultati riproducibili al netto dei costi, evidenze fuori campione, robustezza e assenza di criticità irrisolte.
+Numerical thresholds depend on the market, strategy, and mandate and must be defined before tests. Promotion nevertheless requires correct rules, suitable data, reproducible results net of costs, out-of-sample evidence, robustness, and no unresolved critical issues.
 
-Per il passaggio paper → live, definire in anticipo durata o numero minimo di osservazioni, tolleranze tra comportamento atteso e osservato, requisiti di latenza e affidabilità. Verificare anche riconciliazione, limiti, interruzioni, restart e procedura di arresto. Non promuovere automaticamente una strategia per il solo rendimento.
+For paper → live promotion, define duration or minimum observation count, tolerances between expected and observed behavior, and latency and reliability requirements in advance. Also verify reconciliation, limits, interruptions, restarts, and shutdown procedures. Do not automatically promote a strategy based on returns alone.

@@ -54,7 +54,7 @@ Recommended dependency order: register identities and provenance before communit
 | --- | --- |
 | Python runtime, stable NautilusTrader version, platform and adapters | Engine integration |
 | First instruments/data providers, Alpaca/Liquid account capabilities, connector order and engine adapters | Corresponding data/paper/live phase |
-| TUI library, LLM providers, structured output support, model budgets | TUI/research implementation |
+| TUI library, LLM providers, structured output support, user-approved job budgets (meaning explained; values unconfirmed) | TUI/research implementation |
 | Public ID length, internal keys, canonical format, physical schema/migrations | Registry implementation |
 | Supabase provisioning and project plan (organization/Frankfurt region selected), OAuth provider/callback/session configuration, API access, RLS, hosting, secure session storage and online outage handling | Shared service release |
 | Generated-code isolation and resource/network restrictions | Executing user/model code |
@@ -83,3 +83,9 @@ There is no target release date. Release follows extensive testing rather than t
 The product is online-only, English-only and private-source. Start client support with Linux and macOS; retain eventual support for all OSes. Use an agent chat and explicit slash commands with strategy, ongoing/completed test and actual-position panels. Onboarding covers model selection/configuration, browser-based hosted login and optional trading connections. Use NVIDIA NIM deepseek-ai/deepseek-v4.1-flash during development/testing, with multiple user-selectable providers in the product.
 
 The service fee target is 0.5% per opening trade with a $1 cap. The charge basis and event grouping are not defined; no billing is implemented. See [commercial requirements](commercial-model.md) and [Supabase setup](supabase-setup.md) for outstanding dependencies.
+
+## Local-runtime and commercial refinements
+
+Research/trading compute runs on users' computers; shared auth/catalog/billing remains online. Users bring model API keys. Google and GitHub login are selected, but hosted-login deployment/domain is not. Liquid is the first connector. Research follows one plan approval with ambiguity questions; live operation follows its own configuration/permission and provider restrictions. TUI exit offers keeping positions or requesting closure of all positions; background-worker and pending-order semantics remain unresolved. Opening-order fees exclude reinforcement of existing positions.
+
+See [research and release proposals](research-and-release-proposals.md) for payment choices, first data options, job-budget explanations and proposed testing gates. These proposals are not confirmed defaults.

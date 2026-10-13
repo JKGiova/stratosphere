@@ -20,9 +20,9 @@ The connector's get_cost call returned UNAVAILABLE: the server did not expose th
 2. Finalize registry canonicalization and schema contracts; implement versioned migrations for profiles, strategies, source snapshots/associations, submissions, datasets, implementations, experiment runs, jobs/checkpoints/interventions, assessments and personal instances.
 3. Add private provider connections, operational ledger and billing records when their contracts are defined. Do not store plaintext credentials in flexible profile data.
 4. Define least-privilege grants and tested RLS/ownership policies before exposing application tables; distinguish catalog reads from private records and privileged service writes.
-5. Select OAuth login providers and register their applications. Set the hosted login domain and exact redirect/callback flow; verify PKCE/state, secure credential persistence, refresh, expiry and revocation on Linux/macOS.
+5. Register the selected Google and GitHub OAuth applications. Set the hosted login domain and exact redirect/callback flow; verify PKCE/state, secure credential persistence, refresh, expiry and revocation on Linux/macOS.
 6. Select API/service hosting and the client access boundary. Do not distribute privileged keys or assume the database provides an application login page or research/trading workers.
 7. Decide artifact storage, retention, backups and observability. Storage, Realtime and Edge Functions are not implicitly selected.
 8. Test user isolation, duplicate registration races, source accumulation, login without trading accounts, outages and migration reproducibility. Record implementation status and actual results.
 
-The region and organization are settled. OAuth providers, hosting, access boundary, project budget and remaining record contracts are still open.
+The region and organization are settled. Google and GitHub OAuth providers are also selected. Hosted-login domain/deployment, access boundary, project budget and remaining record contracts are still open.

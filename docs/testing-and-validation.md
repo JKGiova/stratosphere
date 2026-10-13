@@ -77,3 +77,7 @@ Verify that budget proposals and risk-agent assessments cannot bypass determinis
 The first public/commercial release follows extensive testing without a fixed deadline. Define measurable release gates rather than interpreting a successful internal demo as release readiness. Testing must cover all five Phase 1 sources, converted strategy behavior, Linux/macOS onboarding, online outages, user isolation, research repeatability and eventual paper/live recovery. Required durations, samples and operating thresholds remain open.
 
 When the commercial fee policy is finalized, include the stratosphere opening-trade fee in appropriate cost models, separately from broker charges. The target is 0.5% per opening trade, capped at $1, but fee basis and grouping have not been approved.
+
+## Release-gate discussion
+
+The user requested clarification of release gates rather than approving numerical thresholds. The [research and release proposals](research-and-release-proposals.md) suggest an initial 30-day paper stability exercise, representative source/client tests, behavior conformance, reproducibility, security/billing checks and crash/reconnect/exit scenarios. The duration and specific criteria remain proposals, and operational stability does not establish a strategy's profitability or authorize live trading.

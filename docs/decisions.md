@@ -39,6 +39,14 @@ Last updated: October 13, 2026. This file records product decisions from the pla
 | D31 | No application-imposed upload size/type/count limits requested | Do not silently add product quotas; actual provider, infrastructure and format capabilities must be verified and reported |
 | D32 | Develop runnable strategies for NautilusTrader; convert externally authored strategies | Conversion must preserve behavior or surface unresolved differences; engine selection does not replace application-owned strategy generation |
 | D33 | Create a dedicated stratosphere Supabase project in Matti Barbershop, Frankfurt (eu-central-1) | User selected organization and region; cost-check capability currently blocks provisioning; unrelated mattibarbershop project must not be modified |
+| D34 | Fee is based on opening-order trade value, not profit; existing-position increases are exempt | Cap applies per opening order; partial fills, reversals, cross-strategy position attribution and rounding need explicit handling |
+| D35 | Research and trading compute runs on users' computers | Shared online services still provide auth/catalog/billing; local runtime cannot operate while its host is off |
+| D36 | On TUI exit, offer keeping positions or requesting closure of all positions | Background management, pending orders and shutdown completion still need explicit policies |
+| D37 | Research proceeds after one plan approval and asks questions for ambiguities | Per-job spend/runtime/search budgets remain undecided; research approval does not authorize live trading |
+| D38 | Google and GitHub OAuth login; users provide their own model API keys | User has no hosted-login domain yet; provider app registration and secure key storage remain open |
+| D39 | Liquid is the first operational connector | Alpaca remains optional later; custom-client permissions, engine adapter and execution capability must be verified |
+| D40 | Live approval behavior depends on configuration or explicit permission | Per-order review and mandate-based modes are intended; provider-required confirmations remain binding |
+
 
 
 D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently refined the same day to select Supabase as the managed PostgreSQL platform. D17–D19 were then confirmed to separate application authentication from optional operational connectors. The other entries summarize the product requirements and registry model developed in the preceding discussion.
@@ -53,7 +61,7 @@ D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently 
 - Semantic candidate search followed by conservative exact-spec comparison.
 - A later optional VectorBT research accelerator and optional Quiver alternative-data connector.
 - The slash command vocabulary in the [TUI plan](terminal-interface.md).
-- Google/GitHub as initial OAuth provider candidates; neither is individually confirmed yet.
+- Google and GitHub OAuth providers are now confirmed; hosted-login deployment and terminal callback details remain implementation decisions.
 - Connection fields and account/environment authorization boundaries in the [authentication plan](authentication-and-connectors.md).
 
 Automatic strategy sharing does not grant permission to publish secrets, account state, private conversations, personal configuration, or third-party material without appropriate rights. Define a publishable strategy projection and ingestion notices before launch.
@@ -76,4 +84,4 @@ Do not reopen confirmed choices as if undecided. When a new proposal changes a c
 
 ## Planning refinement status
 
-D20–D33 reflect the subsequent roadmap discussion on October 13, 2026. No application functionality, billing collection or Supabase configuration is implemented. The repository was verified private. NVIDIA model catalog availability was verified against [NVIDIA NIM](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash); actual calls remain untested.
+D20–D33 reflect the subsequent roadmap discussion on October 13, 2026. No application functionality, billing collection or Supabase configuration is implemented. The repository was verified private. D34–D40 record the next answer batch; payment collection, first market/data and numerical release/job criteria remain open. NVIDIA model catalog availability was verified against [NVIDIA NIM](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash); actual calls remain untested.

@@ -78,3 +78,7 @@ Chats, source access credentials, account details, and personal mandates are not
 Use an English-only online TUI inspired by the conversational terminal experience of Claude Code and Codex. Linux and macOS are the first supported clients; all operating systems remain the longer-term goal. Alongside chat and forced slash-command operations, expose panels for opening strategies, ongoing/completed tests and actual trading positions. These surfaces are required rather than tentative.
 
 First-run onboarding configures the user's selected model/provider, hosted browser login and trading connections. Trading connections remain optional; offer an explicit skip choice for research without a broker. No offline functionality is planned. Hosted login deployment, OAuth provider and terminal callback details still need decisions.
+
+## Confirmed execution and onboarding refinements
+
+Users provide their own model API keys. Google and GitHub are selected for browser login; no hosted-login domain exists yet. Research executes an approved plan and asks clarifying questions when needed. Execution uses separate configured permissions. On TUI exit, users choose keeping positions or requesting closure of all positions. The meaning of continued background management and the handling of pending orders remain open.

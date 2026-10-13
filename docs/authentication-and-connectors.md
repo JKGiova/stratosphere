@@ -10,7 +10,7 @@ Last updated: October 13, 2026. This is a plan, not an implemented integration.
 - Account linking does not activate live trading.
 - Execution follows budget management, risk valuation, deterministic checks, and the controlled gateway.
 
-Google and GitHub are proposed initial login providers, not individually confirmed selections. Do not interpret “Supabase OAuth” as a requirement to build a proprietary OAuth authorization server.
+Google and GitHub are confirmed initial login providers. Do not interpret “Supabase OAuth” as a requirement to build a proprietary OAuth authorization server.
 
 ## Three independent authorities
 
@@ -123,4 +123,8 @@ Supabase Auth selection does not select Supabase Storage, Realtime, or Edge Func
 
 ## Confirmed onboarding and provisioning target
 
-First-run onboarding covers model configuration, hosted browser login and optional trading connections. Login provider selection and hosting/callback configuration remain open. Connection setup may be skipped, preserving research use without a broker. The user selected a dedicated stratosphere project in Matti Barbershop, Frankfurt (eu-central-1); provisioning is blocked by the unavailable connector cost-check capability. No project or auth settings have been created. See [Supabase setup](supabase-setup.md).
+First-run onboarding covers model configuration, hosted browser login and optional trading connections. Google and GitHub are selected; hosted-login domain, deployment and callback configuration remain open. Connection setup may be skipped, preserving research use without a broker. The user selected a dedicated stratosphere project in Matti Barbershop, Frankfurt (eu-central-1); provisioning is blocked by the unavailable connector cost-check capability. No project or auth settings have been created. See [Supabase setup](supabase-setup.md).
+
+## First connector and execution modes
+
+Liquid is the first operational connector; Alpaca follows later. The product should offer configured mandate-based operation or explicit order approval, subject to provider capabilities. [Liquid Co-Invest documentation](https://www.liquid.trade/coinvest-docs), reviewed October 13, 2026, distinguishes standard confirmation-based execution from Co-Invest Computer simulation/staged/live modes. Those documented modes do not prove stratosphere custom-client automation or a NautilusTrader adapter. Preserve provider confirmations and verify the applicable integration before promising unattended operation.

@@ -63,3 +63,7 @@ Budget management and risk valuation run before execution. Keep a single authori
 Liquid perpetual exposure to an equity/FX reference is not ownership of the underlying security or currency and is not interchangeable with an equity/ETF broker instrument. Verify funding, margin, liquidation, sessions, and historical price semantics for the actual instrument. Provider capability and confirmation requirements are hard constraints, not prompts agents can override.
 
 Exact Alpaca/Liquid API integration, native versus custom NautilusTrader adapters, paper support, and unattended execution compatibility remain to be verified. Selecting these connectors in the plan does not configure them or authorize orders. See [authentication and connectors](authentication-and-connectors.md).
+
+## Latest confirmed operating decisions
+
+Liquid is the first connector. Execution uses configuration or explicit permission, subject to provider confirmations. The runtime operates on the user's computer. On TUI exit, users choose retaining positions or requesting closure of all positions; whether retaining positions keeps a background worker running remains unresolved. A computer shutdown stops local runtime logic. Specify and test pending-order handling and actual residual exposure rather than treating exit as guaranteed liquidation.

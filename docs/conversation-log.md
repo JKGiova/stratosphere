@@ -1195,3 +1195,77 @@ Your Supabase target is now **stratosphere → Matti Barbershop → Frankfurt**.
 The remaining catalog, retention, operational, and development questions stay open in the saved questionnaire. Once planning is complete, I’ll list every `AGENTS.md` rule and identify the agreed additions.
 
 ---
+
+### 073 — User
+
+1. yeah, per opening order, not on profit and not on already opened positions that are being renforced
+2. idk propose me some options
+3. on their computer, when they close the tui they can choose to keep positions or to close them all,
+4. one approval, yeah questions are good, idk wym
+5. both, nope, yep
+6. i havent got anything, lets talk bout that
+7. liquid, based on configs or a permission
+8. idk wym
+
+---
+
+### 074 — Assistant (progress update)
+
+I’ll record these answers, then explain payment collection, job budgets, and release testing in concrete terms. I’ll also research initial market-data options and check Liquid’s capabilities against the fee and execution model you’ve chosen.
+
+---
+
+### 075 — Assistant (progress update)
+
+Your fee rule is now clear: charge an order that opens a new position, with no fee for adding to an existing position. I’ll also record local compute, one approved research plan, Google/GitHub login, user-provided model keys, and Liquid first.
+
+Two details affect the design: keeping positions open may mean continuing to manage them in a background process, and Liquid’s standard connection requires trade confirmation. I’ll distinguish those choices from capabilities we still need to verify.
+
+---
+
+### 076 — Assistant (response)
+
+Recorded: **local compute, Google/GitHub login, users’ own model keys, Liquid first, one research-plan approval, and questions when rules are unclear**.
+
+Your fee is `min(0.5% × opening-order value, $1)`: a $100 opening costs $0.50; a $1,000 opening costs $1. Adding to an existing position has no stratosphere fee. Reversals, partial fills, and positions shared by multiple strategies still need precise accounting rules.
+
+**For collecting those fees, I’d consider three options:**
+
+| Option | How it works | Main tradeoff |
+| --- | --- | --- |
+| Prepaid fee credits | Users buy, for example, $10 of service credits; each eligible opening deducts its fee | Avoids unpaid invoices, but requires upfront payment |
+| Aggregated billing | Record each fee and collect the total periodically | Easier onboarding, but payments can fail after trading |
+| Venue-supported collection | Collect through the trading provider, if it supports our exact pricing | Convenient, but Liquid support for this fee policy is unverified |
+
+**My proposal is prepaid fee credits**, separate from trading funds, with optional automatic top-ups. We would still account for fees per order; the payment transaction buys credits in bulk. Small individual card charges are awkward: Stripe documents a $0.50 USD minimum. Stripe is a candidate, pending eligibility and integration checks. [Stripe payment limits](https://docs.stripe.com/currencies), [invoicing](https://docs.stripe.com/invoicing).
+
+**About closing the TUI:** I suggest “keep positions” leaves a local background worker managing them, while “close all” requests closure and reports any remaining exposure. That worker can run while the computer is on and connected. If the computer shuts down, local strategy logic stops; any protection must come from orders already accepted by the venue.
+
+Liquid’s standard Co-Invest flow requires explicit confirmation. Its Computer flow documents configured execution modes, but we still need to verify which mode our application can use. [Liquid execution documentation](https://www.liquid.trade/coinvest-docs).
+
+**For market data, my proposed first engineering test is BTC and ETH with one-hour candles.**
+
+- **Binance public archives:** downloadable historical candles and trades, suitable for a reproducible engine/data proof. [Official archive documentation](https://github.com/binance/binance-public-data).
+- **Liquid’s actual execution venue:** verify historical prices, funding and instrument definitions before paper/live validation. A Binance spot backtest cannot establish results for a Liquid perpetual instrument.
+- **Equities alternative:** Alpaca offers historical data; its free live stock feed covers IEX, while broader SIP coverage has different access conditions. [Alpaca data documentation](https://docs.alpaca.markets/us/docs/market-data-faq).
+
+This first dataset tests the machinery; it doesn’t narrow the multi-market product or delay the five Phase 1 source integrations.
+
+**By “job budgets,” I mean a user’s chosen stopping point:** for example, “spend at most $2 on model calls, try 20 variants, then show me the results.” These are per-job controls over their money and computer time. My proposal is to show the limits in the research plan and pause for a new approval before increasing them.
+
+**By “testing gates,” I mean evidence required before selling the product.** I propose:
+
+- Linux/macOS onboarding and all five source integrations pass representative cases.
+- Converted strategies follow their specified rules; backtests repeat with the same inputs and costs.
+- Account isolation, fee caps, partial fills and retry handling pass checks.
+- Paper operation survives crashes, reconnections and keep/close exit scenarios.
+- An initial 30-day paper trial and invited-user testing finish without unresolved critical failures. Thirty days is an initial stability proposal; strategy validation needs its own evidence criteria.
+
+**Which choices do you want?**
+
+1. Prepaid credits, aggregated billing, or investigate venue collection first?
+2. Start the engineering tests with BTC/ETH hourly data, or prioritize equities/forex?
+3. Should “keep positions” keep the background worker running, or stop management and leave positions at the venue?
+4. Shall I draft configurable job budgets and the testing criteria above for review?
+
+---

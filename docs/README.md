@@ -34,3 +34,5 @@ This directory contains the initial plan for **stratosphere**, the component of 
 See [planning questions](planning-questions.md) for the numbered questionnaire covering decisions not yet settled. The first answer batch is recorded in decisions.md (D20–D33). Unanswered questions remain open.
 
 Additional planning records: [commercial model](commercial-model.md) and [Supabase setup](supabase-setup.md).
+
+See [research and release proposals](research-and-release-proposals.md) for the next payment/data/operation choices and explanations of research budgets and release gates.

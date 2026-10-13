@@ -44,3 +44,11 @@ Stale data, reconciliation errors, limit violations, and provider anomalies bloc
 ## Observability
 
 The operational view shows capital, exposures, positions, orders, realized/unrealized P&L, strategy contributions, model and service health, utilized limits, and block reasons. Every order is linked to signals, the portfolio proposal, checks, and fills. Alerts include a clear operational action and a verifiable record.
+
+## Terminal control and holding horizon
+
+Operate through the permanent TUI and shared application operations. Chief-agent chat may request portfolio actions, but research job controls do not bypass live authorization or silently change active strategy definitions. Display target job/instance, scope, and resulting state for each intervention.
+
+Short-term trading includes overnight and multi-day positions. A week-long position is allowed if its strategy and mandate allow it; no universal day-end closure applies. An instrument's session ending is distinct from a strategy exit. Model calendars, financing, funding, margin, and provider restrictions as applicable.
+
+The PostgreSQL registry holds shared strategy definitions; personal instances pin strategy identity and implementation, selected instruments, account reference, capital, and limits. Changing personal capital/account does not create a strategy. Changing behavioral sizing or exit rules does. Credentials, account details, chats, personal limits, and raw live records are not automatically published with the strategy.

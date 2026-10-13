@@ -2,7 +2,7 @@
 
 This directory contains the initial plan for **stratosphere**, the component of the **tradingsphere** suite dedicated to agent-driven quantitative strategies.
 
-**Status:** initial proposal, October 12, 2026. No application functionality has been implemented yet. Product requirements come from the project vision; the architecture, phase ordering, and operational criteria are proposals to develop and verify.
+**Status:** planning update, October 13, 2026. No application functionality has been implemented yet. The [decision log](decisions.md) records confirmed product and technology choices. Detailed schema, component boundaries, phase ordering, and operational criteria remain implementation proposals unless explicitly marked confirmed.
 
 ## Reading order
 
@@ -11,7 +11,11 @@ This directory contains the initial plan for **stratosphere**, the component of 
 3. [Sources and strategy lifecycle](strategy-lifecycle.md): how to turn content into versioned strategies.
 4. [Data and validation](testing-and-validation.md): how to produce comparable evidence.
 5. [Portfolio and execution](portfolio-and-execution.md): how to move from signals to live positions.
-6. [Roadmap and decisions](roadmap.md): what to build first and what remains open.
+6. [Database model](database-model.md): tables, fields, identity, provenance, and evidence.
+7. [Terminal interface](terminal-interface.md): chat, slash commands, and workflow intervention.
+8. [Community catalog](community-catalog.md): automatic sharing and evidence-based recommendations.
+9. [Decision log](decisions.md): confirmed decisions versus proposals and open items.
+10. [Roadmap](roadmap.md): implementation phases and completion criteria.
 
 ## Maintaining the plan
 

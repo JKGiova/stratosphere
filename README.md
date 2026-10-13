@@ -8,10 +8,23 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 ## Project status
 
-**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives; the technology stack, markets, and first broker remain to be selected.
+**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives. Python, LangGraph, PostgreSQL, and NautilusTrader have been selected. Runtime versions, provider adapters, deployment, and the first broker still require verification and selection.
+
+## Confirmed direction
+
+- **Permanent terminal interface:** a TUI with a chief-agent chat and slash commands; no planned migration to a web UI.
+- **Short-term, multi-market strategies:** crypto, equities/ETFs, and forex. Positions may remain open for days or a week; there is no mandatory daily liquidation.
+- **Python + LangGraph:** backend and agent orchestration.
+- **NautilusTrader:** selected backtesting and execution engine, subject to version and adapter verification.
+- **PostgreSQL:** shared strategy registry, provenance, experiments, and user-specific configuration.
+- **Automatic community sharing:** registered strategies enter the shared catalog, with exact deduplication and distinct IDs for even small rule changes.
+
+The [decision log](docs/decisions.md) separates confirmed choices from implementation proposals and open questions.
 
 ## Planned capabilities
 
+- Collaborate with a chief agent in the TUI, intervene in research workflows, and invoke the same operations through slash commands.
+- Discover evidence-backed community strategy recommendations and use existing strategies as starting points.
 - Import sources and preserve references to the evidence behind extracted rules.
 - Create, modify, and improve strategies through specialized agents.
 - Version strategy specifications and implementations, with explicit assumptions and parameters.
@@ -42,11 +55,15 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Sources and strategy lifecycle](docs/strategy-lifecycle.md) | Importing, specifications, versions, and improvements |
 | [Data and validation](docs/testing-and-validation.md) | Backtests, live evaluation, and promotion criteria |
 | [Portfolio and execution](docs/portfolio-and-execution.md) | Allocation, positions, risk, and orders |
-| [Roadmap and decisions](docs/roadmap.md) | MVP, subsequent phases, and open decisions |
+| [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
+| [Terminal interface](docs/terminal-interface.md) | Chief-agent chat, slash commands, jobs, and user intervention |
+| [Community catalog](docs/community-catalog.md) | Automatic sharing, recommendations, provenance, and reuse |
+| [Decision log](docs/decisions.md) | Confirmed decisions, proposals, and unresolved details |
+| [Roadmap](docs/roadmap.md) | MVP, subsequent phases, and completion criteria |
 
 ## First development objective
 
-Complete a reproducible workflow from **article or user-provided text → specification → executable strategy → backtest → report**, using one market and one data format. Multimedia integrations, paper trading, and live execution follow in the phases defined in the [roadmap](docs/roadmap.md).
+Complete a reproducible workflow from **article or user-provided text → specification → executable strategy → backtest → report**, using one initial verified dataset/provider integration inside a multi-market architecture. Include the TUI and shared strategy registration; the first integration does not restrict the product to one asset class. Multimedia integrations, paper trading, and live execution follow in the phases defined in the [roadmap](docs/roadmap.md).
 
 ## Development conventions
 

@@ -53,3 +53,13 @@ Include inspectable trades, development versus out-of-sample comparisons, stress
 Numerical thresholds depend on the market, strategy, and mandate and must be defined before tests. Promotion nevertheless requires correct rules, suitable data, reproducible results net of costs, out-of-sample evidence, robustness, and no unresolved critical issues.
 
 For paper → live promotion, define duration or minimum observation count, tolerances between expected and observed behavior, and latency and reliability requirements in advance. Also verify reconciliation, limits, interruptions, restarts, and shutdown procedures. Do not automatically promote a strategy based on returns alone.
+
+## Shared evidence and short-term multi-market testing
+
+Store each run independently with its strategy identity, exact implementation, data snapshot, engine version, cost assumptions, instruments, and evaluation protocol. Reusing an existing strategy permits retrieving past runs, not assigning their returns to a different asset, timeframe, provider, or configuration.
+
+Short-term tests must allow overnight and multi-day holdings when the rules allow them. Do not automatically liquidate at a session boundary. Apply session calendars, corporate actions, funding, financing, and overnight gaps where relevant, and explicitly test holding policies.
+
+Record observed regime suitability in findings with regime definitions, samples, windows, and limitations. Recommendations must distinguish reproducible backtests, observed paper results, and verified live evidence. Missing verification or short samples must remain visible; shared registration is not a validation badge.
+
+Optional alternative-data sources such as Quiver require publication/availability timestamps and snapshot retention. Transaction dates alone must not grant earlier knowledge to the backtest. Dataset access, licenses, and freshness remain connector-specific decisions.

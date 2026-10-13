@@ -31,6 +31,22 @@ Before implementation, describe:
 
 Ambiguities that change behavior must be resolved by the user or recorded as explicit assumptions in a variant. Imported logic and proposed modifications remain comparable.
 
+## Identity and provenance
+
+A strategy is an exact, immutable behavioral specification. Assign a long random numeric public ID, an explanatory name, a readable description, structured rules, and a mathematical definition where meaningful. The name and prose are not its identity.
+
+Compare candidate submissions using complete specifications. Similarity search can shortlist candidates but cannot merge them. Canonicalization may remove representational differences; it must not round parameters, drop timing, infer missing exits, or approximate equivalence. If identity cannot be established, keep separate records or an unresolved draft. Only complete canonical specifications are eligible for exact deduplication.
+
+A matching submission reuses the existing strategy and creates a submission record and source association. Preserve the new source snapshot and evidence for its rules without overwriting the old source. Even a small rule/parameter change creates a new strategy ID linked to its parent. Registered strategies are automatically included in the shared catalog; publication is not an opt-in step.
+
+See the [database model](database-model.md) for fields and concurrent registration requirements.
+
+## Conditions and applicability
+
+Mandatory market filters, instrument constraints, timeframes, and indicator parameters belong to the strategy specification. Observed strengths in particular regimes belong to experiment evidence. User preferences and account limits belong to personal configuration. Current volatility, spread, liquidity, and trend belong to a timestamped market snapshot.
+
+Agents retrieve stored rules and evidence, then reevaluate compatibility and current applicability. Do not deduce everything afresh or treat a successful historical regime as a permanent guarantee. Adding a mandatory filter is a new strategy; recording a new empirical finding is not.
+
 ## States and promotion
 
 | State | Meaning | Requirement to advance |
@@ -41,13 +57,13 @@ Ambiguities that change behavior must be resolved by the user or recorded as exp
 | Under evaluation | Experiments and variants | Out-of-sample evidence and satisfied criteria |
 | Validated | Frozen candidate version | Live evaluation configuration |
 | Paper | Live observation or simulated capital | Paper requirements and operational readiness satisfied |
-| Live | Version activated on a live account | Continuous monitoring within the mandate |
+| Live | Implementation activated in a user's instance on a live account | Continuous monitoring within the mandate |
 | Suspended / retired | New signals disabled | Review and renewed enablement where applicable |
 
-A negative outcome keeps the version in research or retires it; it does not require searching for parameters until the test passes. Suspending signals does not automatically liquidate positions: operational policy separately defines what happens to existing exposure.
+These states describe candidate implementations and user deployments, not a global assertion that all users are live. Catalog visibility and validation are separate. A negative outcome keeps the version in research or retires it; it does not require searching for parameters until the test passes. Suspending signals does not automatically liquidate positions: operational policy separately defines what happens to existing exposure.
 
 ## Modification and improvement
 
-Every change to rules, parameters, or dependencies creates a new version with a parent, rationale, and differences. The active version remains immutable. The improvement workflow formulates a hypothesis, establishes a budget and protocol, generates variants, and compares results without repeatedly reusing the final holdout to select the best one.
+Every behavioral change to rules, parameters, or mandatory constraints creates a new strategy identity, with a parent, rationale, and differences. A code/dependency revision that preserves the same specification is a separate implementation version under the existing identity, and must prove conformance again. If its behavior changes, it is not merely an implementation revision. Active implementations remain pinned and immutable. The improvement workflow formulates a hypothesis, establishes a budget and protocol, generates variants, and compares results without repeatedly reusing the final holdout to select the best one.
 
 Retain failed experiments, rejected variants, and the number of attempts. Moving to a new live version requires a new validation path and a plan for positions already open.

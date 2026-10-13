@@ -1,59 +1,70 @@
-# Roadmap and open decisions
+# Roadmap and open implementation decisions
+
+Last updated: October 13, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. All application phases are **not implemented**; only documentation exists.
+
+## Selected foundation
+
+Python, LangGraph, PostgreSQL, NautilusTrader, and the permanent terminal TUI are confirmed. Crypto, equities/ETFs, and forex are product scope, with short-term strategies that may hold positions overnight or for days/a week. Registered strategy definitions are automatically shared.
+
+See the [decision log](decisions.md) for confirmed requirements and remaining proposals. Do not treat interface, framework, database, or automatic sharing as undecided.
 
 ## Proposed phases
 
-Phases describe dependencies and verifiable outcomes, not delivery dates. All phases are currently **not implemented**; only the initial documentation has been created.
-
 | Phase | Scope | Completion criterion |
 | --- | --- | --- |
-| 0 — Foundations | Select the first market, data, stack, and contracts | Justified decisions, an example specification, and a defined testing protocol |
-| 1 — Research MVP | Text/article → extraction → specification → code → backtest → report | One reproducible end-to-end case with rule evidence, costs, and logs |
-| 2 — Iterative research | Versions, modifications, variants, and out-of-sample validation | Reproducible comparisons and tracking of all attempts within a budget |
-| 3 — External sources | YouTube, Instagram, X, TradingView, and GitHub | Individually verified connectors, preserved provenance, and explicit access limitations |
-| 4 — Live data and paper | Feeds, signals, simulated portfolio, and first paper adapter | Sustained operation with reconciliation, restarts, and anomaly handling |
-| 5 — Live trading | First live provider, mandate, checks, and position management | Verifiable activation and completed idempotency, risk, and shutdown checks |
-| 6 — Evolution | Multiple strategies/providers, drift monitoring, and continuous improvement | Consistent aggregate portfolio and controlled promotion of new versions |
+| 0 — Compatibility and contracts | Select runtime/engine versions, first test adapters/data, TUI library, canonical spec, and access boundary | Verified compatibility matrix and example strategy/data protocol |
+| 1 — TUI and shared registry | Chief-agent chat, common operation layer, initial commands, PostgreSQL registration and source links | Exact duplicate/source accumulation, distinct variants, automatic catalog inclusion, and private-data boundary tested |
+| 2 — Research MVP | Text/article → specification → conforming implementation → NautilusTrader backtest → report | Reproducible end-to-end case with costs, rule evidence, immutable references, and user intervention |
+| 3 — Iteration and recommendations | Bounded variants, out-of-sample validation, evidence-aware catalog recommendations, dated applicability | All attempts retained; recommendations distinguish compatibility, empirical evidence, and current context |
+| 4 — External sources and market coverage | YouTube, Instagram, X, TradingView, GitHub; progressively verified crypto/equity/ETF/forex data integrations | Source provenance, access limits, behavioral conversion checks, and capability-based routing tested |
+| 5 — Live data and paper | Feed/runtime, portfolio proposals, paper adapter, personal instances | Sustained operation with restart/reconciliation tests and overnight/multi-day holding checks |
+| 6 — Live execution | Stable verified engine/adapters, mandate, risk checks, order gateway | Explicit activation plus idempotency, partial-fill, outage, risk, and shutdown acceptance tests |
+| 7 — Operational evolution | Broader adapters, attribution, drift monitoring, controlled implementation promotion | Consistent aggregate portfolio and no silent changes to pinned user deployments |
 
-## MVP: concrete scope
+An initial integration verifies the workflow; it does not restrict product scope to that market. Do not claim all markets are live-ready until their data, instruments, and broker adapters are verified.
 
-Support one textual source or accessible article, one market, one historical data format, and one backtesting engine. Allow specification review before generation, isolated execution, and a report with trades and complete configuration.
+## First usable increment
 
-The first example must be simple and chosen to verify rules: explicit entry and exit conditions, limited parameters, and checkable expected cases. Verification covers specification/code alignment, signal timing, cost calculation, handling of data gaps, and repeatability. The criterion does not require the example to be profitable.
+Provide the TUI and chief-agent interaction, a shared registry, one accessible textual source, a complete strategy specification, one verified historical dataset integration, isolated code execution, and a reproducible report.
 
-## Future code structure
+The example strategy should have explicit entry/exit rules and limited parameters. Test specification/code alignment, signal timing, costs, missing data, repeatability, exact deduplication, small variants, source accumulation, and job intervention. Profitability is not a completion requirement.
 
-This proposal should be adapted after choosing the stack. Only README files, documentation, and repository development instructions currently exist.
+Recommended dependency order: register identities and provenance before community ranking; validate paper operations before real orders. Detailed scheduling is a proposal and may be refined.
 
-| Proposed logical area | Responsibility |
+## Proposed code areas
+
+| Area | Responsibility |
 | --- | --- |
-| app | User interface, onboarding, and configuration |
-| agents | Roles, prompts, orchestration, and tools |
-| sources | Connectors and source normalization |
-| strategies | Specifications, versions, and signal runtime |
-| data | Historical data, live feeds, and quality |
-| research | Runner, experiments, backtests, and reports |
-| portfolio | Allocation, ledger, and position attribution |
-| risk | Mandate and deterministic checks |
-| execution | Paper/live adapters, orders, and reconciliation |
-| tests / examples | Meaningful checks and reproducible cases |
+| tui / commands | Permanent terminal interface, chat, forms, and slash command routing |
+| operations | Shared validated actions used by agents and manual commands |
+| agents / workflows | LangGraph chief agent, specialist roles, checkpoints, and budgets |
+| sources | Acquisition, snapshots, and evidence maps |
+| registry | PostgreSQL identities, canonicalization, provenance, and submissions |
+| catalog | Shared discovery, recommendations, and publication projections |
+| strategies | Formal specs, conforming implementations, and signal logic |
+| data / research | Data quality, snapshots, workers, NautilusTrader tests, and reports |
+| portfolio / risk | Allocation, personal instances, deterministic controls, and attribution |
+| execution | Engine adapters, order handling, reconciliation, and lifecycle |
+| tests / examples | Conformance, integration, restart, deduplication, and reproducible cases |
 
-## Open decisions
+## Open details
 
-| Decision | Why it matters | When to resolve it |
-| --- | --- | --- |
-| First market and instruments | Determine data, costs, sessions, and order semantics | Phase 0 |
-| Initial interface: CLI, web, or desktop | Determines onboarding and the review workflow | Phase 0 |
-| Language and runtime version | Compatibility with engines, providers, and quant libraries | Phase 0 |
-| Agent framework and models | Tool calling, structured outputs, checkpoints, and costs | Phase 0 |
-| Historical provider and backtesting engine | Coverage, quality, licensing, and reproducibility | Phase 0 |
-| Storage, jobs, and hosting | Experiment persistence and isolation | Phases 0–1 |
-| Validation thresholds and research budget | Avoid criteria chosen after seeing results | Before experiments |
-| Video and social content retrieval | Accessibility, credentials, transcription, and vision | Before each connector |
-| Live feed and first broker/exchange | Paper trading, orders, limits, and reconciliation | Before phase 4 |
-| Allocation method and strategy conflicts | Translate signals into consistent exposures | Before phase 4 |
-| Mandate and operational approval | Define autonomy, limits, and shutdown actions | Before phase 5 |
-| API to tradingsphere | Shared identities and exchange of results/signals | When the first integration is needed |
+| Detail | Required before |
+| --- | --- |
+| Python runtime, stable NautilusTrader version, platform and adapters | Engine integration |
+| First instruments, historical/live providers, broker/exchange | Corresponding data/paper/live phase |
+| TUI library, LLM providers, structured output support, model budgets | TUI/research implementation |
+| Public ID length, internal keys, canonical format, physical schema/migrations | Registry implementation |
+| Catalog hosting/API, authentication, local persistence, outages | Shared service release |
+| Generated-code isolation and resource/network restrictions | Executing user/model code |
+| Ranking weights, verified evidence, moderation and source-use policy | Community recommendation release |
+| Private/public evidence projection and deletion/retention | Catalog release |
+| Validation thresholds, portfolio allocation, netting and risk mandate | Experiments/paper/live as applicable |
+| Activation confirmations, permissions and emergency behavior | Live execution |
+| APIs to other tradingsphere components | First suite integration |
 
 ## Next step
 
-Define the first market, interface, and stack; then formalize an example strategy and the data contract. These choices make phase 1 implementable without prematurely enabling live execution or building all integrations at once.
+Run a compatibility proof for selected Python/NautilusTrader versions and one data integration; finalize the canonical specification and registry constraints; choose the TUI library and shared catalog access boundary. These are remaining implementation decisions, not a request to reconsider the confirmed stack.
+
+Quiver remains a possible optional alternative-data integration. VectorBT remains a possible optional research accelerator. Neither is required for the first usable increment.

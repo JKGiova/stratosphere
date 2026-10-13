@@ -17,6 +17,7 @@ This directory contains the initial plan for **stratosphere**, the component of 
 9. [Decision log](decisions.md): confirmed decisions versus proposals and open items.
 10. [Authentication and connectors](authentication-and-connectors.md): application login versus trading authorization.
 11. [Roadmap](roadmap.md): implementation phases and completion criteria.
+12. [Conversation log](conversation-log.md): full historical chat in its original language, maintained as this conversation continues.
 
 ## Maintaining the plan
 
@@ -25,4 +26,5 @@ This directory contains the initial plan for **stratosphere**, the component of 
 - Keep requirements, proposals, and measured results separate.
 - Link future tasks and pull requests to the relevant phase and completion criterion.
 - Keep only examples without credentials or personal account data in the repository.
-- Write all documentation and development material in English and use the lowercase names stratosphere and tradingsphere.
+- Write all development material and plan documentation in English and use the lowercase names stratosphere and tradingsphere. The user-authorized conversation log preserves original language and historical spellings.
+- Append new user-visible exchanges to conversation-log.md during subsequent responses in the same planning conversation, as specified in AGENTS.md.

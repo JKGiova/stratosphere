@@ -41,11 +41,13 @@ Last updated: October 13, 2026. This file records product decisions from the pla
 | D33 | Create a dedicated stratosphere Supabase project in Matti Barbershop, Frankfurt (eu-central-1) | User selected organization and region; cost-check capability currently blocks provisioning; unrelated mattibarbershop project must not be modified |
 | D34 | Fee is based on opening-order trade value, not profit; existing-position increases are exempt | Cap applies per opening order; partial fills, reversals, cross-strategy position attribution and rounding need explicit handling |
 | D35 | Research and trading compute runs on users' computers | Shared online services still provide auth/catalog/billing; local runtime cannot operate while its host is off |
-| D36 | On TUI exit, offer keeping positions or requesting closure of all positions | Background management, pending orders and shutdown completion still need explicit policies |
+| D36 | On TUI exit, offer keeping positions or requesting closure of all positions | The user-facing keep/close choice is settled; implementation must preserve it and track actual closure outcomes |
 | D37 | Research proceeds after one plan approval and asks questions for ambiguities | Per-job spend/runtime/search budgets remain undecided; research approval does not authorize live trading |
 | D38 | Google and GitHub OAuth login; users provide their own model API keys | User has no hosted-login domain yet; provider app registration and secure key storage remain open |
 | D39 | Liquid is the first operational connector | Alpaca remains optional later; custom-client permissions, engine adapter and execution capability must be verified |
 | D40 | Live approval behavior depends on configuration or explicit permission | Per-order review and mandate-based modes are intended; provider-required confirmations remain binding |
+| D41 | Defer login and fee-collection planning/implementation to later roadmap work | Preserve confirmed auth/pricing direction; focus now on core TUI, sources, strategies, research and backtesting |
+| D42 | Do not reopen the TUI-exit choice | Offer exactly the confirmed keep-positions or close-all-positions decision; lifecycle internals are implementation work |
 
 
 

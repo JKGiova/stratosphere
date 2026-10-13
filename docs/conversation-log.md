@@ -1269,3 +1269,25 @@ This first dataset tests the machinery; it doesn’t narrow the multi-market pro
 4. Shall I draft configurable job budgets and the testing criteria above for review?
 
 ---
+
+### 077 — User
+
+let dont think about collecting fees and login rn, too far in the roadmap, for closing tui, take my previouys response, it was really clear
+
+---
+
+### 078 — Assistant (progress update)
+
+I’ll defer fee collection and login work in the roadmap, preserving the choices already made. On TUI exit, users choose to keep positions open or close them all. I won’t ask you to redefine that choice.
+
+---
+
+### 079 — Assistant (response)
+
+Updated and synced the roadmap. Login and fee collection are deferred, with your previous choices preserved.
+
+TUI exit remains exactly: **keep positions open or close them all**.
+
+We’ll focus now on the TUI, agents, source integrations, strategy conversion, backtesting, and market data.
+
+---

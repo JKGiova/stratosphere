@@ -26,3 +26,7 @@ The connector's get_cost call returned UNAVAILABLE: the server did not expose th
 8. Test user isolation, duplicate registration races, source accumulation, login without trading accounts, outages and migration reproducibility. Record implementation status and actual results.
 
 The region and organization are settled. Google and GitHub OAuth providers are also selected. Hosted-login domain/deployment, access boundary, project budget and remaining record contracts are still open.
+
+## Current scheduling
+
+Login configuration and fee-collection work are deferred. This does not revoke the requested database project/registry work, but the existing project-provisioning blocker remains. Keep provider-login/domain setup out of the current research/TUI planning pass.

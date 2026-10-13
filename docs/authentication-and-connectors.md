@@ -128,3 +128,7 @@ First-run onboarding covers model configuration, hosted browser login and option
 ## First connector and execution modes
 
 Liquid is the first operational connector; Alpaca follows later. The product should offer configured mandate-based operation or explicit order approval, subject to provider capabilities. [Liquid Co-Invest documentation](https://www.liquid.trade/coinvest-docs), reviewed October 13, 2026, distinguishes standard confirmation-based execution from Co-Invest Computer simulation/staged/live modes. Those documented modes do not prove stratosphere custom-client automation or a NautilusTrader adapter. Preserve provider confirmations and verify the applicable integration before promising unattended operation.
+
+## Scheduling correction
+
+The user deferred login discussion, configuration and implementation to later roadmap work. Preserve Supabase Auth, Google/GitHub providers and browser-hosted login as final-product decisions. Current core development does not require choosing a login domain or configuring providers. Verified auth/ownership remains required before exposing a shared-user service.

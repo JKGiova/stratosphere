@@ -104,7 +104,7 @@ Keep secret/service-role keys and privileged connection credentials out of the d
 
 ## Online experience and provider selection
 
-The application is online-only; offline research, reporting and registration modes are excluded. Client targets start with Linux/macOS and English UI, with eventual support for all OSes. Local credential storage, if selected, supports online authentication and is not an offline product mode. Research and trading run locally on users' computers. Background-management behavior when the TUI closes is still open. Shared online auth/catalog/billing services are separate from local compute.
+The application is online-only; offline research, reporting and registration modes are excluded. Client targets start with Linux/macOS and English UI, with eventual support for all OSes. Local credential storage, if selected, supports online authentication and is not an offline product mode. Research and trading run locally on users' computers. The user-facing TUI-exit decision is fixed: keep positions open or close them all. Lifecycle internals must implement that choice. Shared online auth/catalog/billing services are separate from local compute.
 
 Users select models from multiple providers. Development/testing uses NVIDIA NIM deepseek-ai/deepseek-v4.1-flash, whose catalog entry was verified on October 13, 2026: [NVIDIA model page](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash). Credentials, request execution, tool/schema behavior and runtime integration remain untested. Isolate provider adapters from workflow contracts; do not claim equivalent capabilities without verification.
 
@@ -112,6 +112,6 @@ Commercial billing needs a deterministic private fee ledger linked to opening ex
 
 ## Local runtime and TUI exit
 
-The user chooses to keep positions or request closure of all positions when exiting the TUI. Keeping exposure does not itself decide whether the local worker stays alive. Proposed design: a separate local worker can continue under its approved mandate while the computer remains on and connected; closing the TUI detaches its UI. Stopping the worker or powering down ends runtime-managed exits and reconciliation; already-accepted venue-side protective orders only provide the protection actually supported by the provider. Background execution and protective-order requirements need confirmation and tests.
+The user chooses to keep positions or request closure of all positions when exiting the TUI. Do not add a third user-facing choice or reopen this decision. A separate local worker is an implementation option, subject to honoring the confirmed exit behavior. Stopping the worker or powering down ends runtime-managed exits and reconciliation; already-accepted venue-side protective orders only provide the protection actually supported by the provider. Lifecycle and protective-order behavior requires implementation and tests under the approved mandate.
 
 Closure is a requested operation with tracked outcomes, not an assumed immediate fill. Define pending-entry cancellation, partial-fill reconciliation, residual exposure, failure notification and worker termination before shipping this exit flow.

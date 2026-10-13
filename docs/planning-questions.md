@@ -95,3 +95,7 @@ Still open: release audience/scale and measurable testing gates; compute hosting
 ## Second answer batch
 
 D34–D40 confirm opening-order rather than profit fees, no reinforcement fee, users' local compute, exit keep/close choice, one research-plan approval with clarifying questions, Google/GitHub login, user-supplied model keys, Liquid first and configurable/permission-based execution. Collection options, first market/data, job-budget values and measurable release gates require discussion. See research-and-release-proposals.md.
+
+## Latest planning correction
+
+Login and fee-collection discussion/implementation are deferred to later phases. Preserve confirmed choices and do not ask those questions in the current pass. The TUI-exit requirement is settled: keep positions open or close them all. Do not reframe it into another user choice. Current planning focuses on core TUI, source acquisition, agents, strategy conversion, research/backtesting and initial market data.

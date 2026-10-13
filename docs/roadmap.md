@@ -13,7 +13,7 @@ See the [decision log](decisions.md) for confirmed requirements and remaining pr
 | Phase | Scope | Completion criterion |
 | --- | --- | --- |
 | 0 — Compatibility and contracts | Select runtime/engine versions, first test adapters/data, TUI library, canonical spec, and access boundary | Verified compatibility matrix and example strategy/data protocol |
-| 1 — Online TUI, onboarding, registry and sources | English Linux/macOS TUI, chief-agent chat, slash commands and panels; selectable model setup, hosted OAuth login and optional connector onboarding; shared registry; YouTube, Instagram, X, TradingView and GitHub acquisition | Login without a broker, ownership isolation, exact deduplication, source accumulation, distinct variants, automatic catalog inclusion, restartable onboarding and all five source integrations tested against accessible examples; unavailable material explicitly reported |
+| 1 — Online TUI, onboarding, registry and sources | English Linux/macOS TUI, chief-agent chat, slash commands and panels; selectable model setup; registry contracts and internal development harness; YouTube, Instagram, X, TradingView and GitHub acquisition | Model setup, private ownership contracts, exact deduplication, source accumulation, distinct variants and catalog projection in controlled development tests and all five source integrations tested against accessible examples; unavailable material explicitly reported |
 | 2 — Research MVP | Text/article → specification → conforming implementation → NautilusTrader backtest → report | Reproducible end-to-end case with costs, rule evidence, immutable references, and user intervention |
 | 3 — Iteration and recommendations | Bounded variants, out-of-sample validation, evidence-aware catalog recommendations, dated applicability | All attempts retained; recommendations distinguish compatibility, empirical evidence, and current context |
 | 4 — Source maturity and market coverage | Improve the Phase 1 source integrations and conversion conformance; progressively verify crypto/equity/ETF/forex data integrations | Source provenance, format/provider failure cases, behavioral conversion and capability-based routing tested |
@@ -66,6 +66,10 @@ Recommended dependency order: register identities and provenance before communit
 | Measurable extensive-testing gates, scale and operating budget | Public/commercial release |
 | APIs to other tradingsphere components | First suite integration |
 
+## Deferred login and collection
+
+Login implementation/configuration and fee-collection selection are deferred to later pre-release work. Google/GitHub, browser-hosted login and the opening-order fee rules remain confirmed. They do not block the current compatibility, TUI, research, source-acquisition or backtesting proof. The Phase 1 registry uses a controlled development harness, not an unauthenticated public deployment; real shared-user access still requires verified authentication and ownership controls before release. Final onboarding continues to include login and optional trading connections. Do not reopen payment-collection or login questions during the current planning pass.
+
 ## Next step
 
 Run a compatibility proof for selected Python/NautilusTrader versions and one data integration; finalize the canonical specification and registry constraints; choose the TUI library and shared catalog access boundary. These are remaining implementation decisions, not a request to reconsider the confirmed stack.
@@ -82,10 +86,10 @@ There is no target release date. Release follows extensive testing rather than t
 
 The product is online-only, English-only and private-source. Start client support with Linux and macOS; retain eventual support for all OSes. Use an agent chat and explicit slash commands with strategy, ongoing/completed test and actual-position panels. Onboarding covers model selection/configuration, browser-based hosted login and optional trading connections. Use NVIDIA NIM deepseek-ai/deepseek-v4.1-flash during development/testing, with multiple user-selectable providers in the product.
 
-The service fee target is 0.5% per opening trade with a $1 cap. The charge basis and event grouping are not defined; no billing is implemented. See [commercial requirements](commercial-model.md) and [Supabase setup](supabase-setup.md) for outstanding dependencies.
+The service fee target is 0.5% per opening trade with a $1 cap. The basis is opening-order trade value, with one cap per opening order and reinforcement exempt; execution edge cases remain to be specified. Collection is deferred and no billing is implemented. See [commercial requirements](commercial-model.md) and [Supabase setup](supabase-setup.md) for outstanding dependencies.
 
 ## Local-runtime and commercial refinements
 
-Research/trading compute runs on users' computers; shared auth/catalog/billing remains online. Users bring model API keys. Google and GitHub login are selected, but hosted-login deployment/domain is not. Liquid is the first connector. Research follows one plan approval with ambiguity questions; live operation follows its own configuration/permission and provider restrictions. TUI exit offers keeping positions or requesting closure of all positions; background-worker and pending-order semantics remain unresolved. Opening-order fees exclude reinforcement of existing positions.
+Research/trading compute runs on users' computers; shared auth/catalog/billing remains online. Users bring model API keys. Google and GitHub login are selected, but hosted-login deployment/domain is not. Liquid is the first connector. Research follows one plan approval with ambiguity questions; live operation follows its own configuration/permission and provider restrictions. TUI exit has the confirmed choice to keep positions open or close them all. This user-facing decision is settled; internal lifecycle implementation must honor it without asking the user to redefine the choice. Opening-order fees exclude reinforcement of existing positions.
 
-See [research and release proposals](research-and-release-proposals.md) for payment choices, first data options, job-budget explanations and proposed testing gates. These proposals are not confirmed defaults.
+See [research and release proposals](research-and-release-proposals.md) for first data options, job-budget explanations and proposed testing gates. Payment alternatives in that document are deferred. These proposals are not confirmed defaults.

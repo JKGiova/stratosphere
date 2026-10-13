@@ -1,16 +1,16 @@
 # Research, collection and release proposals
 
-Status: proposals for user review, October 13, 2026. No payment provider, data provider, numerical job budget, paper duration or background-exit policy is approved by this document.
+Status: proposals for user review, October 13, 2026. Payment collection and login are now deferred. No data provider, numerical job budget or paper duration is approved by this document. The TUI-exit keep/close choice is already confirmed.
 
-## Payment collection
+## Payment collection — deferred
 
-Compare prepaid service-fee credits, aggregated periodic billing and venue-supported collection. Prepaid credits are the current proposal: separate from trading collateral, with optional user-authorized top-ups. Failed-payment/insufficient-credit policy remains unconfirmed. Do not interpret these credits as custody of trading funds.
+Compare prepaid service-fee credits, aggregated periodic billing and venue-supported collection. Prepaid credits were proposed but are now deferred: separate from trading collateral, with optional user-authorized top-ups. Failed-payment/insufficient-credit policy remains unconfirmed. Do not interpret these credits as custody of trading funds.
 
 Stripe is a candidate rather than an approved integration. It documents minimum payment amounts, including $0.50 USD: [currency guidance](https://docs.stripe.com/currencies). Its [Invoicing API](https://docs.stripe.com/invoicing) supports automated collection of invoices. Provider eligibility, processing economics and fee reconciliation remain to be verified before selection. Liquid's ability to collect the exact stratosphere fee is not established by Co-Invest documentation.
 
 ## Local runtime and exit
 
-Confirmed: users run research/trading locally and choose keeping positions or requesting closure of all positions on TUI exit. Proposed keep behavior: leave a separate local worker running under the approved mandate while the computer is online. Alternative: stop management and leave existing positions at the venue. The user has not selected either meaning.
+Confirmed: users run research/trading locally and choose keeping positions or requesting closure of all positions on TUI exit. The user reiterated that this choice is already clear. Do not ask them to choose another exit mode. Lifecycle internals must implement the existing keep/close decision, with actual exposure and closure outcomes tracked.
 
 Local logic cannot run while the host is off. Broker-side protective orders must be capability-tested and cannot be assumed to provide all runtime-managed exits. Test pending entries, partial closures, cancellation races, connection loss and residual exposure. Do not report a closure request as a completed liquidation without execution evidence.
 

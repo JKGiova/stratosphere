@@ -6,6 +6,14 @@
 
 The user can supply strategy ideas and external sources, inspect recommendations, review formal rules, select experiments, intervene in ongoing workflows, and inspect portfolio state without leaving the terminal.
 
+## Login and optional account setup
+
+Application login uses Supabase Auth OAuth, independent of broker accounts. A browser may be used for the external sign-in/consent step; research, chat, and portfolio interaction remain in the permanent TUI. The exact PKCE/callback flow and local token storage must be verified before implementation.
+
+After login, users can research and backtest without connecting Alpaca or Liquid. Optional account linking has its own consent, permissions, environment, and connection status. Live activation requires a separate mandate/confirmation. Disconnecting a trading account does not delete the user's strategies or app profile.
+
+Proposed manual operations include /login, /logout, /connections, /connect <provider>, and /disconnect <connection-id>. These are not implemented commands. Distinguish logout, connector revocation, runtime shutdown, and position closure in the UI.
+
 ## Proposed surfaces
 
 | Surface | Contents |

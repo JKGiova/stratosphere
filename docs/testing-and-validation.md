@@ -63,3 +63,11 @@ Short-term tests must allow overnight and multi-day holdings when the rules allo
 Record observed regime suitability in findings with regime definitions, samples, windows, and limitations. Recommendations must distinguish reproducible backtests, observed paper results, and verified live evidence. Missing verification or short samples must remain visible; shared registration is not a validation badge.
 
 Optional alternative-data sources such as Quiver require publication/availability timestamps and snapshot retention. Transaction dates alone must not grant earlier knowledge to the backtest. Dataset access, licenses, and freshness remain connector-specific decisions.
+
+## Authentication and connector acceptance tests
+
+Before shared/private access, verify Supabase OAuth callbacks, token validation/expiry, safe refresh and logout, identity-to-profile mapping, and cross-user authorization isolation. An external ID without a valid verified session must not grant access.
+
+Test research without any broker connection. Linking a provider must not enable live orders. Verify account/environment isolation, least-privilege scopes, revocation, reconnects, required confirmations, and provider-specific reconciliation before each connector is enabled.
+
+Verify that budget proposals and risk-agent assessments cannot bypass deterministic checks or send direct orders. Simulate concurrent intents, reserved capital, partial fills, ambiguous timeouts, and duplicate retries. Backtests must model the actual tradable instrument; a perpetual referencing a stock cannot inherit an ordinary equity test without additional validation.

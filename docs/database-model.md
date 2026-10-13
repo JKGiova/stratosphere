@@ -39,12 +39,13 @@ Fields below describe the application model; exact SQL types, defaults, enums, a
 
 | Field | Meaning |
 | --- | --- |
-| user_id | Internal user key |
+| user_id | Stable application user/profile key, independent of any broker identity |
+| auth_user_id | Proposed unique reference to Supabase auth.users.id, verified through the application session |
 | username | Public-facing user name; uniqueness/case policy to define |
 | created_at | Registration timestamp |
 | preferences | General market, risk, holding-horizon, and interaction preferences; not strategy rules |
 
-Authentication identities and secret storage need a separate design. Do not place broker secrets in preferences.
+Supabase Auth owns login identities and authentication sessions. This users table is an application profile, not a separate password database. The proposed auth_user_id is unique and references auth.users; ownership checks resolve the verified Supabase identity to the application user_id. A client-supplied user/broker ID is not authentication. Provider identity linking, deletion/retention, and secret storage still require detailed design. Do not place broker secrets in preferences.
 
 ### strategies
 
@@ -230,8 +231,14 @@ The physical schema will also need implementation manifests, durable jobs/checkp
 
 Normalize integrity-critical relationships and define access controls. Use JSONB for schema-validated flexible structures, with indexes driven by actual queries rather than blanket indexing every document. Use timezone-aware timestamps and explicit precision for financial values. Avoid destructive cascades through immutable provenance and research history; deletion/retention policies remain open.
 
-Supabase is confirmed as the managed PostgreSQL platform. The logical schema is unchanged. Supabase Auth, Storage, other platform products, region/plan, project setup, migrations, and extension choices remain to be specified; they are not automatically selected by the database decision.
+Supabase is confirmed as the managed PostgreSQL platform. The logical schema is unchanged. Supabase Auth with OAuth login is confirmed. OAuth provider/callback configuration, Storage, other platform products, region/plan, project setup, migrations, and extension choices remain to be specified.
 
 Before exposing tables through the Data API, define least-privilege grants and enable RLS on exposed schemas. Shared strategies and private submissions, preferences, assessments, and instances need different policies. Keep privileged secret/service-role keys and database passwords on trusted backend infrastructure, never in distributed terminal clients or agent inputs. No Supabase project, table, policy, or migration has been created by this documentation update.
 
 Security reference: [Supabase data access guidance](https://supabase.com/docs/guides/database/secure-data).
+
+## Optional account connections
+
+Proposed account_connections fields are described in [authentication and connectors](authentication-and-connectors.md). Each connection belongs to an application user and records the provider, verified external principal/account references, environment, granted permissions, secret-storage reference, and lifecycle state. Linking/disconnecting a broker does not change application identity or shared strategy ownership.
+
+Map strategy_instances.account_ref to the corresponding authorized account record in the physical schema. A connection may expose multiple accounts; account rows and permission/environment checks must be modeled explicitly rather than using a free-form ID as authority. Tokens are private secrets, not ordinary JSON profile fields, and are excluded from shared catalog data.

@@ -12,6 +12,8 @@ The permanent product interface is a terminal TUI, centered on a chat with a chi
 
 The focus is short-term indicator-driven trading, not multi-year holding. Positions can last minutes, hours, days, or around a week; the strategy determines exits. Day trading is supported but does not define the entire product, and end-of-day liquidation is not a universal rule.
 
+Supabase Auth provides OAuth application login. Alpaca and Liquid accounts are optional operational connections, not required identities. Users can research, use the catalog, and backtest without connecting a trading account. Account linking alone does not grant permission to place live orders.
+
 Registered strategies are automatically shared in a community catalog. An exactly matching submission adds provenance to the existing strategy; even a small behavioral variation receives a new strategy ID. Recommendations surface relevant strategies with inspectable evidence, not just the highest advertised returns.
 
 ## Primary use cases
@@ -30,7 +32,9 @@ Registered strategies are automatically shared in a community catalog. An exactl
 | Request improvements | Justified variants, a research budget, and separate results for each experiment |
 | Test on historical data | Reproducible report with trades, costs, and test limitations |
 | Test with live data | Observed signals or paper trading without submitting live orders |
-| Activate multiple strategies | Coordinated allocations and positions within an explicit mandate |
+| Sign in without a trading account | Supabase Auth session and access to application-owned records |
+| Link an optional Alpaca/Liquid account | Separate account access with explicit permissions and environment |
+| Activate multiple strategies | Budget management and risk valuation proposals, deterministic checks, and execution within an explicit mandate |
 | Manage a production strategy | Monitoring, pausing, deactivation, and controlled updates |
 
 ## Planned experience
@@ -52,6 +56,6 @@ Before live activation, the user selects the version, account, capital, instrume
 
 ## Initial boundaries
 
-The vision includes all listed sources, the shared catalog, and live trading, while the first usable increment focuses on the TUI, registry, research, and backtesting. Crypto, equities/ETFs, and forex are in scope; integrations will be verified progressively. Broker selection, providers, application-service hosting, and exact operating frequencies remain open. Supabase is selected for managed PostgreSQL; use of its other products remains undecided. High-frequency trading, managing third-party accounts, and selling strategies through a paid marketplace are outside the initial plan. The community catalog is in scope and is not a paid marketplace.
+The vision includes all listed sources, the shared catalog, and live trading, while the first usable increment focuses on the TUI, registry, research, and backtesting. Crypto, equities/ETFs, and forex are in scope; integrations will be verified progressively. Alpaca and Liquid are selected as optional operational connectors; provider account eligibility, instrument coverage, adapters, application-service hosting, and exact operating frequencies remain open. Supabase is selected for managed PostgreSQL and OAuth authentication; other Supabase products remain undecided. High-frequency trading, managing third-party accounts, and selling strategies through a paid marketplace are outside the initial plan. The community catalog is in scope and is not a paid marketplace.
 
 Initial success is measured by a complete, verifiable workflow, the quality of reconstructed rules, and experiment reproducibility. High returns in a single test are not a sufficient criterion.

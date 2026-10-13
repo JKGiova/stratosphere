@@ -10,10 +10,11 @@ The mandate includes the account, permitted instruments, capital, active strateg
 
 1. Strategies produce structured signals with a version, timestamp, and expiry.
 2. The system collects capital, positions, open orders, and feed health.
-3. The portfolio agent proposes allocations and exposure changes.
-4. Checks validate the proposal, state freshness, available capital, and limits.
-5. The gateway translates approved intents into provider-compatible orders.
-6. Fills and reconciliation update the ledger; the portfolio is reevaluated against actual state.
+3. The portfolio coordinator identifies candidate exposure changes; the budget management agent proposes capital allocation and sizing.
+4. The risk valuation agent assesses portfolio impact, concentration, liquidity, and the assumptions behind each intent.
+5. Deterministic checks validate the resulting intent, state freshness, available capital, permissions, and mandate limits. An agent's approval cannot override these checks.
+6. The execution gateway and operational runtime submit approved intents through the selected optional Alpaca or Liquid connector, after any provider-required confirmation.
+7. Fills and reconciliation update the ledger; the portfolio is reevaluated against actual state.
 
 Signals from different strategies on the same instrument must not create incompatible independent orders. Define a policy for netting, opposing signals, capital attribution, and priority. Maintain virtual positions per strategy and aggregate account positions, with fill and P&L attribution.
 
@@ -52,3 +53,13 @@ Operate through the permanent TUI and shared application operations. Chief-agent
 Short-term trading includes overnight and multi-day positions. A week-long position is allowed if its strategy and mandate allow it; no universal day-end closure applies. An instrument's session ending is distinct from a strategy exit. Model calendars, financing, funding, margin, and provider restrictions as applicable.
 
 The Supabase-managed PostgreSQL registry holds shared strategy definitions; personal instances pin strategy identity and implementation, selected instruments, account reference, capital, and limits. Changing personal capital/account does not create a strategy. Changing behavioral sizing or exit rules does. Credentials, account details, chats, personal limits, and raw live records are not automatically published with the strategy.
+
+## Optional providers and independent login
+
+Supabase Auth OAuth authenticates the application user. Alpaca and Liquid only provide optional operational account access and execution. No broker account is required for research or backtesting. Broker OAuth scopes/tokens are distinct from the Supabase session and from the stratosphere live mandate.
+
+Budget management and risk valuation run before execution. Keep a single authoritative order/reconciliation path per account; neither the chief agent nor a provider-side assistant may independently bypass the gateway. Risk controls must account for reserved capital and pending orders as well as filled positions. Define concurrency, netting, and failure policies before live use.
+
+Liquid perpetual exposure to an equity/FX reference is not ownership of the underlying security or currency and is not interchangeable with an equity/ETF broker instrument. Verify funding, margin, liquidation, sessions, and historical price semantics for the actual instrument. Provider capability and confirmation requirements are hard constraints, not prompts agents can override.
+
+Exact Alpaca/Liquid API integration, native versus custom NautilusTrader adapters, paper support, and unattended execution compatibility remain to be verified. Selecting these connectors in the plan does not configure them or authorize orders. See [authentication and connectors](authentication-and-connectors.md).

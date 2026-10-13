@@ -22,8 +22,11 @@ Last updated: October 13, 2026. This file records product decisions from the pla
 | D14 | Registered strategies are shared automatically | No private-by-default/voluntary-publication workflow for registered strategy definitions |
 | D15 | Separate mandatory conditions, empirical evidence, user constraints, and current context | Store rules/evidence and reevaluate applicability using dated snapshots |
 | D16 | Support strategy creation, modification, improvement, historical/live testing, and live portfolio management | Stage implementation; agents propose within deterministic risk controls |
+| D17 | Supabase Auth with OAuth-based application login | Delegate authentication; do not build a proprietary password system or require a broker account to log in |
+| D18 | Alpaca and Liquid are optional operational connectors | Research/catalog/backtests work without them; linking and live activation are separate |
+| D19 | Execution follows budget management and risk valuation agents | Enforce deterministic controls before the execution gateway and selected connector |
 
-D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently refined the same day to select Supabase as the managed PostgreSQL platform. The other entries summarize the product requirements and registry model developed in the preceding discussion.
+D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently refined the same day to select Supabase as the managed PostgreSQL platform. D17–D19 were then confirmed to separate application authentication from optional operational connectors. The other entries summarize the product requirements and registry model developed in the preceding discussion.
 
 ## Implementation proposals, not confirmed vendor choices
 
@@ -35,15 +38,18 @@ D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently 
 - Semantic candidate search followed by conservative exact-spec comparison.
 - A later optional VectorBT research accelerator and optional Quiver alternative-data connector.
 - The slash command vocabulary in the [TUI plan](terminal-interface.md).
+- Google/GitHub as initial OAuth provider candidates; neither is individually confirmed yet.
+- Connection fields and account/environment authorization boundaries in the [authentication plan](authentication-and-connectors.md).
 
 Automatic strategy sharing does not grant permission to publish secrets, account state, private conversations, personal configuration, or third-party material without appropriate rights. Define a publishable strategy projection and ingestion notices before launch.
 
 ## Still open
 
 - Python runtime, stable NautilusTrader version, platform compatibility, and verified adapters.
-- First smoke-test instruments, historical/live data providers, and broker/exchange selection.
-- TUI library, models/providers, queue/scheduler, authentication, application-service hosting, and local persistence.
-- Supabase region/plan, project configuration, client access path, RLS policies, migrations, and any adoption of Auth, Storage, Realtime, or Edge Functions.
+- First smoke-test instruments, historical/live data providers, Alpaca/Liquid connector order, supported accounts/instruments, and exact engine adapters.
+- TUI library, models/providers, queue/scheduler, application-service hosting, and local persistence.
+- Supabase OAuth provider selection, terminal redirect/PKCE flow, token storage, linking, and revocation details.
+- Supabase region/plan, project configuration, client access path, RLS policies, migrations, and any adoption of Storage, Realtime, or Edge Functions. Auth is selected.
 - Public numeric ID length, internal primary-key format, canonical schema, and implementation packaging.
 - Recommendation weights, evidence verification, moderation, content-use policy, and user deletion handling.
 - Risk thresholds, portfolio allocation, netting/attribution, and operational approval policy.

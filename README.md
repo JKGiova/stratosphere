@@ -8,7 +8,7 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 ## Project status
 
-**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives. Python, LangGraph, Supabase-managed PostgreSQL, and NautilusTrader have been selected. Runtime versions, provider adapters, deployment, and the first broker still require verification and selection.
+**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives. Python, LangGraph, Supabase-managed PostgreSQL, Supabase Auth with OAuth login, and NautilusTrader have been selected. Alpaca and Liquid are selected as optional operational connectors. Runtime versions, connector adapters, deployment, and account capabilities still require verification.
 
 ## Confirmed direction
 
@@ -16,7 +16,9 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 - **Short-term, multi-market strategies:** crypto, equities/ETFs, and forex. Positions may remain open for days or a week; there is no mandatory daily liquidation.
 - **Python + LangGraph:** backend and agent orchestration.
 - **NautilusTrader:** selected backtesting and execution engine, subject to version and adapter verification.
-- **Supabase (PostgreSQL):** managed database for the shared strategy registry, provenance, experiments, and user-specific configuration.
+- **Supabase (PostgreSQL + Auth):** managed database and OAuth-based application login, independent of trading accounts.
+- **Optional Alpaca and Liquid connectors:** link accounts only when needed; connecting an account does not activate live trading.
+- **Controlled execution:** budget management → risk valuation → deterministic checks → execution gateway and selected connector.
 - **Automatic community sharing:** registered strategies enter the shared catalog, with exact deduplication and distinct IDs for even small rule changes.
 
 The [decision log](docs/decisions.md) separates confirmed choices from implementation proposals and open questions.
@@ -55,6 +57,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Sources and strategy lifecycle](docs/strategy-lifecycle.md) | Importing, specifications, versions, and improvements |
 | [Data and validation](docs/testing-and-validation.md) | Backtests, live evaluation, and promotion criteria |
 | [Portfolio and execution](docs/portfolio-and-execution.md) | Allocation, positions, risk, and orders |
+| [Authentication and connectors](docs/authentication-and-connectors.md) | Supabase OAuth login, optional accounts, authorization, and security |
 | [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
 | [Terminal interface](docs/terminal-interface.md) | Chief-agent chat, slash commands, jobs, and user intervention |
 | [Community catalog](docs/community-catalog.md) | Automatic sharing, recommendations, provenance, and reuse |

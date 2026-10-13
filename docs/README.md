@@ -15,7 +15,8 @@ This directory contains the initial plan for **stratosphere**, the component of 
 7. [Terminal interface](terminal-interface.md): chat, slash commands, and workflow intervention.
 8. [Community catalog](community-catalog.md): automatic sharing and evidence-based recommendations.
 9. [Decision log](decisions.md): confirmed decisions versus proposals and open items.
-10. [Roadmap](roadmap.md): implementation phases and completion criteria.
+10. [Authentication and connectors](authentication-and-connectors.md): application login versus trading authorization.
+11. [Roadmap](roadmap.md): implementation phases and completion criteria.
 
 ## Maintaining the plan
 

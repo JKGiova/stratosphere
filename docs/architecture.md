@@ -2,7 +2,7 @@
 
 ## Selected foundation
 
-**Confirmed:** Python for the backend, LangGraph for agent orchestration, Supabase-managed PostgreSQL for the registry and related records, and NautilusTrader for backtesting and execution. NautilusTrader version and adapters must be verified before implementation and live use. No engine integration is implemented yet.
+**Confirmed:** Python for the backend, LangGraph for agent orchestration, Supabase-managed PostgreSQL for the registry and related records, Supabase Auth with OAuth login, and NautilusTrader for backtesting and execution. Alpaca and Liquid are optional operational connectors, not login requirements. NautilusTrader version and adapters must be verified before implementation and live use. No engine integration is implemented yet.
 
 **Proposed supporting components:** Pydantic contracts, versioned Parquet data, DuckDB for analysis, isolated research workers, and a TUI framework to be selected. FastAPI is optional for a shared catalog service, not a requirement for a web interface. These supporting choices are not confirmed.
 
@@ -19,7 +19,9 @@ flowchart TD
     D --> E["Enabled versions"]
     E --> F["Live signals"]
     F --> G["Portfolio agent"]
-    G --> H["Risk checks"]
+    G --> J["Budget management agent"]
+    J --> K["Risk valuation agent"]
+    K --> H["Deterministic risk checks"]
     H --> I["Execution and reconciliation"]
     I --> G
 ```
@@ -35,10 +37,12 @@ Promotion to an enabled version requires validation evidence and, for live execu
 | Quant researcher | Formalize logic, assumptions, indicators, and variants | Versioned strategy specification |
 | Developer | Translate the specification into code and verify its alignment | Implementation and rule checks |
 | Validator | Configure experiments and assess robustness and limitations | Report, issues, and promotion proposal |
-| Portfolio agent | Coordinate allocations, signals, and position openings/closures | Allocation proposal and position intents |
+| Portfolio coordinator | Coordinate signals, target exposures, and position openings/closures | Candidate position intents |
+| Budget management agent | Propose capital allocations and sizing within the user's mandate | Budget/allocation proposal linked to account state |
+| Risk valuation agent | Evaluate portfolio impact, concentration, liquidity, and downside assumptions | Structured risk assessment, objections, and revised intents |
 | Operational supervisor | Inspect anomalies, drift, and service health | Alerts and pause or review proposals |
 
-These are logical roles: they do not imply seven continuously running processes or models. Orchestration may reuse models and invoke agents when the workflow requires them.
+These are logical roles: they do not imply one continuously running process or model per role. Orchestration may reuse models and invoke agents when the workflow requires them.
 
 ## Terminal, research, and operational processes
 
@@ -63,11 +67,12 @@ Keep engine-specific APIs behind a stratosphere adapter. Alternative engines rem
 - **Strategy registry:** shared Supabase-managed PostgreSQL identities, exact specifications, source associations, implementation versions, and catalog records.
 - **Community recommendations:** compare evidence quality, risk, compatibility, and current user constraints.
 - **Terminal operation layer:** validated chat/command actions, job control, events, and UI state.
+- **Identity and account connections:** Supabase Auth session validation, application ownership, and separately authorized optional Alpaca/Liquid accounts.
 - **Isolated runner:** execute generated code with limited resources and access.
 - **Testing engine:** provide simulation, replay, evaluation, and reproducible reports.
 - **Strategy runtime:** compute signals from immutable versions.
-- **Portfolio and risk management:** manage proposed allocations, binding checks, and aggregate state.
-- **Execution gateway:** provide broker/exchange adapters, orders, and reconciliation.
+- **Portfolio and risk management:** coordinate budget management and risk valuation agents, then enforce deterministic checks against fresh aggregate state.
+- **Execution gateway:** selected optional Alpaca/Liquid adapters, orders, and reconciliation behind the operational runtime; never independent agent-to-provider order paths.
 - **Storage and observability:** retain evidence, experiments, events, metrics, and audit records.
 
 ## Core contracts
@@ -89,10 +94,10 @@ A textual recommendation is not an order. Every proposal passes through structur
 
 Persist job checkpoints, support cancellation and resumption, deduplicate events, and make timeouts and retries explicit. The live runtime must not wait for new code generation. If an agent is unavailable, it applies a predefined policy for new signals and existing positions; reconciliation continues independently of agents.
 
-Python, LangGraph, Supabase-managed PostgreSQL, and NautilusTrader are selected. Queue technology, hosting, runtime versions, TUI library, model providers, and adapters remain open. See the [decision log](decisions.md) and [database model](database-model.md).
+Python, LangGraph, Supabase-managed PostgreSQL, Supabase Auth OAuth login, and NautilusTrader are selected; Alpaca and Liquid are optional operational connectors. Queue technology, application hosting, runtime versions, TUI library, model providers, and exact connector adapters remain open. See the [decision log](decisions.md) and [database model](database-model.md).
 
 ## Supabase boundary
 
-Supabase is the selected managed PostgreSQL platform; the logical tables and exact-strategy identity rules remain unchanged. Selection of Supabase Database does not yet confirm Supabase Auth, Storage, Realtime, Edge Functions, or a direct-client Data API design.
+Supabase is the selected managed PostgreSQL platform; the logical tables and exact-strategy identity rules remain unchanged. Supabase Auth with OAuth login is now confirmed separately from the database decision. Storage, Realtime, Edge Functions, and a direct-client Data API design remain unselected.
 
-Keep secret/service-role keys and privileged connection credentials out of the distributed TUI and generated-code runner. Exposed schemas require RLS and least-privilege grants, with distinct policies for shared catalog records and private user data. Application access paths and user authentication must be specified and tested before enabling client access.
+Keep secret/service-role keys and privileged connection credentials out of the distributed TUI and generated-code runner. Exposed schemas require RLS and least-privilege grants, with distinct policies for shared catalog records and private user data. Application access paths, OAuth providers, terminal callback flow, session handling, and authorization policies must be specified and tested before enabling client access. See [authentication and connectors](authentication-and-connectors.md).

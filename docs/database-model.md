@@ -231,7 +231,7 @@ The physical schema will also need implementation manifests, durable jobs/checkp
 
 Normalize integrity-critical relationships and define access controls. Use JSONB for schema-validated flexible structures, with indexes driven by actual queries rather than blanket indexing every document. Use timezone-aware timestamps and explicit precision for financial values. Avoid destructive cascades through immutable provenance and research history; deletion/retention policies remain open.
 
-Supabase is confirmed as the managed PostgreSQL platform. The logical schema is unchanged. Supabase Auth with OAuth login is confirmed. OAuth provider/callback configuration, Storage, other platform products, region/plan, project setup, migrations, and extension choices remain to be specified.
+Supabase is confirmed as the managed PostgreSQL platform. The logical schema is unchanged. Supabase Auth with OAuth login is confirmed. The organization and Frankfurt region are selected. OAuth provider/callback configuration, Storage, other platform products, project plan/provisioning, migrations, and extension choices remain to be specified.
 
 Before exposing tables through the Data API, define least-privilege grants and enable RLS on exposed schemas. Shared strategies and private submissions, preferences, assessments, and instances need different policies. Keep privileged secret/service-role keys and database passwords on trusted backend infrastructure, never in distributed terminal clients or agent inputs. No Supabase project, table, policy, or migration has been created by this documentation update.
 

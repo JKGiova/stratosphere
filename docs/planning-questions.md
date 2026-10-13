@@ -1,6 +1,6 @@
 # Roadmap planning questionnaire
 
-Status: awaiting user answers. October 13, 2026. Questions do not confirm choices or authorize deployment, spending, or trading.
+Status: partially answered, October 13, 2026. Confirmed answers are in decisions.md (D20–D33). The questionnaire remains the historical question set; unconfirmed options do not authorize deployment, spending or trading.
 
 The existing roadmap gives us eight phases. We’ll turn each into tasks, dependencies, and acceptance criteria after your answers:
 
@@ -85,3 +85,9 @@ The existing roadmap gives us eight phases. We’ll turn each into tasks, depend
 40. Do you want additional `AGENTS.md` rules for required checks, dependency approval, documentation, commits, or review? At the end, I’ll list its complete current rules and clearly identify any additions we agree on.
 
 I saved the questionnaire in [planning-questions.md](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/planning-questions.md). Your answers will become confirmed decisions; unanswered items will remain explicit dependencies in the roadmap.
+
+## First answer batch
+
+Confirmed: extensive testing before release with no deadline; commercial opening-trade commission; private repository; Linux/macOS first and eventual all-OS support; no offline functionality; English UI; chat/slash commands plus strategy/test/position panels; first-run onboarding and hosted browser login; user-selectable providers and NVIDIA NIM DeepSeek V4.1 Flash for testing; all five sources in Phase 1; no application-imposed upload limits; convert external strategies to NautilusTrader. Supabase organization and Frankfurt region were subsequently selected. See D20–D33.
+
+Still open: release audience/scale and measurable testing gates; compute hosting and budget; provider credential funding/handling; agent autonomy and bounded job policies; OAuth providers and hosted domain; detailed strategy contracts; first market/data; validation thresholds; catalog evidence/moderation/retention; trade approval and portfolio risk/operational policies; billing event semantics and collection; alert/recovery requirements; suite integration and GitHub development workflow.

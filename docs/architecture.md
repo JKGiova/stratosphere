@@ -50,7 +50,7 @@ The TUI is the permanent user interface. It connects to application operations r
 
 The chief agent uses LangGraph to coordinate extraction, specification, development, validation, and improvement. Persist workflow checkpoints, intervention events, job IDs, and evidence references. Slash commands invoke the same validated operations without requiring the model to interpret the command. Pausing research does not implicitly pause trading or close positions.
 
-A shared service boundary is proposed for catalog access and PostgreSQL authorization. Supabase is selected for the managed database. Application-service hosting, API transport, local persistence, and offline behavior require further decisions; do not expose privileged database credentials to terminal clients. A single repository with modular boundaries and separate worker processes is the initial proposal, not a requirement to deploy many microservices.
+A shared service boundary is proposed for catalog access and PostgreSQL authorization. Supabase is selected for the managed database. Application-service hosting, API transport, secure local session storage and online outage behavior require further decisions; offline functionality is excluded; do not expose privileged database credentials to terminal clients. A single repository with modular boundaries and separate worker processes is the initial proposal, not a requirement to deploy many microservices.
 
 ## NautilusTrader's responsibility
 
@@ -101,3 +101,11 @@ Python, LangGraph, Supabase-managed PostgreSQL, Supabase Auth OAuth login, and N
 Supabase is the selected managed PostgreSQL platform; the logical tables and exact-strategy identity rules remain unchanged. Supabase Auth with OAuth login is now confirmed separately from the database decision. Storage, Realtime, Edge Functions, and a direct-client Data API design remain unselected.
 
 Keep secret/service-role keys and privileged connection credentials out of the distributed TUI and generated-code runner. Exposed schemas require RLS and least-privilege grants, with distinct policies for shared catalog records and private user data. Application access paths, OAuth providers, terminal callback flow, session handling, and authorization policies must be specified and tested before enabling client access. See [authentication and connectors](authentication-and-connectors.md).
+
+## Online experience and provider selection
+
+The application is online-only; offline research, reporting and registration modes are excluded. Client targets start with Linux/macOS and English UI, with eventual support for all OSes. Local credential storage, if selected, supports online authentication and is not an offline product mode. Worker/trading hosting and what continues when a client disconnects still require decisions.
+
+Users select models from multiple providers. Development/testing uses NVIDIA NIM deepseek-ai/deepseek-v4.1-flash, whose catalog entry was verified on October 13, 2026: [NVIDIA model page](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash). Credentials, request execution, tool/schema behavior and runtime integration remain untested. Isolate provider adapters from workflow contracts; do not claim equivalent capabilities without verification.
+
+Commercial billing needs a deterministic private fee ledger linked to opening executions. The selected target is 0.5% per opening trade, capped at $1; fee basis/grouping/collection remain open. See [commercial requirements](commercial-model.md).

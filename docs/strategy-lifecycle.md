@@ -67,3 +67,11 @@ These states describe candidate implementations and user deployments, not a glob
 Every behavioral change to rules, parameters, or mandatory constraints creates a new strategy identity, with a parent, rationale, and differences. A code/dependency revision that preserves the same specification is a separate implementation version under the existing identity, and must prove conformance again. If its behavior changes, it is not merely an implementation revision. Active implementations remain pinned and immutable. The improvement workflow formulates a hypothesis, establishes a budget and protocol, generates variants, and compares results without repeatedly reusing the final holdout to select the best one.
 
 Retain failed experiments, rejected variants, and the number of attempts. Moving to a new live version requires a new validation path and a plan for positions already open.
+
+## Confirmed early-source and conversion scope
+
+YouTube, Instagram, X, TradingView and GitHub acquisition all belong in Phase 1. Do not move them to a later phase merely to narrow an MVP. Accessible-source acquisition can be tested before the full research workflow, but each integration must retain evidence and explicit unsupported/inaccessible outcomes.
+
+Runnable strategy implementations target NautilusTrader. Convert supplied strategies written for other systems, preserving source, rules, parameters, timing and behavioral assumptions. A conversion is not verified until it passes conformance checks; inaccessible logic or irreconcilable behavior must be reported rather than invented. NautilusTrader runs the resulting implementation; agents and application services perform extraction and conversion.
+
+The user requested no application-imposed upload limits. Do not silently add size/count/type quotas. This requirement does not assert that external providers or selected infrastructure support arbitrary formats or unlimited payloads; acquisition and processing must expose actual capabilities and failures.

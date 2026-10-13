@@ -98,7 +98,7 @@ Execution events update capital, positions, and pending-order reservations. Prev
 - User deletion is not assumed to invalidate already issued access tokens; session handling and retention require explicit policies.
 - Current permissions must be checked on sensitive operations; stale cached claims must not silently expand access.
 
-Supabase Auth selection does not select Supabase Storage, Realtime, or Edge Functions. Hosting, region/plan, SDK versions, RLS policies, provider app registration, and connector-specific integration remain open.
+Supabase Auth selection does not select Supabase Storage, Realtime, or Edge Functions. The organization and Frankfurt region are selected. Hosting, project plan/provisioning, SDK versions, RLS policies, provider app registration, and connector-specific integration remain open.
 
 ## Acceptance criteria
 
@@ -120,3 +120,7 @@ Supabase Auth selection does not select Supabase Storage, Realtime, or Edge Func
 - [Supabase data access security](https://supabase.com/docs/guides/database/secure-data)
 - [Alpaca OAuth and Trading API](https://docs.alpaca.markets/us/docs/using-oauth2-and-trading-api)
 - [Liquid Co-Invest documentation](https://www.liquid.trade/coinvest-docs)
+
+## Confirmed onboarding and provisioning target
+
+First-run onboarding covers model configuration, hosted browser login and optional trading connections. Login provider selection and hosting/callback configuration remain open. Connection setup may be skipped, preserving research use without a broker. The user selected a dedicated stratosphere project in Matti Barbershop, Frankfurt (eu-central-1); provisioning is blocked by the unavailable connector cost-check capability. No project or auth settings have been created. See [Supabase setup](supabase-setup.md).

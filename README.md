@@ -66,8 +66,12 @@ Backtest results and claims made by a source do not guarantee future returns.
 
 ## First development objective
 
-Complete a reproducible workflow from **article or user-provided text → specification → executable strategy → backtest → report**, using one initial verified dataset/provider integration inside a multi-market architecture. Include the TUI and shared strategy registration; the first integration does not restrict the product to one asset class. Multimedia integrations, paper trading, and live execution follow in the phases defined in the [roadmap](docs/roadmap.md).
+Complete a reproducible workflow from **article or user-provided text → specification → executable strategy → backtest → report**, using one initial verified dataset/provider integration inside a multi-market architecture. Include the TUI and shared strategy registration; the first integration does not restrict the product to one asset class. YouTube, Instagram, X, TradingView, and GitHub source integrations are required in Phase 1 alongside the online English Linux/macOS TUI, onboarding, and registry. This narrow research proof is an internal increment, not a public release. Paper trading and live execution follow in the [roadmap](docs/roadmap.md).
 
 ## Development conventions
 
 GitHub is the shared source of truth for development. Code, comments, documentation, commit messages, and GitHub development discussions must be written in English. The product and suite names are always written as **stratosphere** and **tradingsphere**, respectively.
+
+## Launch and commercial direction
+
+The repository remains private. Release follows extensive testing, without a target date. The application is online-only and English-only, starting on Linux/macOS with eventual support for all OSes. The commercial fee target is 0.5% per opening trade, capped at $1; calculation/collection details remain open. See [commercial requirements](docs/commercial-model.md) and the [updated decisions](docs/decisions.md).

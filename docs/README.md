@@ -31,4 +31,6 @@ This directory contains the initial plan for **stratosphere**, the component of 
 
 ## Roadmap refinement
 
-See [planning questions](planning-questions.md) for the numbered questionnaire covering decisions not yet settled. Answers are pending; this questionnaire does not change confirmed requirements.
+See [planning questions](planning-questions.md) for the numbered questionnaire covering decisions not yet settled. The first answer batch is recorded in decisions.md (D20–D33). Unanswered questions remain open.
+
+Additional planning records: [commercial model](commercial-model.md) and [Supabase setup](supabase-setup.md).

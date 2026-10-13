@@ -10,7 +10,7 @@ Use **stratosphere** for this product and **tradingsphere** for the suite. Both 
 
 ## Development workflow
 
-Keep development changes and their history on GitHub in this repository. GitHub is the shared source of truth. Update the relevant documentation when product behavior or technical decisions change.
+Keep development changes and their history on GitHub in this repository. GitHub is the shared source of truth. Keep the repository private. Open sourcing is only a potential fallback if monetization fails; do not change visibility or licensing without a new explicit user instruction. Update the relevant documentation when product behavior or technical decisions change.
 
 Clearly distinguish planned features from implemented and verified functionality. Do not describe a connector, backtesting engine, or live execution integration as available before it exists and has been verified.
 

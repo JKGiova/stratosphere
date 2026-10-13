@@ -1,0 +1,28 @@
+# Supabase setup
+
+Status: provisioning requested and target selected; no project, schema, policy, authentication setting or secret has been created or changed.
+
+## Selected target
+
+- New project name: stratosphere.
+- Organization: Matti Barbershop, selected by the user.
+- Region: Frankfurt, eu-central-1, selected by the user.
+- Organization plan: free, confirmed through the connector; this does not establish the cost or quota eligibility of a new project.
+- The unrelated inactive mattibarbershop project must remain untouched.
+
+## Current provisioning blocker
+
+The connector's get_cost call returned UNAVAILABLE: the server did not expose that tool through tools/list. The create_project contract requires a cost confirmation obtained after get_cost. Do not fabricate a confirmation ID or infer a project price from the organization plan. Project provisioning remains pending until a supported creation/cost-confirmation path is available.
+
+## Setup work after provisioning
+
+1. Verify project health, PostgreSQL version and available interfaces. Keep environment secrets outside the repository and conversation log.
+2. Finalize registry canonicalization and schema contracts; implement versioned migrations for profiles, strategies, source snapshots/associations, submissions, datasets, implementations, experiment runs, jobs/checkpoints/interventions, assessments and personal instances.
+3. Add private provider connections, operational ledger and billing records when their contracts are defined. Do not store plaintext credentials in flexible profile data.
+4. Define least-privilege grants and tested RLS/ownership policies before exposing application tables; distinguish catalog reads from private records and privileged service writes.
+5. Select OAuth login providers and register their applications. Set the hosted login domain and exact redirect/callback flow; verify PKCE/state, secure credential persistence, refresh, expiry and revocation on Linux/macOS.
+6. Select API/service hosting and the client access boundary. Do not distribute privileged keys or assume the database provides an application login page or research/trading workers.
+7. Decide artifact storage, retention, backups and observability. Storage, Realtime and Edge Functions are not implicitly selected.
+8. Test user isolation, duplicate registration races, source accumulation, login without trading accounts, outages and migration reproducibility. Record implementation status and actual results.
+
+The region and organization are settled. OAuth providers, hosting, access boundary, project budget and remaining record contracts are still open.

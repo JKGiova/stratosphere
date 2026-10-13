@@ -1125,3 +1125,73 @@ The existing roadmap gives us eight phases. We’ll turn each into tasks, depend
 I saved the questionnaire in [planning-questions.md](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/planning-questions.md). Your answers will become confirmed decisions; unanswered items will remain explicit dependencies in the roadmap.
 
 ---
+
+### 067 — User
+
+i want a first release just after a lot of testing so we are far away, i wanna sell this product with 0.5% commission on each opening trade with a maximum of 1$. i wanna make a tui, so just like claude code or codex one, should be usable on all OSes, but lets start with linux and macos to keep it simple, nothing should work offline, that,s not our goal, i dont any expirence date for this project, need to create all the db setings on supabase (u got the connector), i wanna keep the repo private, just opensource in the case i cant monetize it. in the app i want for sure an agent chat that works also like a terminal for forced commands (slash commands), but also a panel to open strategies, view ongoing and done testes and see actual trading positions. for the model used in the agent workflow ill let user pick their own from different providers, rn and in the testing phase we will use nvidia nim deepseek v4.1 flash. the app should support just english, the first start should be an onboarding that make the user setup the model, the login, the trading connectors. for the auth, yeah open a browser with an hosted login. i wanna add youtube instagram x tradingview and github in the same time (already from p1). no limits for upload and things like that. strategies should be developed by nautilus trader, if an user paste a strategy that has been developed in other ways, just convert it
+
+---
+
+### 068 — Assistant (progress update)
+
+I’ll record these choices and revise the roadmap to include all five source integrations in Phase 1. I’ll also check the connected Supabase projects, the repository’s privacy setting, and the exact NVIDIA model name. Before configuring the database, I’ll identify which project to use; the commission calculation also needs a precise definition.
+
+---
+
+### 069 — Assistant (questions)
+
+The connector shows only the organization “Matti Barbershop” and an unrelated inactive project. Should I create a new “stratosphere” Supabase project in that organization, or will you connect a different organization?
+
+Options: Create stratosphere in Matti Barbershop; I’ll connect a different organization.
+
+Which region should the new stratosphere Supabase project use?
+
+Options: Europe — Frankfurt (eu-central-1); US — East (us-east-1); US — West (us-west-1).
+
+---
+
+### 070 — User (questionnaire answers)
+
+Create stratosphere in Matti Barbershop
+
+Europe — Frankfurt (eu-central-1)
+
+---
+
+### 071 — Assistant (progress update)
+
+The repository is already private, and NVIDIA lists `deepseek-ai/deepseek-v4.1-flash` as requested. I’ve also recorded your choice of a new Supabase project in “Matti Barbershop,” hosted in Frankfurt.
+
+The organization is on the free plan, but the connector’s project-cost check is unavailable. Project creation requires that check, so provisioning is currently blocked. I’ll document the setup requirements and continue updating the roadmap while we settle the remaining product decisions.
+
+---
+
+### 072 — Assistant (response)
+
+Recorded your choices and updated the [roadmap](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/roadmap.md):
+
+- Release after extensive testing, with no deadline; keep the repository private, as it already is.
+- Online-only, English TUI; Linux/macOS first, other OSes later.
+- Agent chat, explicit slash commands, and strategy/test/position panels.
+- First-run model configuration, hosted browser login, and trading-connector setup. Connectors remain optional.
+- User-selectable model providers; testing uses NVIDIA NIM’s [`deepseek-ai/deepseek-v4.1-flash`](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash), whose catalog entry I verified.
+- YouTube, Instagram, X, TradingView, and GitHub all in Phase 1; no application-imposed upload limits.
+- Convert externally authored strategies into NautilusTrader implementations and verify their behavior.
+- Commercial fee: **0.5% per opening trade, capped at $1**. The calculation and collection rules still need definition.
+
+Your Supabase target is now **stratosphere → Matti Barbershop → Frankfurt**. Provisioning is blocked because the connector’s required project-cost check is unavailable; no project or database settings have been created.
+
+**Next decisions—answer in your own words or by number:**
+
+1. **Fee calculation:** Is 0.5% based on executed trade value? Is the $1 cap in USD and applied per opening order or per position? Do additions to an existing position count as new openings?
+2. **Fee collection:** Should users fund a prepaid balance, receive periodic charges, or pay through broker-supported collection where available? Should failed payments block new entries?
+3. **Compute hosting:** Should research and trading run on your servers, or users’ computers? Must trading continue when they close the TUI or turn off their computer? What infrastructure/data budget can we use during testing?
+4. **Agent autonomy:** Should users approve a research plan once and let agents execute it, or confirm individual steps? Should ambiguous rules trigger questions or clearly labeled proposed variants? What model-spend/runtime limits should each job have?
+5. **Login and model credentials:** GitHub, Google, or both for login? Do you have a domain for hosted login? Will users provide their own model API keys?
+6. **First market/data:** Which instruments and timeframe should we test first? Do you already have a historical-data provider, or should I research suitable options?
+7. **Trading policy:** Alpaca or Liquid first? Should live orders require individual approval or operate under an approved mandate? What should happen to existing positions during outages or a stop request?
+8. **Testing gates:** What evidence would make you comfortable releasing—specific paper-testing duration, trade count, recovery tests, invited-user testing—or should I draft measurable criteria for your review?
+
+The remaining catalog, retention, operational, and development questions stay open in the saved questionnaire. Once planning is complete, I’ll list every `AGENTS.md` rule and identify the agreed additions.
+
+---

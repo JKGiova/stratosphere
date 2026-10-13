@@ -71,3 +71,9 @@ Before shared/private access, verify Supabase OAuth callbacks, token validation/
 Test research without any broker connection. Linking a provider must not enable live orders. Verify account/environment isolation, least-privilege scopes, revocation, reconnects, required confirmations, and provider-specific reconciliation before each connector is enabled.
 
 Verify that budget proposals and risk-agent assessments cannot bypass deterministic checks or send direct orders. Simulate concurrent intents, reserved capital, partial fills, ambiguous timeouts, and duplicate retries. Backtests must model the actual tradable instrument; a perpetual referencing a stock cannot inherit an ordinary equity test without additional validation.
+
+## Release and commercial-cost refinements
+
+The first public/commercial release follows extensive testing without a fixed deadline. Define measurable release gates rather than interpreting a successful internal demo as release readiness. Testing must cover all five Phase 1 sources, converted strategy behavior, Linux/macOS onboarding, online outages, user isolation, research repeatability and eventual paper/live recovery. Required durations, samples and operating thresholds remain open.
+
+When the commercial fee policy is finalized, include the stratosphere opening-trade fee in appropriate cost models, separately from broker charges. The target is 0.5% per opening trade, capped at $1, but fee basis and grouping have not been approved.

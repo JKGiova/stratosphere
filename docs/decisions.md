@@ -25,6 +25,21 @@ Last updated: October 13, 2026. This file records product decisions from the pla
 | D17 | Supabase Auth with OAuth-based application login | Delegate authentication; do not build a proprietary password system or require a broker account to log in |
 | D18 | Alpaca and Liquid are optional operational connectors | Research/catalog/backtests work without them; linking and live activation are separate |
 | D19 | Execution follows budget management and risk valuation agents | Enforce deterministic controls before the execution gateway and selected connector |
+| D20 | Release only after extensive testing; no target delivery date | Internal development increments are not public releases; define measurable release gates |
+| D21 | Commercial product with 0.5% commission on each opening trade, capped at $1 | Calculation basis, charge grouping, currency, collection and reconciliation remain open |
+| D22 | Keep the repository private | Open sourcing is only a potential fallback if monetization fails, requiring a later explicit decision |
+| D23 | Eventually support all operating systems; Linux and macOS first | Windows follows; versions, packaging and SSH behavior require verification |
+| D24 | Online-only product; no offline functionality | No offline research, backtests, viewing or queued registration mode |
+| D25 | English-only application | Localized application UI is outside current scope |
+| D26 | Agent chat and forced slash commands plus inspectable panels | Panels expose strategies, ongoing/completed tests and actual trading positions |
+| D27 | First-run onboarding covers model setup, application login and trading connections | Existing optional-connector requirement remains; onboarding introduces connecting or skipping trading accounts |
+| D28 | Browser-based hosted login | OAuth provider, hosting domain and secure terminal callback remain open |
+| D29 | User-selectable models from multiple providers; NVIDIA NIM DeepSeek V4.1 Flash for development/testing | Verified catalog model ID is deepseek-ai/deepseek-v4.1-flash; credentials, tool conformance and runtime use are not configured |
+| D30 | YouTube, Instagram, X, TradingView and GitHub integrations all belong in Phase 1 | Include accessible material acquisition and explicit unavailable-source handling; source-specific credentials and acceptance examples remain open |
+| D31 | No application-imposed upload size/type/count limits requested | Do not silently add product quotas; actual provider, infrastructure and format capabilities must be verified and reported |
+| D32 | Develop runnable strategies for NautilusTrader; convert externally authored strategies | Conversion must preserve behavior or surface unresolved differences; engine selection does not replace application-owned strategy generation |
+| D33 | Create a dedicated stratosphere Supabase project in Matti Barbershop, Frankfurt (eu-central-1) | User selected organization and region; cost-check capability currently blocks provisioning; unrelated mattibarbershop project must not be modified |
+
 
 D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently refined the same day to select Supabase as the managed PostgreSQL platform. D17–D19 were then confirmed to separate application authentication from optional operational connectors. The other entries summarize the product requirements and registry model developed in the preceding discussion.
 
@@ -47,14 +62,18 @@ Automatic strategy sharing does not grant permission to publish secrets, account
 
 - Python runtime, stable NautilusTrader version, platform compatibility, and verified adapters.
 - First smoke-test instruments, historical/live data providers, Alpaca/Liquid connector order, supported accounts/instruments, and exact engine adapters.
-- TUI library, models/providers, queue/scheduler, application-service hosting, and local persistence.
+- TUI library, production model provider coverage, queue/scheduler, application-service hosting, and secure local session storage. Testing model and initial client OSes are confirmed.
 - Supabase OAuth provider selection, terminal redirect/PKCE flow, token storage, linking, and revocation details.
-- Supabase region/plan, project configuration, client access path, RLS policies, migrations, and any adoption of Storage, Realtime, or Edge Functions. Auth is selected.
+- Supabase project provisioning, project plan, client access path, RLS policies, migrations, and any adoption of Storage, Realtime, or Edge Functions. Organization and Frankfurt region are confirmed; Auth is selected.
 - Public numeric ID length, internal primary-key format, canonical schema, and implementation packaging.
 - Recommendation weights, evidence verification, moderation, content-use policy, and user deletion handling.
 - Risk thresholds, portfolio allocation, netting/attribution, and operational approval policy.
 - Publication scope of performance evidence; raw private account/trade data is excluded by default.
-- Offline behavior and how an interrupted catalog connection affects registration.
+- Online outage behavior for jobs and operational positions; offline product functionality is excluded.
 - APIs to other tradingsphere components.
 
 Do not reopen confirmed choices as if undecided. When a new proposal changes a confirmed requirement, obtain user confirmation and update this log.
+
+## Planning refinement status
+
+D20–D33 reflect the subsequent roadmap discussion on October 13, 2026. No application functionality, billing collection or Supabase configuration is implemented. The repository was verified private. NVIDIA model catalog availability was verified against [NVIDIA NIM](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash); actual calls remain untested.

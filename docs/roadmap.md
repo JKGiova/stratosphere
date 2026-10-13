@@ -4,7 +4,7 @@ Last updated: October 13, 2026. Phases describe dependencies and verifiable outc
 
 ## Selected foundation
 
-Python, LangGraph, PostgreSQL, NautilusTrader, and the permanent terminal TUI are confirmed. Crypto, equities/ETFs, and forex are product scope, with short-term strategies that may hold positions overnight or for days/a week. Registered strategy definitions are automatically shared.
+Python, LangGraph, Supabase-managed PostgreSQL, NautilusTrader, and the permanent terminal TUI are confirmed. Crypto, equities/ETFs, and forex are product scope, with short-term strategies that may hold positions overnight or for days/a week. Registered strategy definitions are automatically shared.
 
 See the [decision log](decisions.md) for confirmed requirements and remaining proposals. Do not treat interface, framework, database, or automatic sharing as undecided.
 
@@ -13,7 +13,7 @@ See the [decision log](decisions.md) for confirmed requirements and remaining pr
 | Phase | Scope | Completion criterion |
 | --- | --- | --- |
 | 0 — Compatibility and contracts | Select runtime/engine versions, first test adapters/data, TUI library, canonical spec, and access boundary | Verified compatibility matrix and example strategy/data protocol |
-| 1 — TUI and shared registry | Chief-agent chat, common operation layer, initial commands, PostgreSQL registration and source links | Exact duplicate/source accumulation, distinct variants, automatic catalog inclusion, and private-data boundary tested |
+| 1 — TUI and shared registry | Chief-agent chat, common operation layer, initial commands, Supabase PostgreSQL registration and source links | Exact duplicate/source accumulation, distinct variants, automatic catalog inclusion, and private-data boundary tested |
 | 2 — Research MVP | Text/article → specification → conforming implementation → NautilusTrader backtest → report | Reproducible end-to-end case with costs, rule evidence, immutable references, and user intervention |
 | 3 — Iteration and recommendations | Bounded variants, out-of-sample validation, evidence-aware catalog recommendations, dated applicability | All attempts retained; recommendations distinguish compatibility, empirical evidence, and current context |
 | 4 — External sources and market coverage | YouTube, Instagram, X, TradingView, GitHub; progressively verified crypto/equity/ETF/forex data integrations | Source provenance, access limits, behavioral conversion checks, and capability-based routing tested |
@@ -39,7 +39,7 @@ Recommended dependency order: register identities and provenance before communit
 | operations | Shared validated actions used by agents and manual commands |
 | agents / workflows | LangGraph chief agent, specialist roles, checkpoints, and budgets |
 | sources | Acquisition, snapshots, and evidence maps |
-| registry | PostgreSQL identities, canonicalization, provenance, and submissions |
+| registry | Supabase PostgreSQL identities, canonicalization, provenance, and submissions |
 | catalog | Shared discovery, recommendations, and publication projections |
 | strategies | Formal specs, conforming implementations, and signal logic |
 | data / research | Data quality, snapshots, workers, NautilusTrader tests, and reports |
@@ -55,7 +55,7 @@ Recommended dependency order: register identities and provenance before communit
 | First instruments, historical/live providers, broker/exchange | Corresponding data/paper/live phase |
 | TUI library, LLM providers, structured output support, model budgets | TUI/research implementation |
 | Public ID length, internal keys, canonical format, physical schema/migrations | Registry implementation |
-| Catalog hosting/API, authentication, local persistence, outages | Shared service release |
+| Supabase region/plan, project configuration, API access, RLS, authentication, application-service hosting, local persistence, outages | Shared service release |
 | Generated-code isolation and resource/network restrictions | Executing user/model code |
 | Ranking weights, verified evidence, moderation and source-use policy | Community recommendation release |
 | Private/public evidence projection and deletion/retention | Catalog release |

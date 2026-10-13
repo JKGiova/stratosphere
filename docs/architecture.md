@@ -2,7 +2,7 @@
 
 ## Selected foundation
 
-**Confirmed:** Python for the backend, LangGraph for agent orchestration, PostgreSQL for the registry and related records, and NautilusTrader for backtesting and execution. NautilusTrader version and adapters must be verified before implementation and live use. No engine integration is implemented yet.
+**Confirmed:** Python for the backend, LangGraph for agent orchestration, Supabase-managed PostgreSQL for the registry and related records, and NautilusTrader for backtesting and execution. NautilusTrader version and adapters must be verified before implementation and live use. No engine integration is implemented yet.
 
 **Proposed supporting components:** Pydantic contracts, versioned Parquet data, DuckDB for analysis, isolated research workers, and a TUI framework to be selected. FastAPI is optional for a shared catalog service, not a requirement for a web interface. These supporting choices are not confirmed.
 
@@ -46,7 +46,7 @@ The TUI is the permanent user interface. It connects to application operations r
 
 The chief agent uses LangGraph to coordinate extraction, specification, development, validation, and improvement. Persist workflow checkpoints, intervention events, job IDs, and evidence references. Slash commands invoke the same validated operations without requiring the model to interpret the command. Pausing research does not implicitly pause trading or close positions.
 
-A shared service boundary is proposed for catalog access and PostgreSQL authorization. Hosting, API transport, local persistence, and offline behavior require further decisions; do not expose database credentials to arbitrary clients. A single repository with modular boundaries and separate worker processes is the initial proposal, not a requirement to deploy many microservices.
+A shared service boundary is proposed for catalog access and PostgreSQL authorization. Supabase is selected for the managed database. Application-service hosting, API transport, local persistence, and offline behavior require further decisions; do not expose privileged database credentials to terminal clients. A single repository with modular boundaries and separate worker processes is the initial proposal, not a requirement to deploy many microservices.
 
 ## NautilusTrader's responsibility
 
@@ -60,7 +60,7 @@ Keep engine-specific APIs behind a stratosphere adapter. Alternative engines rem
 
 - **Source connectors:** retrieve authorized content, transcripts, images, and accessible code.
 - **Data service:** normalize historical data and live feeds, metadata, and quality.
-- **Strategy registry:** shared PostgreSQL identities, exact specifications, source associations, implementation versions, and catalog records.
+- **Strategy registry:** shared Supabase-managed PostgreSQL identities, exact specifications, source associations, implementation versions, and catalog records.
 - **Community recommendations:** compare evidence quality, risk, compatibility, and current user constraints.
 - **Terminal operation layer:** validated chat/command actions, job control, events, and UI state.
 - **Isolated runner:** execute generated code with limited resources and access.
@@ -89,4 +89,10 @@ A textual recommendation is not an order. Every proposal passes through structur
 
 Persist job checkpoints, support cancellation and resumption, deduplicate events, and make timeouts and retries explicit. The live runtime must not wait for new code generation. If an agent is unavailable, it applies a predefined policy for new signals and existing positions; reconciliation continues independently of agents.
 
-Python, LangGraph, PostgreSQL, and NautilusTrader are selected. Queue technology, hosting, runtime versions, TUI library, model providers, and adapters remain open. See the [decision log](decisions.md) and [database model](database-model.md).
+Python, LangGraph, Supabase-managed PostgreSQL, and NautilusTrader are selected. Queue technology, hosting, runtime versions, TUI library, model providers, and adapters remain open. See the [decision log](decisions.md) and [database model](database-model.md).
+
+## Supabase boundary
+
+Supabase is the selected managed PostgreSQL platform; the logical tables and exact-strategy identity rules remain unchanged. Selection of Supabase Database does not yet confirm Supabase Auth, Storage, Realtime, Edge Functions, or a direct-client Data API design.
+
+Keep secret/service-role keys and privileged connection credentials out of the distributed TUI and generated-code runner. Exposed schemas require RLS and least-privilege grants, with distinct policies for shared catalog records and private user data. Application access paths and user authentication must be specified and tested before enabling client access.

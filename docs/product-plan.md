@@ -52,6 +52,6 @@ Before live activation, the user selects the version, account, capital, instrume
 
 ## Initial boundaries
 
-The vision includes all listed sources, the shared catalog, and live trading, while the first usable increment focuses on the TUI, registry, research, and backtesting. Crypto, equities/ETFs, and forex are in scope; integrations will be verified progressively. Broker selection, providers, hosting, and exact operating frequencies remain open. High-frequency trading, managing third-party accounts, and selling strategies through a paid marketplace are outside the initial plan. The community catalog is in scope and is not a paid marketplace.
+The vision includes all listed sources, the shared catalog, and live trading, while the first usable increment focuses on the TUI, registry, research, and backtesting. Crypto, equities/ETFs, and forex are in scope; integrations will be verified progressively. Broker selection, providers, application-service hosting, and exact operating frequencies remain open. Supabase is selected for managed PostgreSQL; use of its other products remains undecided. High-frequency trading, managing third-party accounts, and selling strategies through a paid marketplace are outside the initial plan. The community catalog is in scope and is not a paid marketplace.
 
 Initial success is measured by a complete, verifiable workflow, the quality of reconstructed rules, and experiment reproducibility. High returns in a single test are not a sufficient criterion.

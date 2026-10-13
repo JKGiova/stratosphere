@@ -1,8 +1,8 @@
-# PostgreSQL database model
+# Supabase PostgreSQL database model
 
 ## Scope and status
 
-**Confirmed:** PostgreSQL stores the shared strategy registry, exact strategy identity, accumulated provenance, and records needed to reuse prior research. This is a proposed logical schema with field meanings, not executable SQL or an applied migration.
+**Confirmed:** Supabase provides the managed PostgreSQL database that stores the shared strategy registry, exact strategy identity, accumulated provenance, and records needed to reuse prior research. This is a proposed logical schema with field meanings, not executable SQL or an applied migration.
 
 Separate strategy definitions, implementations, experiments, applicability assessments, and personal deployments. Registered strategy definitions are automatically shared; personal data is not.
 
@@ -230,4 +230,8 @@ The physical schema will also need implementation manifests, durable jobs/checkp
 
 Normalize integrity-critical relationships and define access controls. Use JSONB for schema-validated flexible structures, with indexes driven by actual queries rather than blanket indexing every document. Use timezone-aware timestamps and explicit precision for financial values. Avoid destructive cascades through immutable provenance and research history; deletion/retention policies remain open.
 
-The detailed schema design does not select Supabase hosting. Plain PostgreSQL is confirmed; hosting vendor, authentication, migrations, and extension choices remain undecided.
+Supabase is confirmed as the managed PostgreSQL platform. The logical schema is unchanged. Supabase Auth, Storage, other platform products, region/plan, project setup, migrations, and extension choices remain to be specified; they are not automatically selected by the database decision.
+
+Before exposing tables through the Data API, define least-privilege grants and enable RLS on exposed schemas. Shared strategies and private submissions, preferences, assessments, and instances need different policies. Keep privileged secret/service-role keys and database passwords on trusted backend infrastructure, never in distributed terminal clients or agent inputs. No Supabase project, table, policy, or migration has been created by this documentation update.
+
+Security reference: [Supabase data access guidance](https://supabase.com/docs/guides/database/secure-data).

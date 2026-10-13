@@ -8,7 +8,7 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 ## Project status
 
-**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives. Python, LangGraph, PostgreSQL, and NautilusTrader have been selected. Runtime versions, provider adapters, deployment, and the first broker still require verification and selection.
+**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives. Python, LangGraph, Supabase-managed PostgreSQL, and NautilusTrader have been selected. Runtime versions, provider adapters, deployment, and the first broker still require verification and selection.
 
 ## Confirmed direction
 
@@ -16,7 +16,7 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 - **Short-term, multi-market strategies:** crypto, equities/ETFs, and forex. Positions may remain open for days or a week; there is no mandatory daily liquidation.
 - **Python + LangGraph:** backend and agent orchestration.
 - **NautilusTrader:** selected backtesting and execution engine, subject to version and adapter verification.
-- **PostgreSQL:** shared strategy registry, provenance, experiments, and user-specific configuration.
+- **Supabase (PostgreSQL):** managed database for the shared strategy registry, provenance, experiments, and user-specific configuration.
 - **Automatic community sharing:** registered strategies enter the shared catalog, with exact deduplication and distinct IDs for even small rule changes.
 
 The [decision log](docs/decisions.md) separates confirmed choices from implementation proposals and open questions.

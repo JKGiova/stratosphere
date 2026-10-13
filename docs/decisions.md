@@ -14,7 +14,7 @@ Last updated: October 13, 2026. This file records product decisions from the pla
 | D06 | Crypto, equities/ETFs, and forex are in scope | Design market-neutral contracts and validate providers progressively |
 | D07 | Python backend and LangGraph orchestration | Framework alternatives are no longer unresolved choices |
 | D08 | NautilusTrader for backtests and execution | Exact version, Python compatibility, and adapters still need verification |
-| D09 | PostgreSQL strategy registry and related records | Store precise specifications, provenance, experiments, and personal configuration separately |
+| D09 | Supabase-managed PostgreSQL strategy registry and related records | Store precise specifications, provenance, experiments, and personal configuration separately |
 | D10 | Every strategy has a long random numeric public ID, explanatory name, description, and formal rules | Include mathematical definitions where possible |
 | D11 | Deduplicate only identical strategies | New sources attach to an existing identity; even small behavioral variations get new IDs |
 | D12 | Sources are separate from description and accumulate | Preserve source snapshots and rule-level evidence through many-to-many links |
@@ -23,13 +23,13 @@ Last updated: October 13, 2026. This file records product decisions from the pla
 | D15 | Separate mandatory conditions, empirical evidence, user constraints, and current context | Store rules/evidence and reevaluate applicability using dated snapshots |
 | D16 | Support strategy creation, modification, improvement, historical/live testing, and live portfolio management | Stage implementation; agents propose within deterministic risk controls |
 
-D07, D08, and D14 were explicitly confirmed on October 13. The other entries summarize the product requirements and registry model developed in the preceding discussion.
+D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently refined the same day to select Supabase as the managed PostgreSQL platform. The other entries summarize the product requirements and registry model developed in the preceding discussion.
 
 ## Implementation proposals, not confirmed vendor choices
 
 - Pydantic for structured contracts; Parquet for versioned market data; DuckDB for analysis.
 - Separate TUI, research workers, and trading runtime within a modular repository.
-- A shared catalog service/API with client authentication; hosting and transport remain open.
+- A shared catalog service/API with client authentication; application-service hosting and transport remain open. Supabase database hosting is selected.
 - Database fields and constraints in the [database model](database-model.md); these are a logical design, not applied migrations.
 - Isolated generated-code execution, durable job records, and structured intervention audit.
 - Semantic candidate search followed by conservative exact-spec comparison.
@@ -42,7 +42,8 @@ Automatic strategy sharing does not grant permission to publish secrets, account
 
 - Python runtime, stable NautilusTrader version, platform compatibility, and verified adapters.
 - First smoke-test instruments, historical/live data providers, and broker/exchange selection.
-- TUI library, models/providers, queue/scheduler, authentication, hosting, and local persistence.
+- TUI library, models/providers, queue/scheduler, authentication, application-service hosting, and local persistence.
+- Supabase region/plan, project configuration, client access path, RLS policies, migrations, and any adoption of Auth, Storage, Realtime, or Edge Functions.
 - Public numeric ID length, internal primary-key format, canonical schema, and implementation packaging.
 - Recommendation weights, evidence verification, moderation, content-use policy, and user deletion handling.
 - Risk thresholds, portfolio allocation, netting/attribution, and operational approval policy.

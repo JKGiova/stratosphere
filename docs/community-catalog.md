@@ -37,6 +37,6 @@ Changes by another author never silently replace a user's pinned implementation 
 
 ## Shared service
 
-A PostgreSQL-backed catalog service is the proposed boundary between terminal clients and shared records. Clients should not receive unrestricted database access. Authentication, hosting, synchronization, quotas, and outage behavior are open.
+The catalog uses Supabase-managed PostgreSQL. A catalog service is the proposed boundary between terminal clients and shared records; direct Data API access is not yet selected. Clients must not receive unrestricted database access or privileged secret/service-role keys. Authentication, application-service hosting, synchronization, quotas, and outage behavior are open. Define RLS and least-privilege grants before exposing tables; automatic strategy sharing does not make personal records public.
 
 Before launch, define moderation, duplicate abuse handling, source rights, deletion/retention rules, and what performance summaries can be published. The catalog is included in product scope; a paid strategy marketplace is not.

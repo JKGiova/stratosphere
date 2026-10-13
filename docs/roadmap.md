@@ -69,3 +69,7 @@ Recommended dependency order: register identities and provenance before communit
 Run a compatibility proof for selected Python/NautilusTrader versions and one data integration; finalize the canonical specification and registry constraints; choose the TUI library and shared catalog access boundary. These are remaining implementation decisions, not a request to reconsider the confirmed stack.
 
 Quiver remains a possible optional alternative-data integration. VectorBT remains a possible optional research accelerator. Neither is required for the first usable increment.
+
+## Roadmap refinement
+
+The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational, and development decisions. Answers may be supplied in batches. Record confirmed answers in decisions.md, retain deferred choices with the phase they block, and expand each phase into tasks, dependencies, and acceptance criteria. Runtime and provider capabilities require verification before implementation. Do not treat unanswered questions as approved defaults. After planning is finalized, present the complete AGENTS.md rules and separately identify any agreed additions. All phases remain unimplemented.

@@ -28,3 +28,7 @@ This directory contains the initial plan for **stratosphere**, the component of 
 - Keep only examples without credentials or personal account data in the repository.
 - Write all development material and plan documentation in English and use the lowercase names stratosphere and tradingsphere. The user-authorized conversation log preserves original language and historical spellings.
 - Append new user-visible exchanges to conversation-log.md during subsequent responses in the same planning conversation, as specified in AGENTS.md.
+
+## Roadmap refinement
+
+See [planning questions](planning-questions.md) for the numbered questionnaire covering decisions not yet settled. Answers are pending; this questionnaire does not change confirmed requirements.

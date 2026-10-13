@@ -26,14 +26,14 @@ Last updated: October 13, 2026. This file records product decisions from the pla
 | D18 | Alpaca and Liquid are optional operational connectors | Research/catalog/backtests work without them; linking and live activation are separate |
 | D19 | Execution follows budget management and risk valuation agents | Enforce deterministic controls before the execution gateway and selected connector |
 | D20 | Release only after extensive testing; no target delivery date | Internal development increments are not public releases; define measurable release gates |
-| D21 | Commercial product with 0.5% commission on each opening trade, capped at $1 | Calculation basis, charge grouping, currency, collection and reconciliation remain open |
+| D21 | Commercial product with 0.5% commission on each opening trade, capped at $1 | Opening-order trade value and per-order cap confirmed in D34; collection, rounding and execution-event edge cases remain open |
 | D22 | Keep the repository private | Open sourcing is only a potential fallback if monetization fails, requiring a later explicit decision |
 | D23 | Eventually support all operating systems; Linux and macOS first | Windows follows; versions, packaging and SSH behavior require verification |
 | D24 | Online-only product; no offline functionality | No offline research, backtests, viewing or queued registration mode |
 | D25 | English-only application | Localized application UI is outside current scope |
 | D26 | Agent chat and forced slash commands plus inspectable panels | Panels expose strategies, ongoing/completed tests and actual trading positions |
 | D27 | First-run onboarding covers model setup, application login and trading connections | Existing optional-connector requirement remains; onboarding introduces connecting or skipping trading accounts |
-| D28 | Browser-based hosted login | OAuth provider, hosting domain and secure terminal callback remain open |
+| D28 | Browser-based hosted login | Google/GitHub selected in D38; hosting domain and secure terminal callback remain open |
 | D29 | User-selectable models from multiple providers; NVIDIA NIM DeepSeek V4.1 Flash for development/testing | Verified catalog model ID is deepseek-ai/deepseek-v4.1-flash; credentials, tool conformance and runtime use are not configured |
 | D30 | YouTube, Instagram, X, TradingView and GitHub integrations all belong in Phase 1 | Include accessible material acquisition and explicit unavailable-source handling; source-specific credentials and acceptance examples remain open |
 | D31 | No application-imposed upload size/type/count limits requested | Do not silently add product quotas; actual provider, infrastructure and format capabilities must be verified and reported |

@@ -10,7 +10,7 @@ intel_commit=27a8e54e7ac3c57d6cbf8891f0283dfbaee97317
 [[ "$(uname -s)" = Darwin && "$(uname -m)" = x86_64 ]] || {
   printf '%s\n' 'Native Intel macOS required'; exit 1;
 }
-[[ "$(uv --version)" = 'uv 0.11.33' ]] || {
+[[ "$(uv --version)" =~ ^uv\ 0\.11\.33($|[[:space:]]) ]] || {
   printf '%s\n' 'Upstream requires uv 0.11.33'; exit 1;
 }
 [[ "$("$intel_python" -c 'import platform; print(platform.python_version())')" = '3.14.7' ]] || {

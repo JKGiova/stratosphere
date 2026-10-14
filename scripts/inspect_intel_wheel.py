@@ -69,6 +69,7 @@ def main():
         "source_modified": False,
         "rustc": output(["rustc", "--version"], cwd=args.source),
         "cargo": output(["cargo", "--version"], cwd=args.source),
+        "uv": output(["uv", "--version"], cwd=args.source),
         "clang": output(["clang", "--version"]),
         "rust_lock_sha256": hashlib.sha256((args.source / "Cargo.lock").read_bytes()).hexdigest(),
         "python_build_lock_sha256": hashlib.sha256(

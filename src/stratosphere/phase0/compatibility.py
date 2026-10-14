@@ -72,7 +72,8 @@ def inspect_runtime(require_engine: bool = False) -> dict:
         except ImportError:
             packages[name] = {"version": None, "imported": False}
             errors.append(f"{name} could not be imported.")
-    if require_engine and not supported:
+    engine_imported = packages["nautilus_trader"]["imported"]
+    if require_engine and not supported and not engine_imported:
         errors.append(reason)
     return {
         "report_schema": "compatibility/1",
@@ -85,6 +86,14 @@ def inspect_runtime(require_engine: bool = False) -> dict:
         "packages": packages,
         "engine_wheel_available": supported,
         "engine_wheel_reason": reason,
+        "engine_runtime_imported": engine_imported,
+        "engine_distribution_kind": (
+            "published_platform"
+            if supported
+            else "custom_or_source_build"
+            if engine_imported
+            else "unavailable"
+        ),
         "engine_required": require_engine,
         "errors": errors,
         "scope": "Version/import proof only. Strategy/data behavior is a separate phase 0 gate.",

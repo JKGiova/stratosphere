@@ -179,3 +179,11 @@ def test_prefix_is_causal_and_end_does_not_force_close(engine_inputs):
     assert Decimal(result["balances"]["EUR"]) == 100
     assert len(result["signals"]) == 1
     assert result["fills"][0]["fill_ns"] > result["fills"][0]["signal_ns"]
+
+
+@pytest.mark.engine
+def test_native_high_precision_is_preserved(engine_inputs):
+    from nautilus_trader.model.objects import Price, Quantity
+
+    assert Price.from_str("1.0000000000000001").as_decimal() == Decimal("1.0000000000000001")
+    assert Quantity.from_str("0.0000000000000001").as_decimal() == Decimal("0.0000000000000001")

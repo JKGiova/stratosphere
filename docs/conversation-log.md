@@ -1653,3 +1653,33 @@ This can run on your Mac or an Intel GitHub runner. Users would install the fini
 The remaining uncertainty is whether all upstream dependencies compile successfully on Intel. **I haven’t attempted that compilation yet.**
 
 ---
+
+### 107 — User
+
+ok go on
+
+---
+
+### 108 — Assistant (progress update)
+
+I’ll attempt the native Intel build in an isolated directory, then install the wheel in a clean environment and run the engine tests. I’ll keep the working project environment intact.
+
+---
+
+### 109 — Assistant (progress update)
+
+The pinned Rust compiler is installed in temporary storage, and the native build has started. The source includes an Intel macOS target configuration, so the first check is whether its dependencies compile successfully with that toolchain.
+
+---
+
+### 110 — Assistant (progress update)
+
+The clean test environment is ready with the project’s locked dependencies. I’ve also updated the compatibility check to distinguish a locally built engine from an upstream wheel, so a successful Intel build won’t incorrectly claim that PyPI provides Intel support.
+
+---
+
+### 111 — Assistant (progress update)
+
+The Rust compilation is still progressing without a reported error. The wheel checks are ready: they will verify the actual binary architecture and high-precision values before we count the build as Intel support.
+
+---

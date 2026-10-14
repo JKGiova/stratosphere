@@ -1622,3 +1622,34 @@ We have two routes:
 The next small step would be to build **1.231.0 for Intel**, install the wheel in a clean environment, run our **69 core + 2 engine tests**, and compare signals, fills, fees and balances with Linux. Once it passes, we add mandatory Intel engine CI and package the wheel so users need no compiler.
 
 ---
+
+### 104 — User
+
+how can u build it?
+
+---
+
+### 105 — Assistant (progress update)
+
+I’ll check the exact build commands for NautilusTrader 1.231.0 and which compiler tools are available on this Mac.
+
+---
+
+### 106 — Assistant (response)
+
+By compiling **NautilusTrader’s existing source on Intel macOS**. Its Rust and Cython components become native x86_64 libraries, packaged into a Python `.whl` file.
+
+The process would be:
+
+1. **Use an isolated build directory**, with the exact `v1.231.0` source and Python 3.14.7.
+2. **Prepare the toolchain:** Apple Clang/macOS SDK, Rust **1.97.1**, and the release’s pinned Python build dependencies. Your Mac already has Clang and the SDK; Rust/Cargo are currently missing from the checked locations. [Pinned Rust version](https://github.com/nautechsystems/nautilus_trader/blob/v1.231.0/rust-toolchain.toml).
+3. **Build for Intel**, preserving the high-precision configuration. The upstream release-wheel target is `make build-wheel`, which runs `uv build --wheel`. We would also respect its pinned build-tool versions. [Build target](https://github.com/nautechsystems/nautilus_trader/blob/v1.231.0/Makefile).
+4. **Install the resulting wheel in a fresh test environment** and verify that its compiled libraries are x86_64 and import correctly.
+5. **Run our 69 core and 2 engine tests**, comparing execution results with the verified Linux version.
+6. **Automate the successful build in Intel Mac CI**, retaining the wheel, checksum and build provenance.
+
+This can run on your Mac or an Intel GitHub runner. Users would install the finished wheel without needing Rust or compilers.
+
+The remaining uncertainty is whether all upstream dependencies compile successfully on Intel. **I haven’t attempted that compilation yet.**
+
+---

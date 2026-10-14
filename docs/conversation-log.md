@@ -1719,3 +1719,27 @@ The compiler is actively working across four Rust processes, so the quiet period
 Compilation is still active in the remaining adapter modules. The core regression checks have passed; Intel support still depends on the wheel passing architecture inspection, clean installation and the native engine tests.
 
 ---
+
+### 118 — Assistant (progress update)
+
+The local Rust build has finished successfully. Cython generation has also completed for all 110 modules, and the C extensions are now compiling. That clears the Rust stage; packaging, installation and native tests are next.
+
+---
+
+### 119 — Assistant (progress update)
+
+The Intel wheel has been built, and inspection confirms all 111 native binaries are x86_64. It imports from the clean test environment, and its dependencies pass validation. I’m now running the full test suite against that installed wheel.
+
+---
+
+### 120 — Assistant (progress update)
+
+All 77 tests pass on this Intel Mac, and the complete deterministic backtest payload matches the verified Linux result. The binary load commands reference only macOS system libraries. I’m checking once more with the source directory temporarily moved out of its original location to rule out source-path dependencies.
+
+---
+
+### 121 — Assistant (progress update)
+
+The source-independent engine tests pass too: the installed wheel works with the original build directory unavailable. Local verification is complete. I’m waiting for the separate GitHub Intel runner to finish, which will verify the build script from a fresh checkout.
+
+---

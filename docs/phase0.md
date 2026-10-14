@@ -41,6 +41,25 @@ uv run python -m stratosphere.phase0.tui_probe
 uv run pytest tests/test_tui_probe.py
 ```
 
-## Step 3 — canonical contracts
+## Step 3 — passed
 
-See [canonical contracts](phase0-contracts.md), schemas/ and examples/phase0/. Tests exercise every behavioral group, metadata independence, exact tiny decimal changes, malformed or unresolved specs, duplicate JSON keys, immutable validated objects, explicit digest collisions and example fingerprint/schema consistency. These contracts do not create a registry or compile arbitrary strategies.
+See [canonical contracts](phase0-contracts.md), schemas/ and examples/phase0/. Forty-five tests passed locally and in the [Step 3 CI matrix](https://github.com/JKGiova/stratosphere/actions/runs/38583960776). Tests exercise every behavioral group, metadata independence, exact tiny decimal changes, malformed or unresolved specs, duplicate JSON keys, immutable validated objects, explicit digest collisions and example fingerprint/schema consistency. These contracts do not create a registry or compile arbitrary strategies.
+
+## Step 4 — historical integration and real-engine proof
+
+Read-only ECB Data API integration, with the January–March 2025 EURUSD reference snapshot and 63 pinned observations. The committed CSV is attributed ECB data, free from its website; normalization retains exact date/rate values and rejects missing/duplicate/unexpected dates, changed values and unaccepted observation status. Metadata-only CSV differences cannot rewrite a rate. CI must fetch and verify a fresh response rather than count only a mock-provider test.
+
+The pinned native BacktestEngine consumes declared synthetic TradeTick events at each reference's assumed 17:00 UTC availability. The callback executes an intent from the previous observation, then evaluates the newly available rate. The exchange updates before the callback in the pinned [engine source](https://github.com/nautechsystems/nautilus_trader/blob/v1.231.0/nautilus_trader/backtest/engine.pyx). Only the full authored SMA spec and SIM instrument are supported; unrelated rules, spread/slippage models or mismatched protocol bindings fail before execution. No generated/user code is executed.
+
+Tests compare the native event/fill stream with an independent batch oracle, ensure fills occur strictly after signals, match quantity and currency-rounded fees to native account balances, verify zero-cost behavior and identical repeated payloads, and truncate an actual snapshot after the first entry to test causality and retained open exposure. No daily/end-of-run liquidation is inserted. An end-of-snapshot signal without a following observation remains pending. Native order failure or unexpected partial/unfilled execution fails the proof.
+
+Each report records separate run identity, engine/runtime, strategy/data/protocol/instrument digests, implementation and dependency-lock hashes, fill artifacts, balances and explicit limitations. The compatibility protocol has no optimization, holdout, profitability or promotion claim. Data is historically real; liquidity and executable reference-price events are explicitly simulated. Tradable market data, broker rules and actual publication timestamps need later validation.
+
+```sh
+uv run python -m stratosphere.phase0.data_proof --fetch
+uv sync --locked --extra engine
+STRATOSPHERE_REQUIRE_ENGINE=1 uv run pytest -m engine
+uv run python -m stratosphere.phase0.engine_proof
+```
+
+Engine tests are mandatory on the three supported CI hosts. Intel macOS runs core tests and the online data proof; its unavailable engine is excluded from the compatibility claim.

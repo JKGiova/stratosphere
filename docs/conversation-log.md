@@ -1537,3 +1537,19 @@ Durante la verifica del dataset ho trovato un vincolo concreto: i termini attual
 Per questa prova scelgo la serie storica EUR/USD della BCE, che consente il riuso con attribuzione. Servirà a verificare acquisizione, identità e comportamento del motore: sono tassi di riferimento giornalieri, quindi dichiarerò esplicitamente la simulazione degli eventi e dei fill. La validazione con prezzi realmente negoziabili richiederà un dataset di mercato successivo. [Condizioni BCE](https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html)
 
 ---
+
+### 095 — Assistant (progress update)
+
+I 45 test dei contratti passano localmente e la verifica Linux/macOS è completata. Sono inclusi i controlli sulle variazioni minime, sui dati mancanti e sulle collisioni del digest.
+
+Passo alla prova NautilusTrader: confronterò segnali, fill e costi con un calcolo indipendente, controllerò che non usi osservazioni future e ripeterò l’esperimento per verificarne la riproducibilità.
+
+---
+
+### 096 — Assistant (progress update)
+
+La lettura online della BCE funziona e lo snapshot contiene 63 osservazioni. I test rifiutano date mancanti o duplicate, valori alterati, ordinamento errato e risposte del provider non valide.
+
+La prova del motore resta limitata a una strategia SMA dichiarata per intero. Qualsiasi altra specifica sarà rifiutata finché non avrà un adapter verificato; non verrà eseguita ignorandone alcune regole.
+
+---

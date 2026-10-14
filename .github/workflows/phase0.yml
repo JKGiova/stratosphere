@@ -40,6 +40,13 @@ jobs:
       - if: '!matrix.engine'
         run: uv run --no-sync python -m stratosphere.phase0.compatibility --output reports/compatibility.json
       - run: uv run --no-sync pytest -m 'not engine'
+      - run: uv run --no-sync python -m stratosphere.phase0.data_proof --fetch
+      - if: matrix.engine
+        run: uv run --no-sync pytest -m engine
+        env:
+          STRATOSPHERE_REQUIRE_ENGINE: "1"
+      - if: matrix.engine
+        run: uv run --no-sync python -m stratosphere.phase0.engine_proof
       - uses: actions/upload-artifact@v5
         with:
           name: phase0-${{ matrix.os }}

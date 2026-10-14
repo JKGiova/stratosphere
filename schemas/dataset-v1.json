@@ -1,0 +1,104 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "dataset/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "provider": {
+      "title": "Provider",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "asset_class": {
+      "enum": [
+        "crypto_spot",
+        "crypto_perpetual",
+        "equity",
+        "etf",
+        "forex"
+      ],
+      "title": "Asset Class",
+      "type": "string"
+    },
+    "source_url": {
+      "title": "Source Url",
+      "type": "string"
+    },
+    "content_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Content Sha256",
+      "type": "string"
+    },
+    "timestamp_unit": {
+      "const": "iso_date",
+      "title": "Timestamp Unit",
+      "type": "string"
+    },
+    "timezone": {
+      "const": "UTC",
+      "title": "Timezone",
+      "type": "string"
+    },
+    "interval_seconds": {
+      "exclusiveMinimum": 0,
+      "title": "Interval Seconds",
+      "type": "integer"
+    },
+    "expected_rows": {
+      "exclusiveMinimum": 0,
+      "title": "Expected Rows",
+      "type": "integer"
+    },
+    "expected_dates": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Expected Dates",
+      "type": "array"
+    },
+    "availability": {
+      "const": "assume_17_utc_on_observation_date",
+      "title": "Availability",
+      "type": "string"
+    },
+    "normalization_version": {
+      "const": "ecb-reference/1",
+      "title": "Normalization Version",
+      "type": "string"
+    },
+    "attribution": {
+      "const": "Source: European Central Bank; available free from the ECB.",
+      "title": "Attribution",
+      "type": "string"
+    },
+    "usage": {
+      "const": "reference_rates_not_tradable_prices",
+      "title": "Usage",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "provider",
+    "symbol",
+    "asset_class",
+    "source_url",
+    "content_sha256",
+    "timestamp_unit",
+    "timezone",
+    "interval_seconds",
+    "expected_rows",
+    "expected_dates",
+    "availability",
+    "normalization_version",
+    "attribution",
+    "usage"
+  ],
+  "title": "DatasetManifest",
+  "type": "object"
+}

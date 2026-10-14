@@ -1,0 +1,20 @@
+{
+  "schema_version": "experiment/1",
+  "purpose": "compatibility_and_conformance_only",
+  "strategy_sha256": "b155e4f23654825e82ef2d9634262fead388f3e0fd6e1379bc93e530bfff4617",
+  "dataset_manifest_sha256": "81f1016b50fe45fb00e0a516fdbbae8cdb8074ffe61f5a1ce066dc9a4b18edc2",
+  "instrument_manifest_sha256": "46243e16993d2d47b6667ef2a71fb826e5487d5c5163c56929e024172bf1218d",
+  "engine": "nautilus_trader",
+  "engine_version": "1.231.0",
+  "adapter_version": "phase0-next-reference/1",
+  "initial_quote_balance": "10000",
+  "initial_base_balance": "0",
+  "taker_fee_rate": "0.001",
+  "spread_bps": "0",
+  "slippage_bps": "0",
+  "fill_convention": "synthetic_trade_at_next_reference",
+  "last_signal": "record_without_fill",
+  "end_positions": "leave_open_and_mark",
+  "evaluation": "whole_snapshot_no_profitability_or_holdout_claim",
+  "seed": 0
+}

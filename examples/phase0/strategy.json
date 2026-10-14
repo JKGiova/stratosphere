@@ -1,0 +1,118 @@
+{
+  "name": "Reference-rate SMA compatibility example",
+  "description": "A conformance fixture, not an investable strategy or profitability claim.",
+  "formal_spec": {
+    "schema_version": "strategy/1",
+    "indicators": [
+      {
+        "id": "fast",
+        "algorithm": "sma",
+        "algorithm_version": 1,
+        "input": "close",
+        "period": 3,
+        "timeframe_seconds": 86400
+      },
+      {
+        "id": "slow",
+        "algorithm": "sma",
+        "algorithm_version": 1,
+        "input": "close",
+        "period": 8,
+        "timeframe_seconds": 86400
+      }
+    ],
+    "entry_rules": [
+      {
+        "id": "enter_long",
+        "condition": {
+          "op": "crosses_above",
+          "value": null,
+          "args": [
+            {
+              "op": "indicator",
+              "value": "fast",
+              "args": []
+            },
+            {
+              "op": "indicator",
+              "value": "slow",
+              "args": []
+            }
+          ]
+        },
+        "action": "open_long"
+      }
+    ],
+    "exit_rules": [
+      {
+        "id": "exit_long",
+        "condition": {
+          "op": "crosses_below",
+          "value": null,
+          "args": [
+            {
+              "op": "indicator",
+              "value": "fast",
+              "args": []
+            },
+            {
+              "op": "indicator",
+              "value": "slow",
+              "args": []
+            }
+          ]
+        },
+        "action": "close_long"
+      }
+    ],
+    "position_sizing": {
+      "mode": "fixed_base",
+      "amount": "100"
+    },
+    "signal_timing": {
+      "evaluate": "event",
+      "submit": "next_observation",
+      "precedence": "exit_before_entry"
+    },
+    "timeframes": [
+      86400
+    ],
+    "market_conditions": [],
+    "instrument_constraints": {
+      "asset_classes": [
+        "forex"
+      ],
+      "fixed_symbols": [
+        "EURUSD"
+      ],
+      "selection": "fixed"
+    },
+    "data_requirements": {
+      "input": "reference_rate",
+      "warmup_bars": 9,
+      "availability": "event_timestamp"
+    },
+    "execution_requirements": {
+      "order_type": "market",
+      "shorting": false,
+      "max_positions": 1,
+      "reinforcement": false,
+      "session_end": "hold"
+    },
+    "missing_data_policy": {
+      "action": "abort",
+      "max_staleness_seconds": 345600
+    },
+    "assumptions": [
+      "Indicator periods count published observations, not calendar days.",
+      "The ECB reference rate is the close input; no intraday high/low or volume is inferred.",
+      "Reference availability is assumed at 17:00 UTC; this is not a point-in-time publication archive.",
+      "Entry requires flat exposure; exit requires long exposure; rules never reinforce.",
+      "Crosses above means previous fast <= slow and current fast > slow; below reverses the inequalities.",
+      "SMA uses exact rational arithmetic; warmup requires eight observations plus one prior comparison."
+    ]
+  },
+  "source_refs": [
+    "phase0-authored-example/1"
+  ]
+}

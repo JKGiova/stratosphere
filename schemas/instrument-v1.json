@@ -1,0 +1,70 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "instrument/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "venue": {
+      "title": "Venue",
+      "type": "string"
+    },
+    "base_currency": {
+      "title": "Base Currency",
+      "type": "string"
+    },
+    "quote_currency": {
+      "title": "Quote Currency",
+      "type": "string"
+    },
+    "asset_class": {
+      "enum": [
+        "crypto_spot",
+        "forex"
+      ],
+      "title": "Asset Class",
+      "type": "string"
+    },
+    "price_increment": {
+      "title": "Price Increment",
+      "type": "string"
+    },
+    "quantity_increment": {
+      "title": "Quantity Increment",
+      "type": "string"
+    },
+    "min_quantity": {
+      "title": "Min Quantity",
+      "type": "string"
+    },
+    "min_notional": {
+      "title": "Min Notional",
+      "type": "string"
+    },
+    "metadata_basis": {
+      "const": "declared_simulation_not_historical_venue_rules",
+      "title": "Metadata Basis",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "symbol",
+    "venue",
+    "base_currency",
+    "quote_currency",
+    "asset_class",
+    "price_increment",
+    "quantity_increment",
+    "min_quantity",
+    "min_notional",
+    "metadata_basis"
+  ],
+  "title": "InstrumentManifest",
+  "type": "object"
+}

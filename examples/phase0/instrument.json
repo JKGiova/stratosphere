@@ -1,0 +1,13 @@
+{
+  "schema_version": "instrument/1",
+  "symbol": "EURUSD",
+  "venue": "SIM",
+  "base_currency": "EUR",
+  "quote_currency": "USD",
+  "asset_class": "forex",
+  "price_increment": "0.0001",
+  "quantity_increment": "1",
+  "min_quantity": "1",
+  "min_notional": "1",
+  "metadata_basis": "declared_simulation_not_historical_venue_rules"
+}

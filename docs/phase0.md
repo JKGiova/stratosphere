@@ -32,11 +32,15 @@ Supported engine hosts add `--extra engine` to sync and run compatibility with `
 
 The [Step 1 CI run](https://github.com/JKGiova/stratosphere/actions/runs/38581714527) passed on all four runners. Its JSON artifacts confirm actual imports and pinned versions: Linux x86_64 and ARM64 and macOS 26 ARM64 imported NautilusTrader 1.231.0; macOS 26 Intel imported the core stack and explicitly reported the unavailable engine. Eleven tests passed locally. These are installation checks, not yet engine behavior verification.
 
-## Step 2 — framework probe
+## Step 2 — passed
 
-Select Textual 8.2.8 after the probe passes the same platform matrix. It provides Python widgets, keyboard events, terminal resizing, async operation and a [headless testing API](https://textual.textualize.io/guide/testing/). The probe checks actual typed text, literal bracket rendering, Enter handling, focus, input layout after shrinking the terminal, continued input and clean Ctrl+Q exit. CI retains an SVG rendering artifact. This verifies framework behavior, not terminal-emulator accessibility or a finished product UI.
+Selected Textual 8.2.8 after the probe passed the same platform matrix in [Step 2 CI](https://github.com/JKGiova/stratosphere/actions/runs/38582556733). It provides Python widgets, keyboard events, terminal resizing, async operation and a [headless testing API](https://textual.textualize.io/guide/testing/). The probe checks actual typed text, literal bracket rendering, Enter handling, focus, input layout after shrinking the terminal, continued input and clean Ctrl+Q exit. CI retains an SVG rendering artifact. This verifies framework behavior, not terminal-emulator accessibility or a finished product UI.
 
 ```sh
 uv run python -m stratosphere.phase0.tui_probe
 uv run pytest tests/test_tui_probe.py
 ```
+
+## Step 3 — canonical contracts
+
+See [canonical contracts](phase0-contracts.md), schemas/ and examples/phase0/. Tests exercise every behavioral group, metadata independence, exact tiny decimal changes, malformed or unresolved specs, duplicate JSON keys, immutable validated objects, explicit digest collisions and example fingerprint/schema consistency. These contracts do not create a registry or compile arbitrary strategies.

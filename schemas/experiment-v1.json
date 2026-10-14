@@ -1,0 +1,112 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "experiment/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "purpose": {
+      "const": "compatibility_and_conformance_only",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "strategy_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Strategy Sha256",
+      "type": "string"
+    },
+    "dataset_manifest_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Dataset Manifest Sha256",
+      "type": "string"
+    },
+    "instrument_manifest_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Instrument Manifest Sha256",
+      "type": "string"
+    },
+    "engine": {
+      "const": "nautilus_trader",
+      "title": "Engine",
+      "type": "string"
+    },
+    "engine_version": {
+      "const": "1.231.0",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "adapter_version": {
+      "const": "phase0-next-reference/1",
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "initial_quote_balance": {
+      "title": "Initial Quote Balance",
+      "type": "string"
+    },
+    "initial_base_balance": {
+      "title": "Initial Base Balance",
+      "type": "string"
+    },
+    "taker_fee_rate": {
+      "title": "Taker Fee Rate",
+      "type": "string"
+    },
+    "spread_bps": {
+      "title": "Spread Bps",
+      "type": "string"
+    },
+    "slippage_bps": {
+      "title": "Slippage Bps",
+      "type": "string"
+    },
+    "fill_convention": {
+      "const": "synthetic_trade_at_next_reference",
+      "title": "Fill Convention",
+      "type": "string"
+    },
+    "last_signal": {
+      "const": "record_without_fill",
+      "title": "Last Signal",
+      "type": "string"
+    },
+    "end_positions": {
+      "const": "leave_open_and_mark",
+      "title": "End Positions",
+      "type": "string"
+    },
+    "evaluation": {
+      "const": "whole_snapshot_no_profitability_or_holdout_claim",
+      "title": "Evaluation",
+      "type": "string"
+    },
+    "seed": {
+      "const": 0,
+      "title": "Seed",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "purpose",
+    "strategy_sha256",
+    "dataset_manifest_sha256",
+    "instrument_manifest_sha256",
+    "engine",
+    "engine_version",
+    "adapter_version",
+    "initial_quote_balance",
+    "initial_base_balance",
+    "taker_fee_rate",
+    "spread_bps",
+    "slippage_bps",
+    "fill_convention",
+    "last_signal",
+    "end_positions",
+    "evaluation",
+    "seed"
+  ],
+  "title": "ExperimentProtocol",
+  "type": "object"
+}

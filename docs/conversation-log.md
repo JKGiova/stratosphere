@@ -1517,3 +1517,23 @@ Il primo passaggio è verificato: installazione e import funzionano su Linux x86
 Passo alla scelta della TUI: provo Textual con tastiera, rendering e ridimensionamento, senza costruire ancora l’interfaccia del prodotto.
 
 ---
+
+### 092 — Assistant (progress update)
+
+Anche la prova Textual passa sui quattro sistemi della matrice, inclusi input e ridimensionamento.
+
+Ora definisco i contratti di strategia, dataset ed esperimento. I test controlleranno che una variazione delle regole produca un’identità diversa, mentre nomi e fonti restino separati dall’identità; specifiche incomplete o ambigue saranno rifiutate.
+
+---
+
+### 093 — Assistant (progress update)
+
+Durante la verifica del dataset ho trovato un vincolo concreto: i termini attuali di Binance Vision escludono l’integrazione dei dati nei prodotti commerciali. Scelgo quindi un’altra fonte per la prova, coerente con l’obiettivo di vendere stratosphere. [Termini Binance Vision](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md)
+
+---
+
+### 094 — Assistant (progress update)
+
+Per questa prova scelgo la serie storica EUR/USD della BCE, che consente il riuso con attribuzione. Servirà a verificare acquisizione, identità e comportamento del motore: sono tassi di riferimento giornalieri, quindi dichiarerò esplicitamente la simulazione degli eventi e dei fill. La validazione con prezzi realmente negoziabili richiederà un dataset di mercato successivo. [Condizioni BCE](https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html)
+
+---

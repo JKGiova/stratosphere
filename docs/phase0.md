@@ -1,6 +1,6 @@
 # Phase 0 — sequential verification
 
-Status: in progress, October 14, 2026. Only compatibility and contract proofs are authorized here.
+Status: **complete within the Phase 0 scope**, October 14, 2026. All five sequential gates passed. Phase 1 and product/release work have not started.
 
 ## Gates, in order
 
@@ -66,6 +66,39 @@ Engine tests are mandatory on the three supported CI hosts. Intel macOS runs cor
 
 The [Step 4 CI run](https://github.com/JKGiova/stratosphere/actions/runs/38585064927) passed all four platform jobs. All fetched the online snapshot successfully. The three native-engine artifacts show eight fills with matching timing, fees and account balances, and exactly identical deterministic payloads across Linux x86_64/ARM64 and macOS ARM64 (digest ff3746e22b35f47b8136d1171e23652e837916fa32ea411f2d0e1b5b232b2616). This is correctness/repeatability evidence under the stated simulation, not a profitability assessment. The truncated-snapshot test verifies retained open exposure separately.
 
-## Step 5 — access contracts and audit under verification
+## Step 5 — passed
 
-Selected hosted HTTPS/JSON application API, with internal PostgreSQL records inaccessible directly from distributed clients. See [access-boundary decision](phase0-access-boundary.md) for authority, RLS/role requirements, public/private projection and transactional registry constraints. Catalog and registration wire schemas are in schemas/. Pure harness tests exercise the intended policies; no real auth, database or service security is claimed. Final CI rechecks all earlier gates with these contracts and stricter input-availability validation.
+Selected hosted HTTPS/JSON application API, with internal PostgreSQL records inaccessible directly from distributed clients. See [access-boundary decision](phase0-access-boundary.md) for authority, RLS/role requirements, public/private projection and transactional registry constraints. Catalog and registration wire schemas are in schemas/. Pure harness tests exercise the intended policies; no real auth, database or service security is claimed. Final CI passed all earlier gates with these contracts and stricter input-availability validation.
+
+## Completion audit
+
+Verified implementation commit: **9b9b542927c66b64488937c5adf257aebc833692**. The [final CI run](https://github.com/JKGiova/stratosphere/actions/runs/38586485611) passed on all four runners. Subsequent documentation-only commits record these results without changing the verified code. GitHub remains private and is the shared source of truth.
+
+| Roadmap requirement | Delivered / evidence |
+| --- | --- |
+| Runtime and engine selection | Exact Python/package pins and uv.lock; real package imports and capability JSON on four hosts; engine import required on three |
+| Platform compatibility matrix | Linux x86_64/ARM64 and macOS 26 ARM64: core + native engine; Intel macOS: core only with explicit unsupported engine capability; Windows deferred |
+| TUI library selection | Textual 8.2.8; actual keyboard/render/focus/resize/quit test and SVG artifact on every host |
+| Canonical strategy/data specification and example protocol | Versioned schemas and complete authored example documents; behavioral group/variation, precision, type/reference, immutability and collision tests |
+| Registry constraints and access boundary | 24-digit string IDs, UUIDv7 internal keys, exact conflict-comparison/transaction design; hosted API/shared-private projection and ownership invariants; pure harness checks only |
+| First historical-data integration | Fixed ECB API request and attributed CSV; four actual online acquisitions; 63 observations, quality validation and immutable normalized checksum |
+| Real engine compatibility/conformance | Mandatory native 1.231.0 tests and CLI report on three hosts; independent oracle, next-observation timing, fees/native balances, zero-cost control, repeatability and retained open position at truncated end |
+
+All four CI hosts passed **69 core tests**, Ruff lint and formatting, and the actual online data proof. The three engine hosts also passed **2 engine tests each** with zero skips in the mandatory engine gate. Local Intel macOS passed the same 69 core tests and the online proof; it did not run the engine. Engine tests are deselected from core checks, not represented as successful engine execution.
+
+The pinned engine emits a Pandas4Warning for its internal Timestamp.utcnow calls. It does not affect these verified results and was not suppressed or patched; future dependency upgrades must recheck this API before removing the pin. Passing the present matrix is not a claim of compatibility with future engine/Pandas versions.
+
+Inspected final artifacts:
+
+- Normalized ECB observation digest: `bcae03df6bec13504b20e1d7b8d85b0fe8390f5dcf11933bf94a2ffd47fcf5e5`.
+- Raw retained ECB CSV digest: `cb09229025b2aee48d7192ef6a633062538015e73d7d479e1a767094e53dc4e1`.
+- Three final engine payloads have the same digest: `c8a33f029794cdd19a0ffddd5671e70c15fc92a0fdb37f3dd404566945add799` (SHA-256 of json.dumps(payload, sort_keys=True)); each has 63 input events and eight simulated fills. Implementation/runtime/lock references are inside the payload. Earlier Step 4's payload digest differs because final verification records runtime and the stricter input adapter revision.
+- Artifact names: phase0-ubuntu-24.04, phase0-ubuntu-24.04-arm, phase0-macos-26 and phase0-macos-26-intel. Each retains compatibility.json, data-proof.json and tui-probe.svg; supported hosts additionally retain repeatability and unique-run engine reports.
+
+Reproducible commands are above. Dataset/examples, schemas, pinned code and lock are committed, so the proof remains reproducible after CI artifact retention ends. Proof CLIs operate from the repository's development checkout; distribution packaging is still future work.
+
+## Limits retained after completion
+
+This fulfills the Phase 0 compatibility matrix/example strategy-data protocol criterion. It does not provide a product TUI, agent/model integration, conversion pipeline, registry persistence, five source connectors, generated-code isolation, deployed Supabase/auth/API, tradable data, paper/live trading, fee collection or release readiness. Those are later phases.
+
+The actual historical inputs are daily informational reference rates. Native fill events use declared synthetic liquidity, assumed availability and zero spread/slippage; this validates adapter correctness, not a market-realistic research result. Only the authored SMA profile is runnable. Older macOS/Intel engine support and Windows remain outside verified capability. No real orders, external account access, model calls, database changes or licensing/visibility changes occurred. Development fixtures and headless probes are not an offline product mode.

@@ -2,7 +2,7 @@
 
 This directory contains the initial plan for **stratosphere**, the component of the **tradingsphere** suite dedicated to agent-driven quantitative strategies.
 
-**Status:** Phase 0 verification in progress, October 14, 2026. [Compatibility and contract proofs](phase0.md) exist; product/application phases remain unimplemented. The [decision log](decisions.md) separates product requirements, selected implementation decisions, and open proposals. Detailed physical schema, production components and operational criteria remain implementation work.
+**Status:** Phase 0 complete, October 14, 2026. [Compatibility and contract proofs](phase0.md) are verified within their stated limits; product/application phases remain unimplemented. The [decision log](decisions.md) separates product requirements, selected implementation decisions and open proposals. Detailed physical schema, production components and operational criteria remain implementation work.
 
 ## Reading order
 

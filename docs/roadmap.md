@@ -1,6 +1,6 @@
 # Roadmap and open implementation decisions
 
-Last updated: October 14, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are undergoing their final verification. Phases 1–7 remain **not implemented**. An internal proof is not a release.
+Last updated: October 14, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. Phases 1–7 remain **not implemented**. An internal proof is not a release.
 
 ## Selected foundation
 
@@ -72,7 +72,7 @@ Login implementation/configuration and fee-collection selection are deferred to 
 
 ## Next step
 
-Complete the final [Phase 0 audit](phase0.md). Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. Start Phase 1 only after a new instruction; the current implementation request is limited to Phase 0.
+The [Phase 0 audit](phase0.md) is complete. Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. Start Phase 1 only after a new instruction; the current implementation request is limited to Phase 0.
 
 Quiver remains a possible optional alternative-data integration. VectorBT remains a possible optional research accelerator. Neither is required for the first usable increment.
 

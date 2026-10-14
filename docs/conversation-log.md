@@ -1569,3 +1569,25 @@ I contratti del catalogo separano la definizione condivisa dai dati privati. I t
 Sto completando l’audit della fase 0 e aggiornando la documentazione per distinguere le prove superate dalle funzionalità ancora pianificate.
 
 ---
+
+### 099 — Assistant (progress update)
+
+La verifica finale passa: 69 test di base su tutti e quattro i sistemi e 2 test del motore su ciascuno dei tre sistemi supportati. Anche le quattro acquisizioni online coincidono con lo snapshot fissato, e i risultati del motore sono identici tra le piattaforme.
+
+Ora pubblico l’audit conclusivo e il log della conversazione; la fase 1 resta fuori da questo lavoro.
+
+---
+
+### 100 — Assistant (response)
+
+Fase 0 completata in cinque passaggi sequenziali, testati e pubblicati nel repository privato.
+
+Verificati runtime e dipendenze, prova Textual, contratti e identità canoniche, integrazione storica BCE con simulazione NautilusTrader e contratti di accesso al catalogo.
+
+**Test:** 69 test di base sui quattro sistemi; 2 test del motore per ciascuno dei tre sistemi supportati. [CI completata](https://github.com/JKGiova/stratosphere/actions/runs/38586485611).
+
+Il motore non è disponibile su macOS Intel con la versione scelta. I dati BCE sono tassi di riferimento: questa prova non valida prezzi negoziabili.
+
+[Audit e comandi](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/phase0.md). Fase 1, login e commissioni restano successivi.
+
+---

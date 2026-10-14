@@ -8,7 +8,7 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 ## Project status
 
-**Phase 0 verification in progress.** The repository contains the plan plus compatibility/contract proofs: pinned runtime dependencies, a Textual framework probe, canonical examples, a read-only ECB historical integration and a bounded native NautilusTrader simulation. See [Phase 0 gates and evidence](docs/phase0.md). There is no product TUI/chat, shared registry service, login, source extraction, paper/live execution or billing. Those remain development objectives. The initial proof does not verify tradable market data or broker capabilities.
+**Phase 0 complete.** The repository contains the plan plus verified compatibility/contract proofs: pinned runtime dependencies, a Textual framework probe, canonical examples, a read-only ECB historical integration and a bounded native NautilusTrader simulation. See [Phase 0 gates and evidence](docs/phase0.md). There is no product TUI/chat, shared registry service, login, source extraction, paper/live execution or billing. Those remain development objectives. The initial proof does not verify tradable market data or broker capabilities.
 
 ## Confirmed direction
 

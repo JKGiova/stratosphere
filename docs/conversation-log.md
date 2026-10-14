@@ -1683,3 +1683,39 @@ The clean test environment is ready with the project’s locked dependencies. I�
 The Rust compilation is still progressing without a reported error. The wheel checks are ready: they will verify the actual binary architecture and high-precision values before we count the build as Intel support.
 
 ---
+
+### 112 — Assistant (progress update)
+
+The existing Linux and Apple Silicon regression tests pass, including the new precision check. The first Intel CI attempt stopped because my version check rejected uv’s extra build metadata; I fixed that check, and the corrected CI build is starting. The local compilation is still progressing.
+
+---
+
+### 113 — Assistant (progress update)
+
+The build has reached NautilusTrader’s own Rust modules. I’m keeping the upstream release configuration and source unchanged for this first attempt, so the result can be compared with the binaries we already verified.
+
+---
+
+### 114 — Assistant (progress update)
+
+Both builds are still in the Rust compilation stage; neither has reported a compiler error. The final test will use the compiled wheel in a clean environment, so success must come from the installed package rather than the source checkout.
+
+---
+
+### 115 — Assistant (progress update)
+
+The local build has compiled the backtest module and is now building the remaining engine components and adapters. This only builds the upstream package; it does not configure or connect those adapters. Wheel installation and native tests are still pending.
+
+---
+
+### 116 — Assistant (progress update)
+
+The compiler is actively working across four Rust processes, so the quiet periods in the log are compilation rather than a stall. No source changes have been needed so far. I’m still waiting for a finished wheel before testing installation.
+
+---
+
+### 117 — Assistant (progress update)
+
+Compilation is still active in the remaining adapter modules. The core regression checks have passed; Intel support still depends on the wheel passing architecture inspection, clean installation and the native engine tests.
+
+---

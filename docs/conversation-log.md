@@ -1743,3 +1743,75 @@ All 77 tests pass on this Intel Mac, and the complete deterministic backtest pay
 The source-independent engine tests pass too: the installed wheel works with the original build directory unavailable. Local verification is complete. I’m waiting for the separate GitHub Intel runner to finish, which will verify the build script from a fresh checkout.
 
 ---
+
+### 122 — Assistant (progress update)
+
+Local verification is finished: 77 tests pass, the results match Linux, and the wheel works independently of its build directory. The separate CI build started later and is still compiling. I’m waiting for it before marking the reproducible Intel pipeline as verified.
+
+---
+
+### 123 — Assistant (progress update)
+
+The tested wheel, checksums, provenance and installation guide are saved in the workspace. CI is the only remaining verification; no further local code changes are needed.
+
+---
+
+### 124 — Assistant (progress update)
+
+CI is still in the build step. The verified local wheel is available at `reports/intel/`, with its checksum and install guide. I’m checking whether the runner’s build log is available so I can see its compilation progress.
+
+---
+
+### 125 — Assistant (progress update)
+
+GitHub does not expose the running job’s build log through the CLI, so I can currently see only that compilation is still in progress. The local wheel remains fully verified; I’ll record the CI result when the job finishes.
+
+---
+
+### 126 — Assistant (progress update)
+
+The independent Intel build is still running, with no failure reported. The locally tested wheel is ready; the remaining check is whether the same build-and-test process succeeds on GitHub’s fresh Intel runner.
+
+---
+
+### 127 — Assistant (progress update)
+
+CI has not advanced beyond compilation yet. Local verification is complete, and the existing Linux and Apple Silicon regression checks remain green.
+
+---
+
+### 128 — Assistant (progress update)
+
+The GitHub build has been running for about 51 minutes, longer than the roughly 34-minute local compilation. It has a 90-minute limit and has not reported a failure. I’m keeping CI status pending until its tests actually run.
+
+---
+
+### 129 — Assistant (progress update)
+
+CI remains in compilation. The local build, installation and tests are complete; I’m holding the final pipeline status until the independent runner finishes.
+
+---
+
+### 130 — Assistant (progress update)
+
+The independent build is still running. There are no failures reported and no further local changes to make; I’m waiting for the runner’s result to complete the audit.
+
+---
+
+### 131 — Assistant (progress update)
+
+CI is still compiling. Local verification is complete, and the wheel can be installed using the saved guide. I’m waiting for the independent run to pass or produce a build log that needs a fix.
+
+---
+
+### 132 — Assistant (progress update)
+
+The independent runner is still in its build step. No new local work is required; the remaining result is the fresh-runner reproduction of the tested Intel wheel.
+
+---
+
+### 133 — Assistant (progress update)
+
+CI remains pending at compilation. The local wheel and test evidence are saved, and I’ll keep the final audit clear about which results are local and which come from CI.
+
+---

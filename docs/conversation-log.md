@@ -1291,3 +1291,201 @@ TUI exit remains exactly: **keep positions open or close them all**.
 We’ll focus now on the TUI, agents, source integrations, strategy conversion, backtesting, and market data.
 
 ---
+
+### 080 — User
+
+annulla tutti i commits e tutte le modifiche fatte precedentemente dall'inizio dell'implementazione (fine della fase di planning) ad ora
+
+---
+
+### 081 — Assistant (progress update)
+
+Controllo la cronologia per individuare l’ultimo commit della fase di planning, poi annullo l’implementazione fino a oggi, sia nella cartella locale sia su GitHub.
+
+---
+
+### 082 — Assistant (progress update)
+
+L’ultimo commit di planning è `32a2616`. Ripristino esattamente quello stato, rimuovendo i 10 commit successivi da `main`, insieme a codice, test, ambiente virtuale e artefatti generati. Prima salvo una copia recuperabile fuori dal progetto; il ripristino rimuoverà anche gli aggiornamenti del log della chat successivi al planning.
+
+---
+
+### 083 — Assistant (response)
+
+Ripristinati cartella locale e GitHub al commit finale del planning, `32a2616`.
+
+Rimossi i 10 commit successivi, il codice, i test, l’ambiente virtuale e gli artefatti. La cartella è pulita.
+
+Ho conservato una [copia recuperabile](/private/tmp/stratosphere-before-rollback-d6e51ff.bundle) fuori dal progetto.
+
+---
+
+### 084 — User
+
+ok fammi un recap completo del plan
+
+---
+
+### 085 — Assistant (progress update)
+
+Rileggo tutti i documenti ripristinati e ti preparo un recap completo, distinguendo le scelte confermate, le proposte tecniche e i punti ancora aperti.
+
+---
+
+### 086 — Assistant (progress update)
+
+Il piano conferma tutte e cinque le fonti nella fase 1, il calcolo sul computer dell’utente e la scelta di mantenere o chiudere tutte le posizioni all’uscita. Login e riscossione delle commissioni restano rimandati. Dopo il rollback, versioni delle librerie, framework TUI, provider di dati e criteri numerici di rilascio sono ancora da scegliere.
+
+---
+
+### 087 — Assistant (response)
+
+**Dopo il rollback siamo tornati alla fase di planning: il repository contiene documentazione, senza l’implementazione precedente.** Questo recap segue le ultime [decisioni confermate](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/decisions.md), distinguendole dalle proposte ancora aperte.
+
+**Prodotto.** **stratosphere** è il componente di **tradingsphere** dedicato all’intero ciclo di una strategia quantitativa: partire da un’idea o una fonte, ricostruire le regole, creare un’implementazione, testarla, migliorarla e infine utilizzarla nel trading con gestione coordinata del portafoglio.
+
+Il percorso previsto è:
+
+**Idea/fonte → specifica → codice → backtest → validazione → paper trading → attivazione live → monitoraggio e nuove varianti.**
+
+Sono inclusi **crypto, azioni/ETF e forex**, con integrazioni verificate progressivamente. Il focus è sul trading di breve periodo: minuti, ore, giorni o circa una settimana. Non è previsto un obbligo generale di chiudere le posizioni a fine giornata. Trading ad alta frequenza, gestione iniziale di conti di terzi e marketplace a pagamento delle strategie sono fuori dal perimetro iniziale.
+
+**Interfaccia ed esperienza.** Il prodotto sarà una **TUI permanente**, ispirata all’esperienza di Claude Code/Codex. L’applicazione sarà in inglese, inizialmente per **Linux e macOS**, con supporto agli altri sistemi operativi successivamente.
+
+La TUI comprenderà:
+
+- Chat centrale con il chief agent.
+- Slash commands per invocare direttamente operazioni precise.
+- Pannelli per consultare e aprire le strategie.
+- Visualizzazione dei test in corso, conclusi e dei relativi report.
+- Visualizzazione delle posizioni reali, degli ordini e dello stato del portafoglio.
+
+Chat e comandi devono usare lo stesso livello di operazioni validate. Un comando esplicito non deve richiedere una chiamata al modello soltanto per essere interpretato. Il vocabolario proposto comprende `/import`, `/new`, `/strategies`, `/show`, `/backtest`, `/compare`, `/improve`, `/jobs`, `/pause`, `/resume`, `/cancel` e `/portfolio`; nomi e argomenti definitivi sono ancora da progettare.
+
+Al primo avvio, l’onboarding finale comprenderà configurazione del modello, login e collegamento facoltativo dei conti trading. **Login e riscossione delle commissioni sono però rimandati a una fase successiva**, senza bloccare lo sviluppo del nucleo di ricerca.
+
+**Esecuzione locale e connessione.** Ricerca, backtest e runtime di trading gireranno **sul computer dell’utente**. Il prodotto richiederà connessione: non sono previste funzionalità offline. Autenticazione, catalogo e database saranno servizi condivisi online.
+
+All’uscita dalla TUI l’utente sceglierà esattamente tra **mantenere le posizioni aperte** e **chiuderle tutte**. Questa decisione è confermata. L’implementazione dovrà verificare gli esiti delle chiusure, anche parziali o fallite. Se il computer è spento, il codice locale non può continuare a gestire il trading.
+
+**Stack e modelli.** Le scelte confermate sono:
+
+| Componente | Scelta |
+| --- | --- |
+| Backend | Python |
+| Orchestrazione degli agenti | LangGraph |
+| Backtest e runtime delle strategie | NautilusTrader |
+| Database condiviso | PostgreSQL gestito da Supabase |
+| Autenticazione finale | Supabase Auth, OAuth con Google e GitHub |
+| Modello per sviluppo e testing | NVIDIA NIM, DeepSeek V4.1 Flash |
+| Modelli nel prodotto | Provider diversi, selezionati dall’utente con le proprie API key |
+| Primo connettore operativo | Liquid |
+| Ulteriore connettore facoltativo | Alpaca |
+
+Dopo il rollback **non sono fissate le versioni delle librerie né il framework TUI**. Pydantic, Parquet, DuckDB, un’eventuale API FastAPI e la struttura dei worker sono proposte tecniche. VectorBT e Quiver restano possibili aggiunte future, non dipendenze obbligatorie del primo incremento.
+
+**Fonti e conversione.** **YouTube, Instagram, X, TradingView e GitHub devono essere inclusi tutti nella fase 1.** Sono previsti anche articoli, testo fornito dall’utente e materiale caricato direttamente.
+
+L’acquisizione dovrà considerare trascrizioni, audio, frame, immagini, descrizioni, thread, parametri e codice quando disponibili. Ogni regola estratta dovrà mantenere un riferimento alla propria evidenza: passaggio di testo, timestamp del video o riga di codice. Materiale inaccessibile e regole mancanti devono essere segnalati, non inventati.
+
+Gli agenti devono distinguere ciò che la fonte afferma, le interpretazioni proposte e le informazioni da chiarire. Le istruzioni contenute nelle fonti sono materiale da analizzare, non autorizzazioni a eseguire operazioni.
+
+Le strategie provenienti da altri sistemi devono essere **convertite in implementazioni per NautilusTrader**, conservando il comportamento oppure rendendo esplicite le differenze non risolte. NautilusTrader è il motore: estrazione, generazione e conversione sono responsabilità degli agenti e dei servizi applicativi.
+
+Hai richiesto **nessun limite di upload imposto dall’applicazione**. Restano da verificare formati supportati e capacità effettive delle infrastrutture e dei provider.
+
+**Strategie, identità e versioni.** Ogni strategia avrà un lungo ID pubblico numerico casuale, nome, descrizione, regole formali e definizioni matematiche quando applicabili. La specifica deve includere strumenti, timeframe, indicatori, parametri, ingressi, uscite, sizing, timing dei segnali, condizioni obbligatorie, assunzioni e comportamento con dati mancanti.
+
+Le regole di identità sono precise:
+
+- Strategie identiche riutilizzano lo stesso ID, accumulando le nuove fonti.
+- Anche una piccola modifica comportamentale o parametrica crea un nuovo ID, collegato alla strategia di origine.
+- Nome, descrizione, autore e risultati non determinano l’identità comportamentale.
+- Una revisione del codice che conserva le stesse regole può essere una nuova implementazione della stessa strategia, ma deve dimostrare nuovamente la conformità.
+- Account e capitale personali restano configurazioni separate, se non modificano le regole della strategia.
+
+La canonicalizzazione deve confrontare specifiche complete senza arrotondare o eliminare dettagli che cambiano il comportamento. Le implementazioni attive restano fissate alla versione selezionata: nessun aggiornamento silenzioso durante il trading.
+
+**Agenti e autonomia.** La ricerca parte dopo **una sola approvazione del piano**. Gli agenti fanno domande quando le regole sono ambigue. Budget numerici per spesa dei modelli, durata, concorrenza e numero di varianti non sono ancora definiti.
+
+L’architettura proposta distribuisce queste responsabilità:
+
+| Ruolo | Responsabilità |
+| --- | --- |
+| Chief agent | Conversazione, coordinamento, piano e interventi dell’utente |
+| Analista delle fonti | Estrazione delle regole e delle evidenze |
+| Ricercatore quantitativo | Formalizzazione, ipotesi e varianti |
+| Developer | Implementazione e verifica della corrispondenza con le regole |
+| Validator | Esperimenti, robustezza, limiti e proposta di avanzamento |
+| Portfolio coordinator | Coordinamento dei segnali e delle esposizioni |
+| Budget management | Proposta di allocazione del capitale e dimensionamento |
+| Risk valuation | Valutazione dell’impatto sul rischio |
+| Supervisore operativo | Anomalie, salute del sistema e necessità di intervento |
+
+Sono ruoli logici: non implicano nove modelli o processi sempre attivi. Ricerca e runtime operativo devono essere separati, così un backtest pesante non blocca la gestione degli ordini. Job, checkpoint, risultati e interventi devono essere tracciabili e recuperabili. La pausa di un job di ricerca non deve implicitamente fermare il trading o chiudere posizioni.
+
+**Database e catalogo condiviso.** Il progetto Supabase previsto è **stratosphere**, nell’organizzazione **Matti Barbershop**, in **Frankfurt (`eu-central-1`)**. Non risulta creato: l’ultimo tentativo di provisioning documentato era bloccato dall’indisponibilità del controllo costi del connector.
+
+Il modello logico separa utenti, strategie, fonti e relative associazioni, submission, dataset, esperimenti, valutazioni di applicabilità e istanze personali. Serviranno inoltre record per implementazioni, job, connessioni ai conti e attività operativa. **Schema SQL, migrazioni e politiche di accesso non sono ancora implementati.**
+
+Le strategie registrate entrano **automaticamente nel catalogo comunitario**. Le raccomandazioni devono distinguere compatibilità, rischio, robustezza, qualità e freschezza delle evidenze, senza ordinare soltanto per rendimento. Un backtest, un risultato paper e un risultato live verificato devono essere riconoscibili come evidenze diverse.
+
+La condivisione riguarda le definizioni e il materiale pubblicabile. Chat private, API key, credenziali, conti, capitale personale e dati grezzi privati non diventano pubblici. Moderazione, attribuzione, accesso al catalogo e politiche di conservazione/cancellazione sono ancora aperti.
+
+**Dati, backtest e validazione.** Le modalità previste sono backtest, replay, osservazione dei segnali in tempo reale, paper trading e live. Ogni esperimento dovrà conservare versione del codice, motore, specifica, dataset, configurazione, costi, protocollo e risultati.
+
+Il piano prevede controllo della qualità dei dati, separazione cronologica tra sviluppo/validazione/holdout, confronti con baseline e test di sensibilità. Commissioni, spread, slippage, funding e altri costi pertinenti vanno modellati. Devono essere controllati look-ahead, repainting, bias di selezione, timing dei fill e overfitting. Anche tentativi falliti e varianti scartate vengono conservati; il holdout finale non diventa un set di ottimizzazione.
+
+I report devono mostrare operazioni ispezionabili, rendimenti lordi/netti, equity curve, drawdown, numero di trade, esposizione, costi e limitazioni. I numeri vengono calcolati dal motore; il modello li interpreta.
+
+**Non abbiamo ancora scelto provider di mercato, strumenti iniziali, profondità dello storico o granularità.** BTC/ETH su candele orarie e archivi Binance erano una proposta, non una decisione. Anche i 30 giorni di paper testing proposti non sono un requisito approvato.
+
+**Portafoglio ed esecuzione live.** Il percorso previsto è:
+
+**Segnali → coordinamento del portafoglio → budget management → risk valuation → controlli deterministici → gateway → connettore.**
+
+Il live sarà disabilitato per default e attivato esplicitamente per strategia/versione, conto, capitale e mandato. Le operazioni potranno richiedere conferma oppure seguire una configurazione autorizzata, rispettando sempre i permessi del provider.
+
+Gli agenti non possono superare i limiti deterministici. L’esecuzione dovrà gestire ordini duplicati, capitale riservato, fill parziali, rifiuti, cancellazioni, timeout ambigui, riconciliazione e riavvii. Strategie diverse sullo stesso strumento devono essere coordinate; netting, priorità e attribuzione del P&L restano da definire.
+
+Collegare Liquid o Alpaca non abilita automaticamente il trading. Login, autorizzazione del conto e mandato operativo sono tre autorizzazioni distinte. Il prodotto deve poter essere usato per ricerca senza un broker. Gli adattatori e le capacità effettive dei connettori devono essere verificati sullo strumento realmente negoziato. Un perpetual riferito a un’azione o a una valuta non è equivalente al possesso dell’azione o della valuta: dati, margine e funding devono riflettere lo strumento effettivo.
+
+**Modello commerciale e rilascio.** Il repository resta privato. L’open source è soltanto una possibile scelta futura se la monetizzazione non funziona, da autorizzare esplicitamente.
+
+La commissione di stratosphere sarà **lo 0,5% del valore eseguito di ogni ordine di nuova apertura, con massimo di 1 USD per ordine**. Non è una commissione sui profitti e non si applica ai rinforzi di posizioni già aperte. Un’apertura di 100 USD implica 0,50 USD; da 200 USD in su si raggiunge il massimo di 1 USD. Riscossione e casi particolari, come reversal, fill parziali e posizioni condivise fra strategie, restano da definire più avanti.
+
+La prima release arriverà **solo dopo molti test**, senza scadenza fissata. Un incremento interno funzionante non equivale a una release pronta alla vendita. Soglie numeriche, durata paper, scala iniziale e criteri finali di accettazione rimangono aperti.
+
+**Roadmap.** Questa è l’organizzazione proposta delle fasi; nessuna è oggi completata:
+
+| Fase | Obiettivo | Risultato da verificare |
+| --- | --- | --- |
+| **0 — Compatibilità e contratti** | Runtime, motore, TUI, specifiche e primo dataset | Compatibilità verificata e protocollo riproducibile |
+| **1 — TUI, registry e fonti** | Chat/comandi/pannelli, setup modello, registry e tutte le cinque fonti | Acquisizione con evidenze, identità esatta e operazioni coerenti |
+| **2 — Ricerca completa** | Testo/articolo → specifica → codice → backtest → report | Un caso end-to-end riproducibile con costi e conformità |
+| **3 — Iterazione e raccomandazioni** | Varianti, confronti, valutazione fuori campione e catalogo | Tentativi tracciati e raccomandazioni basate su evidenze |
+| **4 — Copertura e maturità** | Rafforzare fonti/conversioni e ampliare i mercati | Capacità e semantiche verificate per ciascuna integrazione |
+| **5 — Dati live e paper** | Feed, connettori, runtime e gestione del capitale/rischio | Operazione simulata stabile e recupero dagli errori |
+| **6 — Live e monetizzazione** | Mandati, controlli, gateway e commissioni | Esecuzione e contabilità corrette anche nei casi di errore |
+| **7 — Evoluzione operativa** | Monitoraggio, attribuzione, nuovi adapter e aggiornamenti | Portafoglio coerente e versioni attive protette |
+
+Login e raccolta delle commissioni rimangono lavori successivi; l’autenticazione dovrà comunque essere verificata prima di esporre un servizio condiviso a utenti reali.
+
+**Decisioni ancora aperte.** Le principali sono versioni Python/NautilusTrader e piattaforme supportate, libreria TUI, packaging, primo provider/dataset, schema canonico e lunghezza degli ID, isolamento del codice generato, persistenza dei job, API del servizio condiviso, budget e criteri di test. Più avanti serviranno politiche del catalogo, limiti di rischio, allocazione/netting, gestione delle anomalie, notifiche, backup, integrazioni con gli altri componenti di tradingsphere e dettagli commerciali. Login e pagamenti non vanno riaperti adesso.
+
+**Regole di sviluppo in [AGENTS.md](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/AGENTS.md).**
+
+1. Materiale di sviluppo in inglese, inclusi codice, commenti, documentazione, commit, issue e PR.
+2. Nomi `stratosphere` e `tradingsphere` sempre minuscoli; nomi dei prodotti esterni con la loro capitalizzazione.
+3. GitHub è la fonte condivisa dello sviluppo; repository privato, senza cambi di visibilità o licenza non autorizzati.
+4. Aggiornare la documentazione quando cambiano comportamento o decisioni tecniche.
+5. Distinguere sempre funzioni pianificate, implementate e verificate.
+6. Aggiornare il log della conversazione con messaggi utente, progressi e risposta finale; leggere prima il log corrente su GitHub, conservare le voci precedenti e non duplicarle.
+7. Nel log mantenere lingua, parole e correzioni originali; convertire citazioni e widget in link/testo leggibile, senza riscrivere la conversazione.
+8. Escludere istruzioni interne, tracce dei tool, metadati ambientali, memorie estranee e credenziali; segnalare esplicitamente eventuali redazioni.
+9. Tenere la discussione storica separata dai requisiti confermati in `docs/decisions.md`.
+10. Pubblicare gli aggiornamenti del log sul branch corrente e verificarli; segnalare eventuali mancate sincronizzazioni. Non esiste un trigger autonomo in background e non va creato polling estraneo.
+
+Il primo passo tecnico previsto resta la **fase 0**: verificare una combinazione runtime/motore, scegliere la TUI e il primo dataset, definire i contratti e costruire una prova riproducibile prima di estendere l’applicazione.
+
+---

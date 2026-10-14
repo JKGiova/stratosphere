@@ -1489,3 +1489,23 @@ Login e raccolta delle commissioni rimangono lavori successivi; l’autenticazio
 Il primo passo tecnico previsto resta la **fase 0**: verificare una combinazione runtime/motore, scegliere la TUI e il primo dataset, definire i contratti e costruire una prova riproducibile prima di estendere l’applicazione.
 
 ---
+
+### 088 — User
+
+ok implementiamo solo la fase 0, uno step alla volta, testando tutto /goal
+
+---
+
+### 089 — Assistant (progress update)
+
+Procedo solo sulla fase 0, con passaggi sequenziali e test prima di avanzare. Controllo lo stato dopo l’interruzione e i criteri del piano, poi parto dalla compatibilità Python/NautilusTrader.
+
+---
+
+### 090 — Assistant (progress update)
+
+Ho definito cinque passaggi per la fase 0: compatibilità, scelta della TUI, specifica canonica, prova con dati reali e confine d’accesso al servizio condiviso. Ognuno avrà un criterio di verifica prima di procedere.
+
+I metadati del motore indicano wheel per Linux e macOS Apple Silicon, ma nessuna per macOS Intel. La matrice registrerà questo limite; la prova del motore sarà eseguita sui sistemi con una wheel disponibile.
+
+---

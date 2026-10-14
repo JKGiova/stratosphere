@@ -1,0 +1,46 @@
+name: phase0
+on:
+  push:
+    paths-ignore: ["docs/**", "**/*.md"]
+  pull_request:
+    paths-ignore: ["docs/**", "**/*.md"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compatibility:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            engine: true
+          - os: ubuntu-24.04-arm
+            engine: true
+          - os: macos-26
+            engine: true
+          - os: macos-26-intel
+            engine: false
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.0"
+          python-version: "3.14.7"
+      - if: matrix.engine
+        run: uv sync --locked --extra engine
+      - if: '!matrix.engine'
+        run: uv sync --locked
+      - run: uv run --no-sync ruff check .
+      - run: uv run --no-sync ruff format --check .
+      - if: matrix.engine
+        run: uv run --no-sync python -m stratosphere.phase0.compatibility --require-engine --output reports/compatibility.json
+      - if: '!matrix.engine'
+        run: uv run --no-sync python -m stratosphere.phase0.compatibility --output reports/compatibility.json
+      - run: uv run --no-sync pytest -m 'not engine'
+      - uses: actions/upload-artifact@v5
+        with:
+          name: phase0-${{ matrix.os }}
+          path: reports/

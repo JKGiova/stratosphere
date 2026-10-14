@@ -1509,3 +1509,11 @@ Ho definito cinque passaggi per la fase 0: compatibilità, scelta della TUI, spe
 I metadati del motore indicano wheel per Linux e macOS Apple Silicon, ma nessuna per macOS Intel. La matrice registrerà questo limite; la prova del motore sarà eseguita sui sistemi con una wheel disponibile.
 
 ---
+
+### 091 — Assistant (progress update)
+
+Il primo passaggio è verificato: installazione e import funzionano su Linux x86_64 e ARM64 e su macOS Apple Silicon. Su macOS Intel funzionano le dipendenze della TUI, ma manca la wheel del motore.
+
+Passo alla scelta della TUI: provo Textual con tastiera, rendering e ridimensionamento, senza costruire ancora l’interfaccia del prodotto.
+
+---

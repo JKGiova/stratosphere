@@ -1590,4 +1590,6 @@ Il motore non è disponibile su macOS Intel con la versione scelta. I dati BCE s
 
 [Audit e comandi](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/phase0.md). Fase 1, login e commissioni restano successivi.
 
+Tempo impiegato: circa 43 minuti.
+
 ---

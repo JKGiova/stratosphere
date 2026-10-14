@@ -1593,3 +1593,32 @@ Il motore non è disponibile su macOS Intel con la versione scelta. I dati BCE s
 Tempo impiegato: circa 43 minuti.
 
 ---
+
+### 101 — User
+
+how could we add support for intel macs
+
+---
+
+### 102 — Assistant (progress update)
+
+I’ll check the pinned NautilusTrader build requirements and our compatibility matrix, then compare a native Intel build with a local Linux container.
+
+---
+
+### 103 — Assistant (response)
+
+Our TUI already passes Intel Mac tests. The missing piece is a verified **NautilusTrader binary for macOS x86_64**; version 1.231.0 publishes ARM-only Mac wheels and a source package. [Release files](https://pypi.org/project/nautilus_trader/1.231.0/#files).
+
+We have two routes:
+
+| Route | Advantage | Tradeoff |
+| --- | --- | --- |
+| **Build a native Intel wheel** | Normal terminal installation, without Docker | We maintain and test that binary for each engine update |
+| **Run the engine in a local Linux container** | Uses the Linux x86_64 engine we already verified; compute stays on the user’s computer | Requires a container runtime and testing of storage, communication and shutdown |
+
+**I recommend trying the native build first**, keeping the container as a fallback. The pinned build script supports source compilation, but successful Intel compatibility remains unproven. [Build source](https://github.com/nautechsystems/nautilus_trader/blob/v1.231.0/build.py). Docker also provides an Intel Mac installation. [Docker documentation](https://docs.docker.com/desktop/setup/install/mac-install/).
+
+The next small step would be to build **1.231.0 for Intel**, install the wheel in a clean environment, run our **69 core + 2 engine tests**, and compare signals, fills, fees and balances with Linux. Once it passes, we add mandatory Intel engine CI and package the wheel so users need no compiler.
+
+---

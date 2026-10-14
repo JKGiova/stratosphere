@@ -1553,3 +1553,19 @@ La lettura online della BCE funziona e lo snapshot contiene 63 osservazioni. I t
 La prova del motore resta limitata a una strategia SMA dichiarata per intero. Qualsiasi altra specifica sarà rifiutata finché non avrà un adapter verificato; non verrà eseguita ignorandone alcune regole.
 
 ---
+
+### 097 — Assistant (progress update)
+
+La prova NautilusTrader passa su Linux x86_64, Linux ARM64 e macOS Apple Silicon: segnali e fill coincidono con il calcolo indipendente, costi e saldi tornano, le esecuzioni ripetute danno lo stesso risultato e la posizione resta aperta a fine test quando previsto.
+
+Rimane il confine del servizio condiviso. Uso la skill Supabase per definire accesso e proiezione del catalogo; in questa fase verifico i contratti, senza configurare login o database.
+
+---
+
+### 098 — Assistant (progress update)
+
+I contratti del catalogo separano la definizione condivisa dai dati privati. I test controllano che richieste, account e contenuti sorgente non entrino nella proiezione e che il client non possa assegnarsi proprietà o stato di verifica.
+
+Sto completando l’audit della fase 0 e aggiornando la documentazione per distinguere le prove superate dalle funzionalità ancora pianificate.
+
+---

@@ -2,7 +2,7 @@
 
 This directory contains the initial plan for **stratosphere**, the component of the **tradingsphere** suite dedicated to agent-driven quantitative strategies.
 
-**Status:** planning update, October 13, 2026. No application functionality has been implemented yet. The [decision log](decisions.md) records confirmed product and technology choices. Detailed schema, component boundaries, phase ordering, and operational criteria remain implementation proposals unless explicitly marked confirmed.
+**Status:** Phase 0 verification in progress, October 14, 2026. [Compatibility and contract proofs](phase0.md) exist; product/application phases remain unimplemented. The [decision log](decisions.md) separates product requirements, selected implementation decisions, and open proposals. Detailed physical schema, production components and operational criteria remain implementation work.
 
 ## Reading order
 
@@ -18,6 +18,7 @@ This directory contains the initial plan for **stratosphere**, the component of 
 10. [Authentication and connectors](authentication-and-connectors.md): application login versus trading authorization.
 11. [Roadmap](roadmap.md): implementation phases and completion criteria.
 12. [Conversation log](conversation-log.md): full historical chat in its original language, maintained as this conversation continues.
+13. [Phase 0 verification](phase0.md), [canonical contracts](phase0-contracts.md) and [access boundary](phase0-access-boundary.md): selected decisions, example protocol, commands, measured tests and limits.
 
 ## Maintaining the plan
 

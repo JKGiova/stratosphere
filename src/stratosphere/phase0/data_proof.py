@@ -24,6 +24,11 @@ class Observation:
     available_ns: int
 
 
+def reference_availability_ns(day: str) -> int:
+    available = datetime.combine(date.fromisoformat(day), time(17), tzinfo=UTC)
+    return int(available.timestamp()) * 10**9
+
+
 def observation_digest(observations: tuple[Observation, ...]) -> str:
     content = json.dumps(
         [{"date": item.date, "rate": decimal_text(item.rate)} for item in observations],
@@ -65,8 +70,9 @@ def normalize_ecb(content: bytes, manifest: DatasetManifest) -> tuple[Observatio
         rate = decimal_text(row["OBS_VALUE"])
         if Decimal(rate) <= 0:
             raise ValueError("Reference rate must be positive")
-        available = datetime.combine(day, time(17), tzinfo=UTC)
-        observations.append(Observation(day.isoformat(), rate, int(available.timestamp()) * 10**9))
+        observations.append(
+            Observation(day.isoformat(), rate, reference_availability_ns(day.isoformat()))
+        )
     dates = tuple(item.date for item in observations)
     if dates != manifest.expected_dates:
         raise ValueError("Missing, duplicate, unexpected or out-of-order observation dates")

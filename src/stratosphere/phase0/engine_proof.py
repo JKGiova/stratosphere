@@ -14,10 +14,17 @@ from stratosphere.phase0.contracts import (
     ExperimentProtocol,
     InstrumentManifest,
     StrategyDocument,
+    canonical_bytes,
     fingerprint,
     load_contract,
 )
-from stratosphere.phase0.data_proof import EXAMPLES, Observation, normalize_ecb, observation_digest
+from stratosphere.phase0.data_proof import (
+    EXAMPLES,
+    Observation,
+    normalize_ecb,
+    observation_digest,
+    reference_availability_ns,
+)
 from stratosphere.phase0.signals import SmaCross
 
 SUPPORTED_SPEC = "b155e4f23654825e82ef2d9634262fead388f3e0fd6e1379bc93e530bfff4617"
@@ -26,6 +33,9 @@ SUPPORTED_SPEC = "b155e4f23654825e82ef2d9634262fead388f3e0fd6e1379bc93e530bfff46
 def validate_bindings(document, dataset, instrument, protocol):
     if fingerprint(document.formal_spec) != SUPPORTED_SPEC:
         raise ValueError("Adapter supports only the complete authored Phase 0 SMA contract")
+    supported = load_contract(EXAMPLES / "strategy.json", StrategyDocument).formal_spec
+    if canonical_bytes(document.formal_spec) != canonical_bytes(supported):
+        raise ValueError("Full supported specification mismatch despite matching digest")
     if (
         protocol.strategy_sha256,
         protocol.dataset_manifest_sha256,
@@ -49,6 +59,23 @@ def validate_bindings(document, dataset, instrument, protocol):
         raise ValueError("This proof requires initial flat exposure")
 
 
+def validate_input_events(observations, dataset, document, instrument):
+    if tuple(row.date for row in observations) != dataset.expected_dates:
+        raise ValueError("Engine input dates do not match the snapshot")
+    if observation_digest(observations) != dataset.content_sha256:
+        raise ValueError("Engine input values do not match the snapshot")
+    if not observations:
+        raise ValueError("No observations")
+    if any(row.available_ns != reference_availability_ns(row.date) for row in observations):
+        raise ValueError("Input availability does not match the declared protocol")
+    for previous, current in zip(observations, observations[1:], strict=False):
+        lag = current.available_ns - previous.available_ns
+        if not 0 < lag <= document.formal_spec.missing_data_policy.max_staleness_seconds * 10**9:
+            raise ValueError("Invalid ordering or stale observations")
+    if any(Decimal(row.rate) % Decimal(instrument.price_increment) for row in observations):
+        raise ValueError("Reference price violates the declared instrument increment")
+
+
 def run_engine(
     observations: tuple[Observation, ...],
     document: StrategyDocument,
@@ -57,10 +84,7 @@ def run_engine(
     protocol: ExperimentProtocol,
 ) -> dict:
     validate_bindings(document, dataset, instrument, protocol)
-    if tuple(row.date for row in observations) != dataset.expected_dates:
-        raise ValueError("Engine input dates do not match the snapshot")
-    if observation_digest(observations) != dataset.content_sha256:
-        raise ValueError("Engine input values do not match the snapshot")
+    validate_input_events(observations, dataset, document, instrument)
     if version("nautilus_trader") != protocol.engine_version:
         raise ValueError("Pinned engine version required")
     # Imports remain here so core contracts can be checked on hosts without the engine wheel.
@@ -73,15 +97,6 @@ def run_engine(
     from nautilus_trader.model.instruments import CurrencyPair
     from nautilus_trader.model.objects import Money, Price, Quantity
     from nautilus_trader.trading.strategy import Strategy
-
-    if not observations:
-        raise ValueError("No observations")
-    for previous, current in zip(observations, observations[1:], strict=False):
-        lag = current.available_ns - previous.available_ns
-        if not 0 < lag <= document.formal_spec.missing_data_policy.max_staleness_seconds * 10**9:
-            raise ValueError("Invalid ordering or stale observations")
-    if any(Decimal(row.rate) % Decimal(instrument.price_increment) for row in observations):
-        raise ValueError("Reference price violates the declared instrument increment")
 
     instrument_id = InstrumentId.from_str("EURUSD.SIM")
     native_instrument = CurrencyPair(
@@ -191,6 +206,7 @@ def run_engine(
         balances = accounts[0].balances_total()
         payload = {
             "schema_version": "engine-proof/1",
+            "python_version": platform.python_version(),
             "engine_version": version("nautilus_trader"),
             "strategy_sha256": fingerprint(document.formal_spec),
             "dataset_manifest_sha256": fingerprint(dataset),

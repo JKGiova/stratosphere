@@ -2,9 +2,9 @@
 
 ## Selected foundation
 
-**Confirmed:** Python for the backend, LangGraph for agent orchestration, Supabase-managed PostgreSQL for the registry and related records, Supabase Auth with OAuth login, and NautilusTrader for backtesting and execution. Alpaca and Liquid are optional operational connectors, not login requirements. NautilusTrader version and adapters must be verified before implementation and live use. No engine integration is implemented yet.
+**Confirmed:** Python for the backend, LangGraph for agent orchestration, Supabase-managed PostgreSQL for the registry and related records, Supabase Auth with OAuth login, and NautilusTrader for backtesting and execution. Alpaca and Liquid are optional operational connectors, not login requirements. [Phase 0](phase0.md) pins Python 3.14.7/NautilusTrader 1.231.0 and verifies a bounded native simulation on Linux x86_64/ARM64 and macOS 26 ARM64. Intel macOS has no pinned engine wheel. This proof does not implement a research application or live adapter.
 
-**Proposed supporting components:** Pydantic contracts, versioned Parquet data, DuckDB for analysis, isolated research workers, and a TUI framework to be selected. FastAPI is optional for a shared catalog service, not a requirement for a web interface. These supporting choices are not confirmed.
+**Selected in Phase 0:** Pydantic contracts, Textual TUI framework and a hosted HTTPS/JSON application API boundary for the shared catalog. Only contract/framework proofs exist. **Still proposed:** Parquet, DuckDB, isolated research-worker implementation and the hosted API framework/hosting. FastAPI remains optional, not a requirement for a web interface.
 
 ## Proposed structure
 
@@ -50,7 +50,7 @@ The TUI is the permanent user interface. It connects to application operations r
 
 The chief agent uses LangGraph to coordinate extraction, specification, development, validation, and improvement. Persist workflow checkpoints, intervention events, job IDs, and evidence references. Slash commands invoke the same validated operations without requiring the model to interpret the command. Pausing research does not implicitly pause trading or close positions.
 
-A shared service boundary is proposed for catalog access and PostgreSQL authorization. Supabase is selected for the managed database. Application-service hosting, API transport, secure local session storage and online outage behavior require further decisions; offline functionality is excluded; do not expose privileged database credentials to terminal clients. A single repository with modular boundaries and separate worker processes is the initial proposal, not a requirement to deploy many microservices.
+A hosted HTTPS/JSON [application API boundary](phase0-access-boundary.md) is selected for catalog access and PostgreSQL authorization. Supabase is selected for the managed database. Application-service framework/hosting, secure local session storage and online outage behavior remain open; offline functionality is excluded. Privileged database credentials must not reach terminal clients. A single repository with modular boundaries and separate worker processes remains the initial proposal.
 
 ## NautilusTrader's responsibility
 
@@ -94,7 +94,7 @@ A textual recommendation is not an order. Every proposal passes through structur
 
 Persist job checkpoints, support cancellation and resumption, deduplicate events, and make timeouts and retries explicit. The live runtime must not wait for new code generation. If an agent is unavailable, it applies a predefined policy for new signals and existing positions; reconciliation continues independently of agents.
 
-Python, LangGraph, Supabase-managed PostgreSQL, Supabase Auth OAuth login, and NautilusTrader are selected; Alpaca and Liquid are optional operational connectors. Queue technology, application hosting, runtime versions, TUI library, model providers, and exact connector adapters remain open. See the [decision log](decisions.md) and [database model](database-model.md).
+Python, LangGraph, Supabase-managed PostgreSQL, Supabase Auth OAuth login, and NautilusTrader are selected; Alpaca and Liquid are optional operational connectors. Phase 0 selects runtime versions, Textual and the shared API transport. Queue technology, application hosting, production model coverage and exact trading adapters remain open. See the [decision log](decisions.md) and [database model](database-model.md).
 
 ## Supabase boundary
 

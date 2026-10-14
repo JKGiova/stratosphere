@@ -8,7 +8,7 @@ Separate strategy definitions, implementations, experiments, applicability asses
 
 ## Identity and specification
 
-Each complete strategy has an internal key and a long random numeric public ID. The public ID is a string of digits, not a sequential counter or an authorization token. Its length is still open. Generate it randomly, enforce uniqueness, and retry collisions. Internal primary-key type is an implementation decision; bigint identity or an appropriate ordered identifier can be considered independently of public IDs.
+Each complete strategy has an internal key and a long random numeric public ID. Phase 0 selects 24 random decimal digits, preserved as strings including leading zeroes, and UUIDv7 internal keys. Public IDs are not sequential counters or authorization tokens. Generate them randomly, enforce uniqueness, and retry collisions. Only the contract/generation helper exists; persistent constraints and transaction handling remain Phase 1 work.
 
 The exact specification includes parameters, mandatory market/asset filters, timing, exits, behavioral sizing, and missing-data behavior. A chosen deployment asset/capital does not change identity if the specification explicitly permits that choice. Fixed strategy parameters or a fixed instrument constraint do change identity when altered.
 
@@ -212,7 +212,7 @@ Use foreign keys and appropriate indexes on queried association/ownership paths.
 5. In one transaction, reuse the identical identity or create a new one, then associate sources and record the submission.
 6. On a concurrent uniqueness conflict, reload and compare; do not create accidental duplicate strategies.
 
-Define a versioned canonicalization policy. Hash equality is a lookup optimization; compare stored specifications before accepting equality. Enforce a suitable unique canonical identity constraint for complete records. Treat an unexpected hash collision as an error requiring resolution, not as an identical strategy. Names, authors, sources, and performance are excluded from the behavioral fingerprint.
+Phase 0 selects and tests [strategy/1 canonicalization](phase0-contracts.md). Hash equality is a lookup optimization; compare full canonical specifications before accepting equality. Enforce the selected digest/schema uniqueness with conflict reload/comparison for complete records. Treat an unexpected hash collision as an error requiring resolution, not as an identical strategy. Names, authors, sources and performance are excluded from the behavioral fingerprint. The physical schema and transactional race verification remain unimplemented.
 
 ## Conditions versus evidence
 

@@ -1,6 +1,6 @@
 # Roadmap and open implementation decisions
 
-Last updated: October 13, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. All application phases are **not implemented**; only documentation exists.
+Last updated: October 14, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are undergoing their final verification. Phases 1–7 remain **not implemented**. An internal proof is not a release.
 
 ## Selected foundation
 
@@ -52,10 +52,10 @@ Recommended dependency order: register identities and provenance before communit
 
 | Detail | Required before |
 | --- | --- |
-| Python runtime, stable NautilusTrader version, platform and adapters | Engine integration |
+| Tradable-data and operational engine adapters beyond the verified Phase 0 proof | Corresponding research/paper/live integration |
 | First instruments/data providers, Alpaca/Liquid account capabilities, connector order and engine adapters | Corresponding data/paper/live phase |
-| TUI library, LLM providers, structured output support, user-approved job budgets (meaning explained; values unconfirmed) | TUI/research implementation |
-| Public ID length, internal keys, canonical format, physical schema/migrations | Registry implementation |
+| LLM providers/structured output and user-approved job budgets (meaning explained; values unconfirmed); Textual is selected | TUI/research implementation |
+| Physical schema/migrations, canonical extensions and transactional constraints; IDs/canonical v1 selected in Phase 0 | Registry implementation |
 | Supabase provisioning and project plan (organization/Frankfurt region selected), OAuth provider/callback/session configuration, API access, RLS, hosting, secure session storage and online outage handling | Shared service release |
 | Generated-code isolation and resource/network restrictions | Executing user/model code |
 | Ranking weights, verified evidence, moderation and source-use policy | Community recommendation release |
@@ -72,13 +72,13 @@ Login implementation/configuration and fee-collection selection are deferred to 
 
 ## Next step
 
-Run a compatibility proof for selected Python/NautilusTrader versions and one data integration; finalize the canonical specification and registry constraints; choose the TUI library and shared catalog access boundary. These are remaining implementation decisions, not a request to reconsider the confirmed stack.
+Complete the final [Phase 0 audit](phase0.md). Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. Start Phase 1 only after a new instruction; the current implementation request is limited to Phase 0.
 
 Quiver remains a possible optional alternative-data integration. VectorBT remains a possible optional research accelerator. Neither is required for the first usable increment.
 
 ## Roadmap refinement
 
-The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational, and development decisions. Answers may be supplied in batches. Record confirmed answers in decisions.md, retain deferred choices with the phase they block, and expand each phase into tasks, dependencies, and acceptance criteria. Runtime and provider capabilities require verification before implementation. Do not treat unanswered questions as approved defaults. After planning is finalized, present the complete AGENTS.md rules and separately identify any agreed additions. All phases remain unimplemented.
+The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; application phases remain unimplemented. AGENTS.md rules remain in force.
 
 ## Release policy and confirmed experience
 

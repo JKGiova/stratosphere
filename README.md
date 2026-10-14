@@ -8,7 +8,7 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 ## Project status
 
-**Planning stage.** This repository contains the initial plan and documentation structure. It does not yet contain a working application, connectors, backtesting engines, or order execution integrations. The features described here are development objectives. Python, LangGraph, Supabase-managed PostgreSQL, Supabase Auth with OAuth login, and NautilusTrader have been selected. Alpaca and Liquid are selected as optional operational connectors. Runtime versions, connector adapters, deployment, and account capabilities still require verification.
+**Phase 0 verification in progress.** The repository contains the plan plus compatibility/contract proofs: pinned runtime dependencies, a Textual framework probe, canonical examples, a read-only ECB historical integration and a bounded native NautilusTrader simulation. See [Phase 0 gates and evidence](docs/phase0.md). There is no product TUI/chat, shared registry service, login, source extraction, paper/live execution or billing. Those remain development objectives. The initial proof does not verify tradable market data or broker capabilities.
 
 ## Confirmed direction
 
@@ -63,8 +63,11 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Community catalog](docs/community-catalog.md) | Automatic sharing, recommendations, provenance, and reuse |
 | [Decision log](docs/decisions.md) | Confirmed decisions, proposals, and unresolved details |
 | [Roadmap](docs/roadmap.md) | MVP, subsequent phases, and completion criteria |
+| [Phase 0 verification](docs/phase0.md) | Sequential gates, commands, platform limits and measured evidence |
+| [Canonical contracts](docs/phase0-contracts.md) | Exact identities, schemas, example strategy/data/experiment protocol |
+| [Access boundary](docs/phase0-access-boundary.md) | Hosted API decision and shared/private contract scope |
 
-## First development objective
+## Subsequent development objective
 
 Complete a reproducible workflow from **article or user-provided text → specification → executable strategy → backtest → report**, using one initial verified dataset/provider integration inside a multi-market architecture. Include the TUI and shared strategy registration; the first integration does not restrict the product to one asset class. YouTube, Instagram, X, TradingView, and GitHub source integrations are required in Phase 1 alongside the online English Linux/macOS TUI, onboarding, and registry. This narrow research proof is an internal increment, not a public release. Paper trading and live execution follow in the [roadmap](docs/roadmap.md).
 

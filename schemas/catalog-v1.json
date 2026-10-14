@@ -1,0 +1,502 @@
+{
+  "$defs": {
+    "DataRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "enum": [
+            "ohlcv",
+            "trades",
+            "quotes",
+            "reference_rate"
+          ],
+          "title": "Input",
+          "type": "string"
+        },
+        "warmup_bars": {
+          "exclusiveMinimum": 0,
+          "title": "Warmup Bars",
+          "type": "integer"
+        },
+        "availability": {
+          "enum": [
+            "closed_bars_only",
+            "event_timestamp"
+          ],
+          "title": "Availability",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input",
+        "warmup_bars",
+        "availability"
+      ],
+      "title": "DataRequirements",
+      "type": "object"
+    },
+    "ExecutionRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "order_type": {
+          "enum": [
+            "market",
+            "limit"
+          ],
+          "title": "Order Type",
+          "type": "string"
+        },
+        "shorting": {
+          "title": "Shorting",
+          "type": "boolean"
+        },
+        "max_positions": {
+          "exclusiveMinimum": 0,
+          "title": "Max Positions",
+          "type": "integer"
+        },
+        "reinforcement": {
+          "title": "Reinforcement",
+          "type": "boolean"
+        },
+        "session_end": {
+          "enum": [
+            "hold",
+            "close"
+          ],
+          "title": "Session End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "order_type",
+        "shorting",
+        "max_positions",
+        "reinforcement",
+        "session_end"
+      ],
+      "title": "ExecutionRequirements",
+      "type": "object"
+    },
+    "Expression": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "enum": [
+            "decimal",
+            "boolean",
+            "field",
+            "indicator",
+            "position",
+            "add",
+            "sub",
+            "mul",
+            "div",
+            "gt",
+            "ge",
+            "lt",
+            "le",
+            "eq",
+            "and",
+            "or",
+            "not",
+            "crosses_above",
+            "crosses_below"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "args": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Expression"
+          },
+          "title": "Args",
+          "type": "array"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "title": "Expression",
+      "type": "object"
+    },
+    "Indicator": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "algorithm": {
+          "enum": [
+            "sma",
+            "ema",
+            "rsi"
+          ],
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "algorithm_version": {
+          "const": 1,
+          "title": "Algorithm Version",
+          "type": "integer"
+        },
+        "input": {
+          "enum": [
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume"
+          ],
+          "title": "Input",
+          "type": "string"
+        },
+        "period": {
+          "exclusiveMinimum": 0,
+          "title": "Period",
+          "type": "integer"
+        },
+        "timeframe_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Timeframe Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "algorithm",
+        "algorithm_version",
+        "input",
+        "period",
+        "timeframe_seconds"
+      ],
+      "title": "Indicator",
+      "type": "object"
+    },
+    "InstrumentConstraints": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_classes": {
+          "items": {
+            "enum": [
+              "crypto_spot",
+              "crypto_perpetual",
+              "equity",
+              "etf",
+              "forex"
+            ],
+            "type": "string"
+          },
+          "title": "Asset Classes",
+          "type": "array"
+        },
+        "fixed_symbols": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fixed Symbols",
+          "type": "array"
+        },
+        "selection": {
+          "enum": [
+            "fixed",
+            "deployment_choice"
+          ],
+          "title": "Selection",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_classes",
+        "fixed_symbols",
+        "selection"
+      ],
+      "title": "InstrumentConstraints",
+      "type": "object"
+    },
+    "MissingDataPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "abort",
+            "suspend",
+            "skip"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "max_staleness_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Max Staleness Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "action",
+        "max_staleness_seconds"
+      ],
+      "title": "MissingDataPolicy",
+      "type": "object"
+    },
+    "Rule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "condition": {
+          "$ref": "#/$defs/Expression"
+        },
+        "action": {
+          "enum": [
+            "open_long",
+            "open_short",
+            "close_long",
+            "close_short"
+          ],
+          "title": "Action",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "condition",
+        "action"
+      ],
+      "title": "Rule",
+      "type": "object"
+    },
+    "Sizing": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "fixed_base",
+            "fraction_equity"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "amount": {
+          "title": "Amount",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode",
+        "amount"
+      ],
+      "title": "Sizing",
+      "type": "object"
+    },
+    "StrategySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "strategy/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "indicators": {
+          "items": {
+            "$ref": "#/$defs/Indicator"
+          },
+          "title": "Indicators",
+          "type": "array"
+        },
+        "entry_rules": {
+          "items": {
+            "$ref": "#/$defs/Rule"
+          },
+          "title": "Entry Rules",
+          "type": "array"
+        },
+        "exit_rules": {
+          "items": {
+            "$ref": "#/$defs/Rule"
+          },
+          "title": "Exit Rules",
+          "type": "array"
+        },
+        "position_sizing": {
+          "$ref": "#/$defs/Sizing"
+        },
+        "signal_timing": {
+          "$ref": "#/$defs/Timing"
+        },
+        "timeframes": {
+          "items": {
+            "exclusiveMinimum": 0,
+            "type": "integer"
+          },
+          "title": "Timeframes",
+          "type": "array"
+        },
+        "market_conditions": {
+          "items": {
+            "$ref": "#/$defs/Expression"
+          },
+          "title": "Market Conditions",
+          "type": "array"
+        },
+        "instrument_constraints": {
+          "$ref": "#/$defs/InstrumentConstraints"
+        },
+        "data_requirements": {
+          "$ref": "#/$defs/DataRequirements"
+        },
+        "execution_requirements": {
+          "$ref": "#/$defs/ExecutionRequirements"
+        },
+        "missing_data_policy": {
+          "$ref": "#/$defs/MissingDataPolicy"
+        },
+        "assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "indicators",
+        "entry_rules",
+        "exit_rules",
+        "position_sizing",
+        "signal_timing",
+        "timeframes",
+        "market_conditions",
+        "instrument_constraints",
+        "data_requirements",
+        "execution_requirements",
+        "missing_data_policy",
+        "assumptions"
+      ],
+      "title": "StrategySpec",
+      "type": "object"
+    },
+    "Timing": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluate": {
+          "enum": [
+            "bar_close",
+            "intrabar",
+            "event"
+          ],
+          "title": "Evaluate",
+          "type": "string"
+        },
+        "submit": {
+          "enum": [
+            "next_bar_open",
+            "next_observation",
+            "after_signal"
+          ],
+          "title": "Submit",
+          "type": "string"
+        },
+        "precedence": {
+          "enum": [
+            "exit_before_entry",
+            "entry_before_exit"
+          ],
+          "title": "Precedence",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evaluate",
+        "submit",
+        "precedence"
+      ],
+      "title": "Timing",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "catalog/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "public_id": {
+      "pattern": "^[0-9]{24}$",
+      "title": "Public Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "formal_spec": {
+      "$ref": "#/$defs/StrategySpec"
+    },
+    "spec_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Spec Sha256",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "specified",
+        "retired"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "validation": {
+      "const": "registration_does_not_imply_validation",
+      "title": "Validation",
+      "type": "string"
+    },
+    "approved_source_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Approved Source Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "public_id",
+    "name",
+    "description",
+    "formal_spec",
+    "spec_sha256",
+    "status",
+    "validation",
+    "approved_source_refs"
+  ],
+  "title": "CatalogProjection",
+  "type": "object"
+}

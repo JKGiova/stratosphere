@@ -45,7 +45,7 @@ uv run pytest tests/test_tui_probe.py
 
 See [canonical contracts](phase0-contracts.md), schemas/ and examples/phase0/. Forty-five tests passed locally and in the [Step 3 CI matrix](https://github.com/JKGiova/stratosphere/actions/runs/38583960776). Tests exercise every behavioral group, metadata independence, exact tiny decimal changes, malformed or unresolved specs, duplicate JSON keys, immutable validated objects, explicit digest collisions and example fingerprint/schema consistency. These contracts do not create a registry or compile arbitrary strategies.
 
-## Step 4 — historical integration and real-engine proof
+## Step 4 — passed
 
 Read-only ECB Data API integration, with the January–March 2025 EURUSD reference snapshot and 63 pinned observations. The committed CSV is attributed ECB data, free from its website; normalization retains exact date/rate values and rejects missing/duplicate/unexpected dates, changed values and unaccepted observation status. Metadata-only CSV differences cannot rewrite a rate. CI must fetch and verify a fresh response rather than count only a mock-provider test.
 
@@ -63,3 +63,9 @@ uv run python -m stratosphere.phase0.engine_proof
 ```
 
 Engine tests are mandatory on the three supported CI hosts. Intel macOS runs core tests and the online data proof; its unavailable engine is excluded from the compatibility claim.
+
+The [Step 4 CI run](https://github.com/JKGiova/stratosphere/actions/runs/38585064927) passed all four platform jobs. All fetched the online snapshot successfully. The three native-engine artifacts show eight fills with matching timing, fees and account balances, and exactly identical deterministic payloads across Linux x86_64/ARM64 and macOS ARM64 (digest ff3746e22b35f47b8136d1171e23652e837916fa32ea411f2d0e1b5b232b2616). This is correctness/repeatability evidence under the stated simulation, not a profitability assessment. The truncated-snapshot test verifies retained open exposure separately.
+
+## Step 5 — access contracts and audit under verification
+
+Selected hosted HTTPS/JSON application API, with internal PostgreSQL records inaccessible directly from distributed clients. See [access-boundary decision](phase0-access-boundary.md) for authority, RLS/role requirements, public/private projection and transactional registry constraints. Catalog and registration wire schemas are in schemas/. Pure harness tests exercise the intended policies; no real auth, database or service security is claimed. Final CI rechecks all earlier gates with these contracts and stricter input-availability validation.

@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+from dataclasses import replace
 from decimal import ROUND_HALF_UP, Decimal
 from fractions import Fraction
 from pathlib import Path
@@ -9,7 +10,12 @@ import pytest
 
 from stratosphere.phase0.contracts import DatasetManifest, ExperimentProtocol, fingerprint
 from stratosphere.phase0.data_proof import EXAMPLES, normalize_ecb, observation_digest
-from stratosphere.phase0.engine_proof import example_inputs, run_engine, validate_bindings
+from stratosphere.phase0.engine_proof import (
+    example_inputs,
+    run_engine,
+    validate_bindings,
+    validate_input_events,
+)
 from stratosphere.phase0.signals import SmaCross
 
 
@@ -86,6 +92,20 @@ def engine_inputs():
     document, dataset, instrument, protocol = example_inputs()
     rows = normalize_ecb((EXAMPLES / "ecb-reference.csv").read_bytes(), dataset)
     return rows, document, dataset, instrument, protocol
+
+
+def test_forged_availability_and_changed_engine_inputs_are_rejected():
+    document, dataset, instrument, _ = example_inputs()
+    rows = normalize_ecb((EXAMPLES / "ecb-reference.csv").read_bytes(), dataset)
+    altered = (replace(rows[0], available_ns=rows[0].available_ns - 10**9), *rows[1:])
+    with pytest.raises(ValueError, match="availability"):
+        validate_input_events(altered, dataset, document, instrument)
+    with pytest.raises(ValueError, match="values"):
+        validate_input_events(
+            (replace(rows[0], rate="1.0000"), *rows[1:]), dataset, document, instrument
+        )
+    with pytest.raises(ValueError, match="dates"):
+        validate_input_events(rows[1:], dataset, document, instrument)
 
 
 @pytest.mark.engine

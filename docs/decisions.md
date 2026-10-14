@@ -1,6 +1,6 @@
 # Decisions and alignment
 
-Last updated: October 13, 2026. This file records product decisions from the planning discussion. It does not claim implementation or integration readiness.
+Last updated: October 14, 2026. Product decisions and Phase 0 implementation selections are separate below. Measured scope/limits are recorded in phase0.md; selections alone do not establish product or live readiness.
 
 ## Confirmed decisions
 
@@ -55,9 +55,9 @@ D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently 
 
 ## Implementation proposals, not confirmed vendor choices
 
-- Pydantic for structured contracts; Parquet for versioned market data; DuckDB for analysis.
+- Parquet for versioned market data and DuckDB for analysis remain proposed; Pydantic is now selected for Phase 0 contracts.
 - Separate TUI, research workers, and trading runtime within a modular repository.
-- A shared catalog service/API with client authentication; application-service hosting and transport remain open. Supabase database hosting is selected.
+- A shared catalog service/API with client authentication; HTTPS/JSON transport is selected in Phase 0, while application framework/hosting remain open. Supabase database hosting is selected.
 - Database fields and constraints in the [database model](database-model.md); these are a logical design, not applied migrations.
 - Isolated generated-code execution, durable job records, and structured intervention audit.
 - Semantic candidate search followed by conservative exact-spec comparison.
@@ -70,12 +70,11 @@ Automatic strategy sharing does not grant permission to publish secrets, account
 
 ## Still open
 
-- Python runtime, stable NautilusTrader version, platform compatibility, and verified adapters.
-- First smoke-test instruments, historical/live data providers, Alpaca/Liquid connector order, supported accounts/instruments, and exact engine adapters.
-- TUI library, production model provider coverage, queue/scheduler, application-service hosting, and secure local session storage. Testing model and initial client OSes are confirmed.
+- Tradable historical/live data providers, supported accounts/instruments and operational engine adapters. Phase 0 selects an ECB EURUSD reference-rate compatibility sample, not a production market-data provider. Liquid's first-connector order remains confirmed.
+- Production model provider coverage, queue/scheduler, application-service hosting and secure local session storage. Testing model and initial client OSes are confirmed; Textual is selected in Phase 0.
 - Supabase OAuth provider selection, terminal redirect/PKCE flow, token storage, linking, and revocation details.
-- Supabase project provisioning, project plan, client access path, RLS policies, migrations, and any adoption of Storage, Realtime, or Edge Functions. Organization and Frankfurt region are confirmed; Auth is selected.
-- Public numeric ID length, internal primary-key format, canonical schema, and implementation packaging.
+- Supabase project provisioning, project plan, RLS policies, migrations and any adoption of Storage, Realtime or Edge Functions. Organization/Frankfurt and Auth remain confirmed; a hosted application API is the selected client access path.
+- Physical registry schema/constraints, canonical-format extensions and implementation packaging. Phase 0 selects strategy/1, 24-digit public strings and UUIDv7 internal keys.
 - Recommendation weights, evidence verification, moderation, content-use policy, and user deletion handling.
 - Risk thresholds, portfolio allocation, netting/attribution, and operational approval policy.
 - Publication scope of performance evidence; raw private account/trade data is excluded by default.
@@ -87,3 +86,18 @@ Do not reopen confirmed choices as if undecided. When a new proposal changes a c
 ## Planning refinement status
 
 D20–D33 reflect the subsequent roadmap discussion on October 13, 2026. No application functionality, billing collection or Supabase configuration is implemented. The repository was verified private. D34–D40 record the next answer batch; payment collection, first market/data and numerical release/job criteria remain open. NVIDIA model catalog availability was verified against [NVIDIA NIM](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash); actual calls remain untested.
+
+## Phase 0 implementation selections
+
+These engineering decisions were made within the authorized Phase 0 work; they do not change the confirmed product requirements or approve release. Historical planning entries above retain their original context.
+
+| ID | Selection | Verified scope / consequence |
+| --- | --- | --- |
+| I01 | Python 3.14.7, NautilusTrader 1.231.0, LangGraph 1.2.15, Pydantic 2.14.1, HTTPX 0.28.1, uv lock | Actual imports on Linux x86_64/ARM64 and macOS 26 ARM64; Intel macOS core only, no stable engine wheel |
+| I02 | Textual 8.2.8 | Headless input, literal rendering, resize, focus and exit proof on four platforms; no product UI |
+| I03 | strategy/1 and versioned dataset/instrument/experiment contracts | Full structural behavioral identity, exact decimal strings, collision checks, schema examples; no general strategy compiler |
+| I04 | 24 random decimal digits for public IDs; UUIDv7 for internal keys | String zeroes preserved; persistence, uniqueness and concurrent retry remain Phase 1 work |
+| I05 | ECB EURUSD daily references, January–March 2025; SIM currency-pair and next-reference event adapter | Online acquisition, checksums and bounded native conformance proof; availability/liquidity are declared assumptions, not tradable-market verification |
+| I06 | Hosted HTTPS/JSON application API; explicit shared/private DTOs | Pure projection/ownership contract proof; no deployed API, authentication, Supabase schema or RLS verification |
+
+See [Phase 0](phase0.md), [canonical contracts](phase0-contracts.md) and [access boundary](phase0-access-boundary.md) for exact evidence and deferred responsibilities.

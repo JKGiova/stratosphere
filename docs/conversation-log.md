@@ -1888,3 +1888,51 @@ It includes the native build process, wheel validation and dedicated CI: **77 te
 Phase 0 is complete. Support currently covers **macOS 26 Intel / Python 3.14.7** through the custom wheel; a customer installer remains future work.
 
 ---
+
+### 144 — User
+
+and how can i test it
+
+---
+
+### 145 — Assistant (progress update)
+
+I’ll check the saved wheel and test commands so you can try the verified Intel build locally.
+
+---
+
+### 146 — Assistant
+
+You can run the **Phase 0 tests and engine simulation** on your Intel Mac. The product TUI comes later; no API key is needed for these checks.
+
+**1. Set up a separate test environment** using the wheel already saved on your computer (requires uv 0.13.0):
+
+```sh
+cd /Users/giovanni/Documents/Coding/tradingsphere/stratosphere
+
+uv export --locked --extra engine --no-emit-project --no-emit-package nautilus-trader --output-file reports/intel/requirements.txt
+uv venv --python 3.14.7 reports/intel/test-env
+uv pip sync --python reports/intel/test-env/bin/python --require-hashes reports/intel/requirements.txt
+uv pip install --python reports/intel/test-env/bin/python --no-deps reports/intel/nautilus_trader-1.231.0-cp314-cp314-macosx_26_0_x86_64.whl
+uv pip install --python reports/intel/test-env/bin/python --no-deps --editable .
+uv pip check --python reports/intel/test-env/bin/python
+```
+
+**2. Run all tests:**
+
+```sh
+STRATOSPHERE_REQUIRE_ENGINE=1 reports/intel/test-env/bin/pytest -v
+```
+
+Expected: **77 passed, zero skipped**. The known upstream deprecation warnings may appear.
+
+**3. Try the online data check and native engine simulation:**
+
+```sh
+reports/intel/test-env/bin/python -m stratosphere.phase0.data_proof --fetch
+reports/intel/test-env/bin/python -m stratosphere.phase0.engine_proof --output-dir reports/manual-engine
+```
+
+The first fetches real ECB reference data. The second runs the example strategy in NautilusTrader using the retained dataset and prints the path to its JSON report. It simulates orders; it does not place real trades.
+
+---

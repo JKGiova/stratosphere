@@ -2,7 +2,7 @@
 
 ## Product contract
 
-**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected. The current workspace follows the four-pane terminal style of [agentic-trading-workflow](https://github.com/JKGiova/agentic-trading-workflow).
+**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected. The current visual direction follows [Gloomberb](https://github.com/gloom-sh/gloomberb)'s default monochrome terminal style, adapted to the four-pane stratosphere workspace.
 
 The user can supply strategy ideas and external sources, inspect recommendations, review formal rules, select experiments, intervene in ongoing workflows, and inspect portfolio state without leaving the terminal.
 
@@ -12,7 +12,7 @@ The user can supply strategy ideas and external sources, inspect recommendations
 
 ### Workspace layout and navigation
 
-The redesigned client uses a navy background, cyan focus borders, a shared navigation strip, numbered pane titles, a model/request status strip and a keyboard footer. At 80×24 and larger, four panes stay visible. Larger terminals give chat more vertical space:
+The client uses black/charcoal surfaces, white focus accents, thin square dividers, full-width pane title bars, a shared navigation strip, a model/request status strip and a keyboard footer. Color is reserved for request warnings/errors. The palette follows Gloomberb's default White Phosphor theme; it remains a dark theme. At 80×24 and larger, four panes stay visible. Larger terminals give chat more vertical space:
 
 | Alternate shortcut | Pane | Current behavior |
 | --- | --- | --- |
@@ -25,7 +25,9 @@ The redesigned client uses a navy background, cyan focus borders, a shared navig
 
 Below 80 columns or 24 rows, the selected pane fills the workspace and the brand header is hidden to preserve reading space. Tab/Shift+Tab work in either layout. Resizing preserves input drafts, cursor position and conversation history. Streaming completion and cancellation preserve focus when browsing another pane. Scrollable content remains accessible in small panes. Inside model setup, Tab/Shift+Tab retain standard form-field navigation; they cannot switch the underlying workspace.
 
-`/strategies` selects the library; `/jobs` and `/portfolio` select the relevant activity view. `/` from a non-input pane returns to chat and begins a command if the draft is empty; an existing draft is preserved. The inline `›` composer shows the send/command hint or the active response's stop shortcut. Submitting a draft while the model is busy or unconfigured preserves it for retry. Ctrl+K cancels the model response, and Ctrl+Q exits. Model setup uses the same visual theme, a provider picker, an editable model ID and a masked key, with a session/privacy notice before the credential field. It can be reopened with `/model`.
+`/strategies` selects the library; `/jobs` and `/portfolio` select the relevant activity view. `/` from a non-input pane returns to chat and begins a command if the draft is empty; an existing draft is preserved. The inline `›` composer shows the send/command hint or the active response's stop shortcut. Submitting a draft while the model is busy or unconfigured preserves it for retry. Ctrl+K cancels the model response, and Ctrl+Q exits.
+
+Home/onboarding and `/model` use the same monochrome design: an opaque black screen, branded top strip, centered single-border connection card and persistent keyboard hints. First run welcomes the user; reopening the form shows model-update wording. The provider picker, editable model ID and masked key retain the session/privacy notice before the credential field. The card scrolls in small terminals and retains entered values and keyboard focus on resize. The workspace welcome uses the same style; compact layouts omit extra brand text to preserve reading space.
 
 The interface does not populate synthetic strategies, tests, balances or positions. An unavailable account is not displayed as an empty live portfolio. Session status distinguishes model configuration from a completed online request. This visual redesign adds no research or trading integration.
 

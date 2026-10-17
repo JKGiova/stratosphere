@@ -2401,3 +2401,37 @@ Restart:
 ![Polished stratosphere TUI](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/ui/tab-polish/workspace-120x36.png)
 
 ---
+
+### 207 — User
+
+final rework: copy gloomberb style for our tui, apply it also at the home boarding
+
+---
+
+### 208 — Assistant (progress update)
+
+I’ll find the Gloomberb reference, then carry its style through the workspace and onboarding while keeping the Tab navigation.
+
+---
+
+### 209 — Assistant (progress update)
+
+I found the exact [Gloomberb reference](https://github.com/gloom-sh/gloomberb). I’m following its default monochrome style: black and charcoal surfaces, white focus accents, thin dividers, compact title bars, and a matching onboarding screen.
+
+---
+
+### 210 — Assistant (progress update)
+
+The workspace now has Gloomberb-style title bars, square borders, and monochrome controls. Onboarding uses the same styling on an opaque black screen, with a centered connection form and keyboard hints.
+
+I’m checking the form at small terminal sizes, along with Tab navigation and chat regression tests.
+
+---
+
+### 211 — Assistant (progress update)
+
+Both screens are styled and verified. **All 133 tests passed**, including onboarding resize and keyboard checks. The live two-turn chat also passed, with both requests reporting zero cost.
+
+I’m publishing the rework and saving previews of the workspace and onboarding.
+
+---

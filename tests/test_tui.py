@@ -339,3 +339,31 @@ async def test_navigation_strip_mouse_and_commands_stay_synchronized():
         await pilot.press("shift+tab")
         assert app.active_view == "chat" and app.query_one("#prompt", Input).has_focus
         assert app.session.provider.requests == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("initial,resized", [((120, 36), (45, 12)), ((45, 12), (120, 36))])
+async def test_onboarding_frame_resize_retains_masked_values_and_keyboard_access(initial, resized):
+    app = StratosphereApp(provider_factory=FakeProvider)
+    async with app.run_test(size=initial) as pilot:
+        setup = app.screen
+        model = setup.query_one("#model-id", Input)
+        key = setup.query_one("#api-key", Input)
+        model.value = "onboarding-resize:free"
+        key.value = "onboarding-only-secret"
+        key.focus()
+        for width, height in [initial, resized]:
+            await pilot.resize_terminal(width, height)
+            await pilot.pause()
+            card = setup.query_one("#setup")
+            assert card.region.right <= width and card.region.bottom < height
+            assert setup.query_one("#setup-brand").region.y == 0
+            assert setup.query_one("#setup-keys").region.bottom == height
+            assert key.password and key.has_focus and key.value == "onboarding-only-secret"
+            assert model.value == "onboarding-resize:free"
+            assert key.value not in app.export_screenshot()
+        await pilot.press("enter")
+        await pilot.pause()
+        assert app.settings.model == "onboarding-resize:free"
+        assert app.query_one("#prompt", Input).has_focus
+        assert app.session.provider.requests == []

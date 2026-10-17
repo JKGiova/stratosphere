@@ -53,11 +53,11 @@ def message_text(text: str) -> Text:
     """Style trusted role labels while keeping all message content literal."""
     content = Text(safe_text(text))
     if text.startswith("You:"):
-        content.stylize("bold #66c6ff", 0, 4)
+        content.stylize("bold #ffffff", 0, 4)
     elif text.startswith("Assistant"):
         end = text.find(":")
         if end >= 0:
-            content.stylize("bold #d6e4f2", 0, end + 1)
+            content.stylize("bold #ffffff", 0, end + 1)
     return content
 
 
@@ -90,37 +90,41 @@ class ModelSetup(ModalScreen[ModelSettings | None]):
         )
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll(id="setup"):
-            yield Static("Connect your model", classes="setup-heading", markup=False)
-            yield Static("Choose a provider. Bring your own key.", classes="muted")
-            yield Static("PROVIDER", classes="field-label")
-            yield Select(
-                [(label, name) for name, label in PROVIDER_LABELS.items()],
-                value=self.selected_provider,
-                allow_blank=False,
-                id="provider",
-            )
-            yield Static(self.privacy_notice(), id="privacy-notice", markup=False)
-            yield Static("MODEL ID · sent exactly as entered", classes="field-label")
-            yield Input(
-                value=self.defaults(self.selected_provider)[0]
-                if self.current
-                else os.getenv("STRATOSPHERE_MODEL", DEFAULT_MODELS[self.selected_provider]),
-                id="model-id",
-            )
-            yield Static("API KEY · never enter this in chat", classes="field-label")
-            yield Input(
-                value=self.defaults(self.selected_provider)[1],
-                password=True,
-                id="api-key",
-            )
-            yield Static("", id="setup-error", markup=False)
-            with Horizontal(id="setup-actions"):
-                yield Button("Use model", id="use-model", variant="primary")
-                yield Button("Cancel", id="cancel-setup")
-
-    def on_mount(self) -> None:
-        self.query_one("#setup").border_title = "MODEL CONNECTION"
+        yield Static("stratosphere  /  MODEL SETUP", id="setup-brand", markup=False)
+        with Container(id="setup-stage"):
+            with VerticalScroll(id="setup"):
+                yield Static("MODEL CONNECTION", classes="setup-overline", markup=False)
+                yield Static(
+                    "Update your model" if self.current else "Welcome to stratosphere",
+                    classes="setup-heading",
+                    markup=False,
+                )
+                yield Static("PROVIDER", classes="field-label")
+                yield Select(
+                    [(label, name) for name, label in PROVIDER_LABELS.items()],
+                    value=self.selected_provider,
+                    allow_blank=False,
+                    id="provider",
+                )
+                yield Static(self.privacy_notice(), id="privacy-notice", markup=False)
+                yield Static("MODEL ID · sent exactly as entered", classes="field-label")
+                yield Input(
+                    value=self.defaults(self.selected_provider)[0]
+                    if self.current
+                    else os.getenv("STRATOSPHERE_MODEL", DEFAULT_MODELS[self.selected_provider]),
+                    id="model-id",
+                )
+                yield Static("API KEY · never enter this in chat", classes="field-label")
+                yield Input(
+                    value=self.defaults(self.selected_provider)[1],
+                    password=True,
+                    id="api-key",
+                )
+                yield Static("", id="setup-error", markup=False)
+                with Horizontal(id="setup-actions"):
+                    yield Button("Use model", id="use-model", variant="primary")
+                    yield Button("Cancel", id="cancel-setup")
+        yield Static("Tab next field · Enter connect · Esc cancel", id="setup-keys", markup=False)
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.value not in PROVIDER_LABELS or event.value == self.selected_provider:
@@ -176,7 +180,7 @@ class WorkspacePane(Vertical):
 
 class StratosphereApp(App[None]):
     TITLE = "stratosphere"
-    SUB_TITLE = "research workspace"
+    SUB_TITLE = "research terminal"
     CSS_PATH = "tui.tcss"
     ENABLE_COMMAND_PALETTE = False
     BINDINGS = [
@@ -204,49 +208,58 @@ class StratosphereApp(App[None]):
         self.register_theme(
             Theme(
                 name="stratosphere",
-                primary="#66c6ff",
-                secondary="#9fcfff",
-                accent="#66c6ff",
-                foreground="#d6e4f2",
-                background="#0b1220",
-                surface="#101d30",
-                panel="#16243b",
-                success="#66d8a0",
-                warning="#e9b45f",
-                error="#f28b91",
-                variables={"text-muted": "#8da5bf", "footer-key-foreground": "#66c6ff"},
+                primary="#ffffff",
+                secondary="#aaaaaa",
+                accent="#ffffff",
+                foreground="#cccccc",
+                background="#000000",
+                surface="#0a0a0a",
+                panel="#1a1a1a",
+                success="#00cc66",
+                warning="#ddaa00",
+                error="#ff6666",
+                variables={"text-muted": "#8a8a8a", "footer-key-foreground": "#ffffff"},
             )
         )
         self.theme = "stratosphere"
 
     def compose(self) -> ComposeResult:
-        yield Header(icon="◆")
+        yield Header(icon=">")
         yield Tabs(
-            *(Tab(label, id=f"nav-{view}") for view, label in VIEWS),
+            *(Tab(label.upper(), id=f"nav-{view}") for view, label in VIEWS),
             active="nav-chat",
             id="navigation",
         )
         yield Static("", id="status", markup=False)
         with Container(id="panes"):
             with WorkspacePane(id="library-pane", classes="pane"):
-                yield Static("CATALOG · NOT CONNECTED", classes="eyebrow")
+                yield Static("STRATEGY LIBRARY", classes="pane-title", id="library-title")
+                yield Static("Catalog / not connected", classes="eyebrow")
                 yield DataTable(id="strategies", zebra_stripes=True, cursor_type="row")
                 with VerticalScroll(classes="pane-body"):
-                    yield Static("Your strategies start here", classes="empty-heading")
+                    yield Static("No strategies loaded", classes="empty-heading")
                     yield Static(PANELS["strategies"], classes="muted", markup=False)
-            with VerticalScroll(id="focus-pane", classes="pane", can_focus=True):
-                yield Static("NO STRATEGY SELECTED", classes="eyebrow")
-                yield Static("Strategy details", classes="empty-heading")
-                yield Static(
-                    "Rules, sources and versions will appear here when the strategy "
-                    "library is available.",
-                    classes="muted",
-                    markup=False,
-                )
+            with WorkspacePane(id="focus-pane", classes="pane"):
+                yield Static("STRATEGY FOCUS", classes="pane-title", id="focus-title")
+                with VerticalScroll(classes="pane-body"):
+                    yield Static("Selection / none", classes="eyebrow")
+                    yield Static("Strategy details", classes="empty-heading")
+                    yield Static(
+                        "Rules, sources and versions will appear here when the strategy "
+                        "library is available.",
+                        classes="muted",
+                        markup=False,
+                    )
             with WorkspacePane(id="chat-pane", classes="pane active"):
+                yield Static("AGENT CHAT", classes="pane-title", id="chat-title")
                 with VerticalScroll(id="conversation"):
                     yield Static(
-                        "Start with a trading idea.\n\n"
+                        "stratosphere\nYour research desk.",
+                        classes="welcome-brand",
+                        markup=False,
+                    )
+                    yield Static(
+                        "Start with a trading idea.\n"
                         "Ask a question, outline your rules, or type /help.",
                         classes="message system-message welcome",
                         markup=False,
@@ -260,15 +273,16 @@ class StratosphereApp(App[None]):
                         compact=True,
                     )
             with WorkspacePane(id="activity-pane", classes="pane"):
+                yield Static("RESEARCH TESTS", classes="pane-title", id="activity-title")
                 with TabbedContent(id="workspace-tabs", initial="jobs"):
                     with TabPane("Tests", id="jobs"):
-                        yield Static("RESEARCH · UNAVAILABLE", classes="eyebrow")
+                        yield Static("Research / not available", classes="eyebrow")
                         yield DataTable(id="tests", zebra_stripes=True, cursor_type="row")
                         with VerticalScroll(classes="pane-body"):
                             yield Static("No research runs loaded", classes="empty-heading")
                             yield Static(PANELS["jobs"], classes="muted", markup=False)
                     with TabPane("Positions", id="portfolio"):
-                        yield Static("ACCOUNT · NOT CONNECTED", classes="eyebrow")
+                        yield Static("Account / not connected", classes="eyebrow")
                         yield DataTable(id="positions", zebra_stripes=True, cursor_type="row")
                         with VerticalScroll(classes="pane-body"):
                             yield Static("Positions unknown", classes="empty-heading")
@@ -286,13 +300,6 @@ class StratosphereApp(App[None]):
     def on_mount(self) -> None:
         self.panes = self.query_one("#panes", Container)
         self.workspace_screen = self.screen
-        for pane, title in [
-            ("library", "1  STRATEGY LIBRARY"),
-            ("focus", "2  STRATEGY FOCUS"),
-            ("chat", "3  AGENT CHAT"),
-            ("activity", "4  TESTS / POSITIONS"),
-        ]:
-            self.query_one(f"#{pane}-pane").border_title = title
         self.query_one("#strategies", DataTable).add_columns("Strategy", "Version", "State")
         self.query_one("#tests", DataTable).add_columns("Run", "Strategy", "State")
         self.query_one("#positions", DataTable).add_columns("Symbol", "Quantity", "P/L")
@@ -324,7 +331,9 @@ class StratosphereApp(App[None]):
     def sync_navigation(self) -> None:
         self.query_one("#navigation", Tabs).active = f"nav-{self.active_view}"
         activity = self.query_one("#workspace-tabs", TabbedContent).active or "jobs"
-        self.query_one("#activity-pane").border_title = f"4  {dict(VIEWS)[activity].upper()}"
+        self.query_one("#activity-title", Static).update(
+            "RESEARCH TESTS" if activity == "jobs" else dict(VIEWS)[activity].upper()
+        )
 
     def action_cycle_view(self, direction: int) -> None:
         views = [view for view, _ in VIEWS]

@@ -2178,3 +2178,25 @@ The switch is implemented, and **all 121 local tests passed**, including native 
 I’m publishing the change and checking CI. OpenRouter is the default, and NVIDIA NIM remains selectable.
 
 ---
+
+### 180 — Assistant (progress update)
+
+All four platform CI jobs passed for the OpenRouter change. The switch is published, and the free-only routing checks passed. The remaining live check is a successful answer from the currently overloaded free endpoint.
+
+---
+
+### 181 — Assistant
+
+Switched the default to **[Nemotron 3 Ultra (free) on OpenRouter](https://openrouter.ai/nvidia/nemotron-3-ultra-550b-a55b:free)**, with no paid fallback.
+
+**121 local tests passed; all four platform CI jobs passed.**
+
+The live endpoint currently returns **503: temporarily overloaded**, so a successful chat is still unverified.
+
+Restart the TUI:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+---

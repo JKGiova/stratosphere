@@ -84,6 +84,10 @@ Live tests with the separately supplied OpenRouter key reached HTTP 200 streamin
 
 The OpenRouter extension passed **121 tests locally with zero skips** (118 core plus three native-engine tests) using the verified Intel wheel; lint and formatting passed. Provider protocol, free-model enforcement, no-retry/error handling, price ceilings, repeated usage frames and credential isolation have automated tests. A UI/transport test switches from OpenRouter to NVIDIA and confirms the second provider receives its own key and only the new conversation. These tests are separate from live provider availability.
 
+### OpenRouter extension CI evidence
+
+[Platform run 39019591120](https://github.com/JKGiova/stratosphere/actions/runs/39019591120) passed for implementation commit `6ad421bab6298e8854cc625169076eebbbaa4272`. All four platform jobs passed **118 core tests**, lint, formatting and the online data proof; Linux x86_64/ARM64 and macOS ARM64 additionally passed three mandatory native-engine tests each. The local Intel run passed all 121 tests using the previously verified custom wheel. The [separate fresh Intel source rebuild](https://github.com/JKGiova/stratosphere/actions/runs/39019591125) remains in progress at this update; its result is not claimed. Successful live OpenRouter inference remains unverified because of the observed upstream overload.
+
 ## Remaining sequential increments
 
 1. Verify a successful live exchange on the selected free development model when provider capacity permits. Provider selection now supports OpenRouter and NVIDIA; further provider/structured-output support remains incremental. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

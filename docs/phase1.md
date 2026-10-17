@@ -139,6 +139,10 @@ Verification: **131 tests passed with zero skips** (128 core plus three native I
 
 Two new real requests through the polished Textual → LangGraph → OpenRouter flow completed with remembered context, in **1.851 and 0.989 seconds**, reporting **0 USD** each. Both Tab directions and `/portfolio` routing were verified without additional model requests. Free-only routing and provider/key isolation are unchanged; credentials are excluded from tracked files and diagnostic/screen artifacts. These checks verify conversational continuity and navigation, not research or execution capability. CI status is recorded separately after publishing.
 
+### Tab polish CI status
+
+Commit `db665315b574b36e583c43fa7a6fd07977fc9a7d` is published. [Platform run 39024203812](https://github.com/JKGiova/stratosphere/actions/runs/39024203812) and [Intel engine run 39024203832](https://github.com/JKGiova/stratosphere/actions/runs/39024203832) failed before any job steps executed. All five check annotations report the same GitHub account payment/spending-limit restriction as the previous UI commit; the ARM64 macOS capacity advisory is also present. Fresh platform CI and source-build verification remain blocked, separate from the passing 131-test local suite and live/distribution checks. No account billing setting was changed.
+
 ## Remaining sequential increments
 
 1. Extend provider/structured-output support beyond the current verified chat checks. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

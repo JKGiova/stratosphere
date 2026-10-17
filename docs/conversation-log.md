@@ -2373,3 +2373,31 @@ The live check passed too: two replies, conversation memory, and Tab/Shift+Tab n
 The visual checks are complete; I’m saving the updated controls and test evidence to GitHub.
 
 ---
+
+### 205 — Assistant (progress update)
+
+The polish is published. GitHub CI is still blocked before execution by the same account billing/spending-limit restriction. The local tests, packaged app check, and live chat checks passed.
+
+I’m saving the final verification record and preview.
+
+---
+
+### 206 — Assistant
+
+Implemented and pushed.
+
+**Tab / Shift+Tab** cycle Library → Focus → Chat → Tests → Positions → Session. Setup keeps normal Tab navigation.
+
+The polish adds clearer navigation, more chat space, quieter styling, and a simpler `›` composer. Drafts and cursor positions are preserved.
+
+**131 tests and live chat checks passed.** GitHub CI remains blocked by billing.
+
+Restart:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+![Polished stratosphere TUI](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/ui/tab-polish/workspace-120x36.png)
+
+---

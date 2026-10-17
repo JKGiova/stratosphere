@@ -1986,3 +1986,33 @@ The first increment is ready: **108 tests passed with zero skips**, and lint and
 I’m publishing it now and checking CI. The live NVIDIA exchange still needs a key entered in onboarding.
 
 ---
+
+### 154 — Assistant (progress update)
+
+All four platform CI jobs passed: Linux on Intel and ARM, plus macOS on Intel and Apple Silicon. Each passed the 105 core tests, and the three platforms with published engine wheels also passed the native tests.
+
+The separate Intel source rebuild is still running. Local testing with the previously verified Intel wheel passed all 108 tests.
+
+---
+
+### 155 — Assistant
+
+Phase 1 is underway. The first step is implemented:
+
+- Model onboarding and streaming chat.
+- Slash commands and strategy/test/position tabs with availability status.
+- Response cancellation and credentials kept in memory.
+
+**108 tests passed locally**, and [all four platform CI jobs passed](https://github.com/JKGiova/stratosphere/actions/runs/39017709666). The fresh Intel rebuild is still running. Live NVIDIA inference remains unverified.
+
+Launch from the repository folder:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+Enter your model ID and API key in onboarding.
+
+Provider expansion, the registry and all five source integrations remain ahead; **Phase 1 is not complete yet**.
+
+---

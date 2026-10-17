@@ -53,6 +53,12 @@ On macOS 26.5.1 Intel / Python 3.14.7, **108 tests passed with zero skips** (105
 
 Local regression evidence and a terminal screenshot are saved under ignored `reports/phase1/` and `reports/phase1-tui.svg`. These checks use simulated provider responses and the previously verified native Intel wheel. GitHub platform checks remain separate from local verification; the native Intel rebuild can take about 85 minutes.
 
+## GitHub verification
+
+[Platform run 39017709666](https://github.com/JKGiova/stratosphere/actions/runs/39017709666) passed for implementation commit `a2cecf6088c63ae8b8bf4ee66fc0ffcffb120bd4`. All four runners (Linux x86_64/ARM64, macOS 26 ARM64/Intel) passed 105 core tests, lint, formatting and the online data proof. The three published-wheel runners additionally passed three mandatory native-engine tests each. Engine tests are deliberately excluded from the ordinary Intel matrix job, not counted as successful there.
+
+The [dedicated fresh Intel source rebuild](https://github.com/JKGiova/stratosphere/actions/runs/39017709685) is still in progress at this update; no result is claimed for it. All 108 local tests passed using the downloaded, previously verified Intel CI wheel. Live authenticated NVIDIA inference remains unverified.
+
 ## Remaining sequential increments
 
 1. Complete selectable provider/configuration support and verify a live authenticated development-model exchange. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

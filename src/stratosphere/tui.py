@@ -1,28 +1,27 @@
-"""Four-pane terminal workspace with online chat and explicit capability states."""
+"""Responsive terminal workspace with online chat and inline model setup."""
 
 import asyncio
 import os
 
 from pydantic import SecretStr, ValidationError
+from rich.console import Group
+from rich.markdown import Markdown
 from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.events import DescendantFocus, Resize
-from textual.screen import ModalScreen
+from textual.message import Message
 from textual.theme import Theme
 from textual.widgets import (
     Button,
     DataTable,
     Footer,
-    Header,
     Input,
     Select,
     Static,
     Tab,
-    TabbedContent,
-    TabPane,
     Tabs,
 )
 from textual.worker import Worker
@@ -38,7 +37,7 @@ from stratosphere.models.settings import (
     ModelSettings,
 )
 from stratosphere.models.streaming import ModelError, safe_text
-from stratosphere.terminal import request_maximized_window
+from stratosphere.workspace import CHROME_HEIGHT, choose_layout
 
 VIEWS = (
     ("library", "Library"),
@@ -62,11 +61,33 @@ def message_text(text: str) -> Text:
     return content
 
 
-class ModelSetup(ModalScreen[ModelSettings | None]):
+class AssistantMessage(Static):
+    """Render streamed Markdown without interpreting Rich markup or opening links."""
+
+    def __init__(self):
+        super().__init__(classes="message assistant-message", markup=False)
+        self.source = ""
+        self.label = "Assistant:"
+        self.update_reply("Connecting…")
+
+    def update_reply(self, text: str, *, label: str = "Assistant:") -> None:
+        self.source = safe_text(text)
+        self.label = label
+        self.update(
+            Group(Text(label, style="bold #ffffff"), Markdown(self.source, hyperlinks=False))
+        )
+
+
+class ModelSetup(Vertical):
     BINDINGS = [("escape", "dismiss_setup", "Cancel")]
 
+    class Finished(Message):
+        def __init__(self, settings: ModelSettings | None):
+            super().__init__()
+            self.settings = settings
+
     def __init__(self, current: ModelSettings | None = None):
-        super().__init__()
+        super().__init__(id="setup")
         self.current = current
         initial = (
             current.provider if current else os.getenv("STRATOSPHERE_PROVIDER", DEFAULT_PROVIDER)
@@ -91,41 +112,42 @@ class ModelSetup(ModalScreen[ModelSettings | None]):
         )
 
     def compose(self) -> ComposeResult:
-        yield Static("stratosphere  /  MODEL SETUP", id="setup-brand", markup=False)
-        with Container(id="setup-stage"):
-            with VerticalScroll(id="setup"):
-                yield Static("MODEL CONNECTION", classes="setup-overline", markup=False)
-                yield Static(
-                    "Update your model" if self.current else "Welcome to stratosphere",
-                    classes="setup-heading",
-                    markup=False,
-                )
-                yield Static("PROVIDER", classes="field-label")
-                yield Select(
-                    [(label, name) for name, label in PROVIDER_LABELS.items()],
-                    value=self.selected_provider,
-                    allow_blank=False,
-                    id="provider",
-                )
-                yield Static(self.privacy_notice(), id="privacy-notice", markup=False)
-                yield Static("MODEL ID · sent exactly as entered", classes="field-label")
-                yield Input(
-                    value=self.defaults(self.selected_provider)[0]
-                    if self.current
-                    else os.getenv("STRATOSPHERE_MODEL", DEFAULT_MODELS[self.selected_provider]),
-                    id="model-id",
-                )
-                yield Static("API KEY · never enter this in chat", classes="field-label")
-                yield Input(
-                    value=self.defaults(self.selected_provider)[1],
-                    password=True,
-                    id="api-key",
-                )
-                yield Static("", id="setup-error", markup=False)
-                with Horizontal(id="setup-actions"):
-                    yield Button("Use model", id="use-model", variant="primary")
-                    yield Button("Cancel", id="cancel-setup")
-        yield Static("Tab next field · Enter connect · Esc cancel", id="setup-keys", markup=False)
+        yield Static(
+            "Update your model" if self.current else "Connect your model to start chatting",
+            classes="setup-heading",
+            markup=False,
+        )
+        yield Static("PROVIDER", classes="field-label")
+        yield Select(
+            [(label, name) for name, label in PROVIDER_LABELS.items()],
+            value=self.selected_provider,
+            allow_blank=False,
+            id="provider",
+        )
+        yield Static(self.privacy_notice(), id="privacy-notice", markup=False)
+        yield Static("MODEL ID · sent exactly as entered", classes="field-label")
+        yield Input(
+            value=self.defaults(self.selected_provider)[0]
+            if self.current
+            else os.getenv("STRATOSPHERE_MODEL", DEFAULT_MODELS[self.selected_provider]),
+            id="model-id",
+            compact=True,
+        )
+        yield Static("API KEY · masked, session only", classes="field-label")
+        yield Input(
+            value=self.defaults(self.selected_provider)[1],
+            password=True,
+            id="api-key",
+            compact=True,
+        )
+        yield Static("", id="setup-error", markup=False)
+        with Horizontal(id="setup-actions"):
+            yield Button("Use model", id="use-model", variant="primary")
+            yield Button("Cancel", id="cancel-setup")
+        yield Static("Tab next field · Enter connect · Esc cancel", classes="setup-keys")
+
+    def on_descendant_focus(self, event: DescendantFocus) -> None:
+        self.call_after_refresh(lambda: event.widget.scroll_visible(animate=False))
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.value not in PROVIDER_LABELS or event.value == self.selected_provider:
@@ -138,6 +160,7 @@ class ModelSetup(ModalScreen[ModelSettings | None]):
         self.query_one("#setup-error", Static).update("")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        event.stop()
         if event.button.id == "cancel-setup":
             self.action_dismiss_setup()
             return
@@ -166,11 +189,20 @@ class ModelSetup(ModalScreen[ModelSettings | None]):
             )
             return
         self.query_one("#api-key", Input).value = ""
-        self.dismiss(settings)
+        self.post_message(self.Finished(settings))
 
     def action_dismiss_setup(self) -> None:
         self.query_one("#api-key", Input).value = ""
-        self.dismiss(None)
+        self.post_message(self.Finished(None))
+
+
+class Conversation(VerticalScroll):
+    """Keep a focused inline setup field visible when the chat viewport changes."""
+
+    def on_resize(self, event: Resize) -> None:
+        focused = self.screen.focused
+        if focused and any(isinstance(parent, ModelSetup) for parent in focused.ancestors):
+            self.call_after_refresh(lambda: focused.scroll_visible(animate=False))
 
 
 class WorkspacePane(Vertical):
@@ -184,13 +216,14 @@ class StratosphereApp(App[None]):
     SUB_TITLE = "research terminal"
     CSS_PATH = "tui.tcss"
     ENABLE_COMMAND_PALETTE = False
+    AUTO_FOCUS = "#model-id"
     BINDINGS = [
         Binding("tab", "cycle_view(1)", "Next", key_display="Tab", priority=True),
         Binding("shift+tab", "cycle_view(-1)", "Back", key_display="Shift+Tab", priority=True),
         Binding("f1", "focus_pane('library')", "Library", show=False),
         Binding("f2", "focus_pane('focus')", "Focus", show=False),
         Binding("f3", "focus_pane('chat')", "Chat", show=False),
-        Binding("f4", "focus_pane('activity')", "Activity", show=False),
+        Binding("f4", "focus_pane('jobs')", "Tests", show=False),
         Binding("ctrl+k", "cancel_response", "Stop", priority=True),
         ("ctrl+q", "quit", "Quit"),
         Binding("slash", "command", "Commands", key_display="/"),
@@ -203,8 +236,11 @@ class StratosphereApp(App[None]):
         self.session: ChatSession | None = None
         self.response_worker: Worker | None = None
         self.active_pane = "chat"
-        self.compact = False
-        self.dense = False
+        self.viewport = (80, 24)
+        self.layout_mode = choose_layout(*self.viewport)
+        self.activity_view = "jobs"
+        self.companion_view = "library"
+        self.setup: ModelSetup | None = None
         self.request_state = "MODEL NOT SET"
         self.register_theme(
             Theme(
@@ -225,7 +261,7 @@ class StratosphereApp(App[None]):
         self.theme = "stratosphere"
 
     def compose(self) -> ComposeResult:
-        yield Header(icon=">")
+        yield Static("stratosphere  /  research terminal", id="brand", markup=False)
         yield Tabs(
             *(Tab(label.upper(), id=f"nav-{view}") for view, label in VIEWS),
             active="nav-chat",
@@ -253,7 +289,7 @@ class StratosphereApp(App[None]):
                     )
             with WorkspacePane(id="chat-pane", classes="pane active"):
                 yield Static("AGENT CHAT", classes="pane-title", id="chat-title")
-                with VerticalScroll(id="conversation"):
+                with Conversation(id="conversation"):
                     yield Static(
                         "stratosphere\nYour research desk.",
                         classes="welcome-brand",
@@ -273,32 +309,33 @@ class StratosphereApp(App[None]):
                         select_on_focus=False,
                         compact=True,
                     )
-            with WorkspacePane(id="activity-pane", classes="pane"):
-                yield Static("RESEARCH TESTS", classes="pane-title", id="activity-title")
-                with TabbedContent(id="workspace-tabs", initial="jobs"):
-                    with TabPane("Tests", id="jobs"):
-                        yield Static("Research / not available", classes="eyebrow")
-                        yield DataTable(id="tests", zebra_stripes=True, cursor_type="row")
-                        with VerticalScroll(classes="pane-body"):
-                            yield Static("No research runs loaded", classes="empty-heading")
-                            yield Static(PANELS["jobs"], classes="muted", markup=False)
-                    with TabPane("Positions", id="portfolio"):
-                        yield Static("Account / not connected", classes="eyebrow")
-                        yield DataTable(id="positions", zebra_stripes=True, cursor_type="row")
-                        with VerticalScroll(classes="pane-body"):
-                            yield Static("Positions unknown", classes="empty-heading")
-                            yield Static(PANELS["portfolio"], classes="muted", markup=False)
-                    with TabPane("Session", id="session"):
-                        with VerticalScroll(classes="pane-body"):
-                            yield Static("MODEL CONNECTION", classes="eyebrow")
-                            yield Static("", id="session-details", markup=False)
-                            yield Static(
-                                "Chat only. Execution tools are not connected.",
-                                classes="session-note muted",
-                            )
+            with WorkspacePane(id="jobs-pane", classes="pane"):
+                yield Static("RESEARCH TESTS", classes="pane-title")
+                yield Static("Research / not available", classes="eyebrow")
+                yield DataTable(id="tests", zebra_stripes=True, cursor_type="row")
+                with VerticalScroll(classes="pane-body"):
+                    yield Static("No research runs loaded", classes="empty-heading")
+                    yield Static(PANELS["jobs"], classes="muted", markup=False)
+            with WorkspacePane(id="portfolio-pane", classes="pane"):
+                yield Static("POSITIONS", classes="pane-title")
+                yield Static("Account / not connected", classes="eyebrow")
+                yield DataTable(id="positions", zebra_stripes=True, cursor_type="row")
+                with VerticalScroll(classes="pane-body"):
+                    yield Static("Positions unknown", classes="empty-heading")
+                    yield Static(PANELS["portfolio"], classes="muted", markup=False)
+            with WorkspacePane(id="session-pane", classes="pane"):
+                yield Static("SESSION", classes="pane-title")
+                with VerticalScroll(classes="pane-body"):
+                    yield Static("MODEL CONNECTION", classes="eyebrow")
+                    yield Static("", id="session-details", markup=False)
+                    yield Static(
+                        "Chat only. Execution tools are not connected.",
+                        classes="session-note muted",
+                    )
         yield Footer()
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
+        self.viewport = (self.size.width, self.size.height)
         self.panes = self.query_one("#panes", Container)
         self.workspace_screen = self.screen
         self.query_one("#strategies", DataTable).add_columns("Strategy", "Version", "State")
@@ -306,48 +343,70 @@ class StratosphereApp(App[None]):
         self.query_one("#positions", DataTable).add_columns("Symbol", "Quantity", "P/L")
         self.update_status(self.request_state)
         self.update_layout()
-        self.push_screen(ModelSetup(), self.configure_model)
+        await self.open_model_setup()
 
     def on_resize(self, event: Resize) -> None:
-        self.compact = event.size.width < 80 or event.size.height < 24
-        self.dense = event.size.width < 100 or event.size.height < 30
+        self.viewport = (event.size.width, event.size.height)
         if hasattr(self, "panes"):
             self.update_layout()
+            self.call_after_refresh(self.reveal_setup_focus)
+
+    def reveal_setup_focus(self) -> None:
+        if self.setup and self.setup.has_focus_within and self.focused:
+            self.focused.scroll_visible(animate=False)
 
     def update_layout(self) -> None:
-        self.workspace_screen.set_class(self.compact, "compact-workspace")
-        self.panes.set_class(self.compact, "compact")
-        self.panes.set_class(self.dense, "dense")
-        self.query_one(Footer).compact = self.dense
+        width, height = self.viewport
+        self.layout_mode = choose_layout(width, height)
+        self.panes.styles.grid_size_columns = self.layout_mode.columns
+        self.panes.styles.grid_size_rows = self.layout_mode.rows
+        self.panes.styles.grid_columns = "1fr " * self.layout_mode.columns
+        self.panes.styles.grid_rows = "1fr " * self.layout_mode.rows
+        if self.layout_mode.count == 6:
+            visible = {view for view, _ in VIEWS}
+        elif self.layout_mode.count == 4:
+            visible = {"library", "focus", "chat", self.activity_view}
+        elif self.layout_mode.count == 2:
+            visible = {"chat", self.companion_view}
+        else:
+            visible = {self.active_pane}
+        self.workspace_screen.set_class(self.layout_mode.count == 1, "compact-workspace")
+        self.panes.set_class(self.layout_mode.count == 1, "compact")
+        self.panes.set_class(
+            width // self.layout_mode.columns < 60
+            or (height - CHROME_HEIGHT) // self.layout_mode.rows < 20,
+            "dense",
+        )
+        self.query_one(Footer).compact = self.layout_mode.count < 4
         for pane in self.panes.query(".pane"):
-            pane.set_class(pane.id == f"{self.active_pane}-pane", "active")
+            view = pane.id.removesuffix("-pane")
+            pane.display = view in visible
+            pane.set_class(view == self.active_pane, "active")
         self.sync_navigation()
 
     @property
     def active_view(self) -> str:
-        if self.active_pane == "activity":
-            return self.query_one("#workspace-tabs", TabbedContent).active or "jobs"
         return self.active_pane
 
     def sync_navigation(self) -> None:
-        self.query_one("#navigation", Tabs).active = f"nav-{self.active_view}"
-        activity = self.query_one("#workspace-tabs", TabbedContent).active or "jobs"
-        self.query_one("#activity-title", Static).update(
-            "RESEARCH TESTS" if activity == "jobs" else dict(VIEWS)[activity].upper()
-        )
+        navigation = self.query_one("#navigation", Tabs)
+        with navigation.prevent(Tabs.TabActivated):
+            navigation.active = f"nav-{self.active_view}"
 
     def action_cycle_view(self, direction: int) -> None:
         views = [view for view, _ in VIEWS]
         self.action_select_view(views[(views.index(self.active_view) + direction) % len(views)])
 
     def action_select_view(self, view: str) -> None:
-        if isinstance(self.screen, ModalScreen):
+        if view not in dict(VIEWS):
             return
+        self.active_pane = view
         if view in {"jobs", "portfolio", "session"}:
-            self.query_one("#workspace-tabs", TabbedContent).active = view
-            self.action_focus_pane("activity")
-        else:
-            self.action_focus_pane(view)
+            self.activity_view = view
+        if view != "chat":
+            self.companion_view = view
+        self.update_layout()
+        self.call_after_refresh(self.focus_active_pane)
 
     def on_tabs_tab_activated(self, event: Tabs.TabActivated) -> None:
         if event.tabs.id != "navigation" or not hasattr(self, "panes"):
@@ -356,41 +415,43 @@ class StratosphereApp(App[None]):
         if view != self.active_view:
             self.action_select_view(view)
 
-    def on_tabbed_content_tab_activated(self, event: TabbedContent.TabActivated) -> None:
-        if hasattr(self, "panes"):
-            self.sync_navigation()
-
     def on_descendant_focus(self, event: DescendantFocus) -> None:
         widget = event.widget
         while widget is not None:
             if widget.has_class("pane"):
-                if self.panes.has_class("compact") and not widget.has_class("active"):
+                if not widget.display:
                     return
-                self.active_pane = widget.id.removesuffix("-pane")
-                self.update_layout()
+                view = widget.id.removesuffix("-pane")
+                if view != self.active_pane:
+                    self.active_pane = view
+                    if view != "chat":
+                        self.companion_view = view
+                    if view in {"jobs", "portfolio", "session"}:
+                        self.activity_view = view
+                    self.update_layout()
                 break
             widget = widget.parent
 
     def action_focus_pane(self, pane: str) -> None:
-        if isinstance(self.screen, ModelSetup):
-            return
-        self.active_pane = pane
-        self.update_layout()
-        self.call_after_refresh(self.focus_active_pane)
+        self.action_select_view(pane)
 
     def focus_active_pane(self) -> None:
-        if isinstance(self.screen, ModelSetup):
-            return
-        target = "#prompt" if self.active_pane == "chat" else f"#{self.active_pane}-pane"
-        self.query_one(target).focus()
+        if self.active_pane == "chat":
+            if self.setup:
+                if not self.setup.has_focus_within:
+                    self.setup.query_one("#model-id", Input).focus()
+            else:
+                self.query_one("#prompt", Input).focus()
+        else:
+            self.query_one(f"#{self.active_pane}-pane").focus()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "cycle_view":
-            return not isinstance(self.screen, ModalScreen)
+            return not (self.setup and self.setup.has_focus_within)
         if action == "cancel_response":
             return True if self.request_state in {"CONNECTING", "RESPONDING"} else None
         if action == "command":
-            return not isinstance(self.focused, Input) and not isinstance(self.screen, ModelSetup)
+            return not isinstance(self.focused, Input) and self.setup is None
         return True
 
     def action_command(self) -> None:
@@ -429,11 +490,28 @@ class StratosphereApp(App[None]):
             "selected provider."
         )
 
-    def configure_model(self, settings: ModelSettings | None) -> None:
-        if settings:
-            self.settings = settings
-            self.session = ChatSession(self.provider_factory(settings))
+    async def open_model_setup(self) -> None:
+        self.action_select_view("chat")
+        if self.setup is None:
+            self.setup = ModelSetup(self.settings)
+            self.query_one("#prompt", Input).disabled = True
+            self.query_one("#composer").display = False
+            await self.query_one("#conversation", VerticalScroll).mount(self.setup)
+        self.focus_active_pane()
+        self.call_after_refresh(self.focus_active_pane)
+
+    async def on_model_setup_finished(self, event: ModelSetup.Finished) -> None:
+        event.stop()
+        if self.setup:
+            await self.setup.remove()
+            self.setup = None
+        self.query_one("#prompt", Input).disabled = False
+        self.query_one("#composer").display = True
+        if event.settings:
+            self.settings = event.settings
+            self.session = ChatSession(self.provider_factory(event.settings))
             self.update_status("MODEL SET · NOT YET VERIFIED")
+            await self.add_message("Model connected for this session. Send a message to test it.")
         self.action_focus_pane("chat")
 
     async def add_message(self, text: str) -> Static:
@@ -478,7 +556,7 @@ class StratosphereApp(App[None]):
             elif self.response_worker and not self.response_worker.is_finished:
                 await self.add_message("Use /cancel before clearing chat or changing models.")
             elif command.action == "model":
-                self.push_screen(ModelSetup(self.settings), self.configure_model)
+                await self.open_model_setup()
             elif command.action == "clear":
                 if self.session:
                     self.session.history.clear()
@@ -502,7 +580,8 @@ class StratosphereApp(App[None]):
     @work(group="chat", exclusive=True)
     async def generate_response(self, text: str) -> None:
         assert self.session is not None
-        bubble = await self.add_message("Assistant: Connecting…")
+        bubble = AssistantMessage()
+        await self.query_one("#conversation", VerticalScroll).mount(bubble)
         reply = ""
         self.update_status("CONNECTING")
         try:
@@ -510,17 +589,17 @@ class StratosphereApp(App[None]):
                 if not reply:
                     self.update_status("RESPONDING")
                 reply += delta
-                bubble.update(message_text(f"Assistant: {reply}"))
+                bubble.update_reply(reply)
                 self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
             self.update_status("READY")
         except asyncio.CancelledError:
-            bubble.update(message_text(f"Assistant (canceled; not kept in model history): {reply}"))
+            bubble.update_reply(reply, label="Assistant (canceled; not kept in model history):")
             bubble.add_class("interrupted-message")
             self.update_status("CANCELED")
             raise
         except ModelError as error:
-            bubble.update(
-                message_text(f"Assistant (incomplete; not kept in model history): {reply}\n{error}")
+            bubble.update_reply(
+                f"{reply}\n\n{error}", label="Assistant (incomplete; not kept in model history):"
             )
             bubble.add_class("interrupted-message")
             self.update_status("MODEL UNAVAILABLE · /model or retry")
@@ -531,5 +610,4 @@ class StratosphereApp(App[None]):
 
 
 def main() -> None:
-    request_maximized_window()
     StratosphereApp().run(inline=False)

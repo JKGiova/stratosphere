@@ -2,7 +2,7 @@
 
 ## Product contract
 
-**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected. The current visual direction follows [Gloomberb](https://github.com/gloom-sh/gloomberb)'s default monochrome terminal style, adapted to the four-pane stratosphere workspace.
+**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected. The current visual direction follows [Gloomberb](https://github.com/gloom-sh/gloomberb)'s default monochrome terminal style, adapted to stratosphere’s responsive workspace.
 
 The user can supply strategy ideas and external sources, inspect recommendations, review formal rules, select experiments, intervene in ongoing workflows, and inspect portfolio state without leaving the terminal.
 
@@ -12,32 +12,37 @@ The user can supply strategy ideas and external sources, inspect recommendations
 
 ### Workspace layout and navigation
 
-The client uses black/charcoal surfaces, white focus accents, thin square dividers, full-width pane title bars, a shared navigation strip, a model/request status strip and a keyboard footer. Color is reserved for request warnings/errors. The palette follows Gloomberb's default White Phosphor theme; it remains a dark theme. At 80×24 and larger, four panes stay visible. Larger terminals give chat more vertical space:
+The client uses black/charcoal surfaces, white focus accents, square dividers, full-width panel title bars, a shared navigation strip, request status and a keyboard footer. The brand is plain text: clicking it opens no menu. The terminal window stays at the size chosen by the user; startup sends no resize/maximize request and runs no desktop automation.
 
-| Alternate shortcut | Pane | Current behavior |
+There are six independent panels: Library, Focus, Chat, Tests, Positions and Session. The client selects the first layout that fits the following minimum terminal dimensions, measured in **columns × rows**. Each panel is allocated at least 48 columns and 14 rows in multi-panel layouts; four rows are reserved for interface controls.
+
+| Layout | Minimum terminal size | Visible panels |
 | --- | --- | --- |
-| F1 | Strategy library, upper left | Empty table and explicit disconnected-library state |
-| F2 | Strategy focus, upper right | Empty selection state; rules/source/version inspection remains planned |
-| F3 | Agent chat, lower left | Literal streamed messages, request errors/cancellation and an inline command input |
-| F4 | Activity, lower right | Tests, Positions and Session views; the first two disclose unavailable integrations, while Session shows the selected model, actual request state and completed conversation turns |
+| Six, 3 columns × 2 rows | 144 × 32 | All six panels |
+| Four, 2 columns × 2 rows | 96 × 32 | Library, Focus, Chat and the selected Tests/Positions/Session panel |
+| Two horizontal, side by side | 96 × 18 | Chat and the most recently selected other panel |
+| Two vertical, stacked | 48 × 32 | Chat and the most recently selected other panel |
+| One | Smaller sizes | The selected panel |
 
-**Tab** cycles through Library → Focus → Chat → Tests → Positions → Session, then wraps. **Shift+Tab** reverses that order. Clicking the navigation strip selects the same views. F1–F4 remain alternate direct pane shortcuts. All navigation is local UI routing and makes no model request.
+Side-by-side takes priority when both two-panel arrangements fit. Selecting a hidden panel reveals it in the appropriate slot. The initial secondary choices are Library in two-panel mode and Tests in four-panel mode. Panels remain mounted across layout changes, preserving input drafts/cursor positions, entered setup values, messages and the active view. The brand is hidden in one-panel mode to preserve reading space. Scrollable content remains accessible in small panels.
 
-Below 80 columns or 24 rows, the selected pane fills the workspace and the brand header is hidden to preserve reading space. Tab/Shift+Tab work in either layout. Resizing preserves input drafts, cursor position and conversation history. Streaming completion and cancellation preserve focus when browsing another pane. Scrollable content remains accessible in small panes. Inside model setup, Tab/Shift+Tab retain standard form-field navigation; they cannot switch the underlying workspace.
+**Tab** cycles Library → Focus → Chat → Tests → Positions → Session and wraps; **Shift+Tab** reverses that order. Clicking the navigation strip selects the same panels. F1–F4 select Library, Focus, Chat and Tests respectively. All navigation is local UI routing and makes no model request. Streaming completion and cancellation preserve focus when another panel is selected.
 
-`/strategies` selects the library; `/jobs` and `/portfolio` select the relevant activity view. `/` from a non-input pane returns to chat and begins a command if the draft is empty; an existing draft is preserved. The inline `›` composer shows the send/command hint or the active response's stop shortcut. Submitting a draft while the model is busy or unconfigured preserves it for retry. Ctrl+K cancels the model response, and Ctrl+Q exits.
+`/strategies` selects Library; `/jobs` selects Tests; `/portfolio` selects Positions. `/` from a non-input panel returns to chat and begins a command if the draft is empty; an existing draft is preserved. The `›` composer shows the send/command hint or the active response’s stop shortcut. Submitting a draft while busy or unconfigured preserves it for retry. Ctrl+K cancels a response; Ctrl+Q exits, including during setup.
 
-Home/onboarding and `/model` use the same monochrome design: an opaque black screen, branded top strip, centered single-border connection card and persistent keyboard hints. First run welcomes the user; reopening the form shows model-update wording. The provider picker, editable model ID and masked key retain the session/privacy notice before the credential field. The card scrolls in small terminals and retains entered values and keyboard focus on resize. The workspace welcome uses the same style; compact layouts omit extra brand text to preserve reading space.
+### Model setup inside agent chat
 
-The interface does not populate synthetic strategies, tests, balances or positions. An unavailable account is not displayed as an empty live portfolio. Session status distinguishes model configuration from a completed online request. This visual redesign adds no research or trading integration.
+First-run model setup appears as an inline form in the agent conversation. There is no separate welcome screen or modal. `/model` reopens the same form in chat with update wording. The provider picker, model ID, masked key, privacy/publication notice, validation and cancellation remain available. Keys never enter the conversation history. The composer is hidden and disabled while the form is open, and normal Tab/Shift+Tab traverse its fields when it has focus. Enter advances from model to key and submits from the key field; Escape cancels. Users may still select other panels. Focused setup fields scroll into view, including after resizing a small terminal. Settings remain session-only.
+
+### Model reply formatting
+
+Assistant replies render Markdown while streaming: headings, emphasis, lists, fenced code blocks with syntax coloring, inline code and tables. Unfinished Markdown is rerendered as text arrives. User messages and command/status text remain literal. Terminal controls are stripped, Rich markup is not interpreted in model text, and rendering neither fetches images nor automatically opens links. Formatting does not execute code or change the stored model conversation. Failed/canceled replies remain marked incomplete and excluded from model history.
+
+The interface does not populate synthetic strategies, tests, balances or positions. Unavailable account data is explicitly unknown. Session displays the configured model, actual request state and completed conversation turns; configuration alone is not a verified online request. This redesign adds no research or trading integration.
 
 ### Terminal window size at launch
 
-Each interactive CLI launch maximizes its hosting window before starting the full-screen Textual interface. The user selected **macOS Terminal**. For a local `Apple_Terminal` session, the native launcher finds the window containing the caller's exact TTY, selects the display with the largest window overlap, and sets its bounds to that display's current [usable frame](https://developer.apple.com/documentation/appkit/nsscreen/visibleframe). This reserves the menu bar and Dock and accounts for secondary displays and Terminal/AppKit's different coordinate systems. It does not target an unrelated front window or change saved Terminal preferences. macOS automation permissions still apply.
-
-Other terminals receive an advisory [XTWINOPS maximize request](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html); they may ignore or disable it. For example, [iTerm2's terminal preferences](https://iterm2.com/documentation-preferences-profiles-terminal.html) control whether a session may resize its window. SSH and terminal-multiplexer sessions use this advisory path rather than trying to control a server's or unrelated desktop window. A native failure or five-second timeout falls back to the advisory request and leaves normal TUI launch available. A universal maximized-window guarantee across all terminal emulators is not implemented.
-
-The TUI fills the resulting terminal area and responds to resize events, including during onboarding. Startup requests run on every launch; they do not toggle the window size or the selected pane. Redirected input/output and missing/dumb/unknown terminals receive no window operation. These launch checks do not affect the headless test runner or Phase 0 proof commands. Native scripting syntax, mock-window targeting, display geometry and process dispatch are tested; visible resizing in the user's actual desktop session remains a manual acceptance check.
+Automatic maximization has been removed at the user’s request, superseding the previous native macOS Terminal/XTWINOPS launcher. The full-screen TUI adapts to the existing terminal character grid on Linux and macOS. No native launch script, Automation permission or terminal window-size control is needed.
 
 ## Login and optional account setup
 

@@ -3,18 +3,19 @@ Screen {
     color: #cccccc;
 }
 
-Header, Footer {
+#brand, Footer {
     background: #1a1a1a;
     color: #aaaaaa;
 }
 
-HeaderTitle {
+#brand {
+    height: 1;
+    padding: 0 1;
     text-style: bold;
     color: #ffffff;
-    content-align: left middle;
 }
 
-.compact-workspace Header, FooterKey.-disabled {
+.compact-workspace #brand, FooterKey.-disabled {
     display: none;
 }
 
@@ -71,7 +72,7 @@ Footer .footer-key--description {
     layout: grid;
     grid-size: 2 2;
     grid-columns: 1fr 1fr;
-    grid-rows: 2fr 3fr;
+    grid-rows: 1fr 1fr;
     grid-gutter: 0;
     height: 1fr;
 }
@@ -205,22 +206,6 @@ DataTable > .datatable--header {
     color: #ffffff;
 }
 
-#workspace-tabs {
-    height: 1fr;
-}
-
-#workspace-tabs ContentTabs {
-    display: none;
-}
-
-#workspace-tabs ContentSwitcher {
-    height: 1fr;
-}
-
-TabPane {
-    padding: 0;
-}
-
 #session-details {
     height: auto;
     margin: 1 1 0 1;
@@ -228,10 +213,6 @@ TabPane {
 
 .session-note {
     margin-top: 1;
-}
-
-#panes.dense {
-    grid-rows: 1fr 1fr;
 }
 
 #panes.dense .eyebrow, #panes.dense DataTable {
@@ -251,56 +232,21 @@ TabPane {
     display: none;
 }
 
-#panes.compact {
-    layout: vertical;
-}
-
-#panes.compact .pane {
-    display: none;
-}
-
-#panes.compact .pane.active {
-    display: block;
-}
-
 #panes.compact #composer {
     margin-top: 0;
 }
 
-ModelSetup {
-    layout: vertical;
-    background: #000000;
-}
-
-#setup-brand, #setup-keys {
-    height: 1;
-    padding: 0 1;
-    background: #1a1a1a;
-    color: #aaaaaa;
-}
-
-#setup-brand {
-    color: #ffffff;
-    text-style: bold;
-}
-
-#setup-stage {
-    height: 1fr;
-    align: center middle;
-}
-
 #setup {
-    width: 66;
-    max-width: 100%;
     height: auto;
-    max-height: 100%;
-    padding: 1 2;
-    border: solid #cccccc;
+    width: 1fr;
+    margin: 1;
+    padding: 1;
+    border-left: solid #cccccc;
     background: #0a0a0a;
 }
 
-.setup-overline {
-    height: 1;
+.setup-keys {
+    height: auto;
     color: #8a8a8a;
 }
 
@@ -321,7 +267,9 @@ ModelSetup {
 }
 
 #setup Input {
-    border: solid #333333;
+    height: 1;
+    border: none;
+    padding: 0 1;
 }
 
 #setup SelectCurrent {
@@ -333,7 +281,7 @@ ModelSetup {
 }
 
 #setup Input:focus {
-    border: solid #ffffff;
+    background: #333333;
     color: #ffffff;
 }
 
@@ -344,7 +292,7 @@ ModelSetup {
 
 #setup-actions Button {
     margin-right: 1;
-    min-width: 12;
+    min-width: 10;
     border: solid #333333;
     background: #1a1a1a;
     color: #cccccc;

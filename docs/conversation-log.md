@@ -2537,3 +2537,51 @@ Restart from Terminal:
 **149 local tests passed.** GitHub CI remains blocked by account billing limits. The visible resize still needs confirmation from a normal Terminal launch.
 
 ---
+
+### 225 — User
+
+pretty good job, lets revise the last request, remove the auto maximising, just implement a modular design, when the terminal is at least x x x char big, get 6 panels layout, either 4, either 2 vertical, either 2 orizonthal either 1, it should be responsive. also fix the model output: it gives me unformatted md responses. remove the thing that if i click stratosphere i can open a menu (we'll add this later in another form) put the onboarding inside the agent chat without haveing a custom initial screen
+
+---
+
+### 226 — Assistant (progress update)
+
+I’ll remove auto-maximizing, make the panel layout adapt to terminal size, and render model replies as Markdown. I’ll also move setup into agent chat and remove the title menu.
+
+---
+
+### 227 — Assistant (progress update)
+
+I’ll use six separate panels for Library, Focus, Chat, Tests, Positions and Session. Larger terminals will show six or four panels; narrower or shorter windows will show two stacked, two side by side, or one. Tab will still reach every panel, and resizing will preserve drafts and replies.
+
+---
+
+### 228 — Assistant (progress update)
+
+The responsive layouts and inline model setup are in place, and the native maximize launcher is removed. I’m now checking the resize transitions and Markdown rendering, including code blocks and tables, while keeping credentials masked and navigation free of model calls.
+
+---
+
+### 229 — Assistant (progress update)
+
+The resize tests caught a timing issue: a smaller terminal briefly kept the previous grid dimensions. That is fixed. I’m checking keyboard focus next so the inline setup form and all five layouts work consistently after a resize.
+
+---
+
+### 230 — Assistant (progress update)
+
+The layout checks pass at the size boundaries. Keyboard tests exposed a focus problem when hidden panels and the navigation strip update together, so I’m fixing that before the full test run. I’m also making sure the active setup field stays visible in short chat panes.
+
+---
+
+### 231 — Assistant (progress update)
+
+Keyboard navigation now passes in all five layouts, including the inline setup form. I’m running the full regression suite and checking the packaged app. I’ll also use one free-model request to verify that a real streamed reply renders as Markdown.
+
+---
+
+### 232 — Assistant (progress update)
+
+All **157 local tests passed**. The packaged app handled all five layout modes, left the terminal window size unchanged, and exited correctly during setup. A real free-model reply also rendered successfully as Markdown and reported **$0 cost**. I’m finishing the visual checks and publishing the changes.
+
+---

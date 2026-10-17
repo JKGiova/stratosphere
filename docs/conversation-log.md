@@ -1866,3 +1866,25 @@ This verifies the custom build for **macOS 26 Intel / Python 3.14.7**. Documenta
 [CI results](https://github.com/JKGiova/stratosphere/actions/runs/38598597381) · [Verified build guide](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/intel-macos.md)
 
 ---
+
+### 141 — User
+
+okok good, so is it implemented in our phase 0?
+
+---
+
+### 142 — Assistant (progress update)
+
+I’ll check how the Phase 0 documentation records the Intel support so the completion status is clear.
+
+---
+
+### 143 — Assistant
+
+Yes—Intel Mac engine support is implemented and tested as an extension of **Phase 0**.
+
+It includes the native build process, wheel validation and dedicated CI: **77 tests passed, zero skips**, with results matching Linux.
+
+Phase 0 is complete. Support currently covers **macOS 26 Intel / Python 3.14.7** through the custom wheel; a customer installer remains future work.
+
+---

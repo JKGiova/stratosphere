@@ -2,6 +2,8 @@
 
 Status: **complete within the Phase 0 scope**, October 14, 2026. All five sequential gates passed. Phase 1 and product/release work have not started.
 
+**Verified Intel extension:** native engine support for macOS 26 Intel / Python 3.14.7 is now implemented through a custom source-built wheel and a dedicated CI workflow. Independent CI passed all 77 tests with zero skips; its deterministic engine output matches local Intel and Linux. See [native Intel evidence and installation](intel-macos.md). The original five-gate audit and its platform/test counts below describe the earlier baseline before this extension; they are retained as historical evidence. Customer installation/packaging remains future work.
+
 ## Gates, in order
 
 | Step | Deliverable | Evidence before moving on |
@@ -101,4 +103,4 @@ Reproducible commands are above. Dataset/examples, schemas, pinned code and lock
 
 This fulfills the Phase 0 compatibility matrix/example strategy-data protocol criterion. It does not provide a product TUI, agent/model integration, conversion pipeline, registry persistence, five source connectors, generated-code isolation, deployed Supabase/auth/API, tradable data, paper/live trading, fee collection or release readiness. Those are later phases.
 
-The actual historical inputs are daily informational reference rates. Native fill events use declared synthetic liquidity, assumed availability and zero spread/slippage; this validates adapter correctness, not a market-realistic research result. Only the authored SMA profile is runnable. Older macOS/Intel engine support and Windows remain outside verified capability. No real orders, external account access, model calls, database changes or licensing/visibility changes occurred. Development fixtures and headless probes are not an offline product mode.
+The actual historical inputs are daily informational reference rates. Native fill events use declared synthetic liquidity, assumed availability and zero spread/slippage; this validates adapter correctness, not a market-realistic research result. Only the authored SMA profile is runnable. Older macOS versions and Windows remain outside verified capability. Intel engine support was outside this original audit and is now verified separately by the extension linked above. No real orders, external account access, model calls, database changes or licensing/visibility changes occurred. Development fixtures and headless probes are not an offline product mode.

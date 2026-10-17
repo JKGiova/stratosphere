@@ -167,6 +167,10 @@ Verification: **149 tests passed locally with zero skips** (146 core and three n
 
 The built wheel contains both the Python launcher and native JavaScript asset; source/wheel packages exclude environment/cache files, and credential scans passed. Ignored evidence is in reports/launch/. No live model request was needed for this startup change. Visible resizing and any macOS Automation permission flow remain a manual acceptance check in the user's normal Terminal session; they are not claimed as tested here. GitHub CI status is recorded separately after publication.
 
+### Maximized startup CI status
+
+Commit `2d779178e82a7b5955873a8ca51338e93e8b7f5f` is published. [Platform run 39031949718](https://github.com/JKGiova/stratosphere/actions/runs/39031949718) and [Intel engine run 39031949752](https://github.com/JKGiova/stratosphere/actions/runs/39031949752) failed before any job steps executed. All five checks report the existing GitHub account payment/spending-limit restriction; the macOS ARM64 capacity advisory is also present. Fresh cross-platform and Intel-source-build verification remains blocked. The 149-test local suite, native-script compilation, PTY startup smoke and package checks passed independently. No billing setting was changed.
+
 ## Remaining sequential increments
 
 1. Extend provider/structured-output support beyond the current verified chat checks. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

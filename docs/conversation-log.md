@@ -2523,3 +2523,17 @@ The macOS Terminal startup path is implemented. Its tests confirm that it select
 All **149 local tests passed**, and the build includes the macOS launcher. I’m publishing it now. The native window-selection and screen calculations are tested; a normal launch from your Terminal is still needed to confirm the visible result.
 
 ---
+
+### 224 — Assistant
+
+Implemented and pushed for **macOS Terminal**: every launch requests maximization of stratosphere’s window, preserving the Dock and menu bar.
+
+Restart from Terminal:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+**149 local tests passed.** GitHub CI remains blocked by account billing limits. The visible resize still needs confirmation from a normal Terminal launch.
+
+---

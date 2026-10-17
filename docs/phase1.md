@@ -109,6 +109,10 @@ The same 121 local regression tests passed with zero skips after the default cha
 
 This verifies current chat availability, basic memory and plain JSON instruction following. It does not verify tool use, enforced JSON-schema generation, strategy correctness or research quality. Rate limits and provider availability still apply. This selection supersedes the Nemotron default while retaining its earlier failure evidence.
 
+### Selected-model platform verification
+
+[Platform run 39021754364](https://github.com/JKGiova/stratosphere/actions/runs/39021754364) passed for selection commit `e54930d7d3a710d69d58ebf672412dc5aef1b82d`. All four platform jobs passed; the existing workflow runs 118 core tests on Linux x86_64/ARM64 and macOS ARM64/Intel, plus three native-engine tests on each published-wheel platform. The separate [fresh Intel engine source-build workflow](https://github.com/JKGiova/stratosphere/actions/runs/39021754488) was triggered too; this update does not claim its result. All 121 local tests passed using the previously verified Intel wheel.
+
 ## Remaining sequential increments
 
 1. Extend provider/structured-output support beyond the current verified chat checks. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

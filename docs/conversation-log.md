@@ -2242,3 +2242,20 @@ The new default passed again without an override. Cohere has now completed **sev
 All **121 regression tests passed** too. I’m saving the comparison results and publishing the selection.
 
 ---
+
+### 188 — Assistant (progress update)
+
+All four platform CI jobs passed. The working Cohere default and the six-model comparison are now published; I’m adding the final CI evidence to the project record.
+
+---
+
+### 189 — Assistant
+
+I chose **Cohere North Mini Code (free)** and made it the default:
+`cohere/north-mini-code:free`
+
+Tested six models; four answered. Cohere passed **seven live requests**, including TUI chat, memory and JSON checks. All seven reported **$0**.
+
+**121 regression tests and all four platform CI jobs passed.** Restart the TUI to use the new default.
+
+---

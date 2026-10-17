@@ -153,6 +153,10 @@ Verification: **133 local tests passed with zero skips** (130 core plus three na
 
 Two real requests through the new onboarding → LangGraph → OpenRouter flow passed conversation memory and completed history commits, in **1.355 and 1.171 seconds**, each reporting **0 USD**. Slash-command and forward/reverse Tab navigation made no additional model calls. These observations verify chat/navigation continuity, not strategy or execution capability. GitHub CI is recorded separately after publication.
 
+### Gloomberb rework CI status
+
+Commit `3baa4fcbd9b97525f9404626e988b923d1902fee` is published. [Platform run 39024953527](https://github.com/JKGiova/stratosphere/actions/runs/39024953527) and [Intel engine run 39024953491](https://github.com/JKGiova/stratosphere/actions/runs/39024953491) failed before any job steps executed. All five checks report the same GitHub account payment/spending-limit restriction; the ARM64 macOS capacity advisory is also present. No fresh platform or Intel-source-build pass is claimed for this commit. The 133-test local suite, live chat, visual and distribution checks above passed independently. No billing setting was changed.
+
 ## Remaining sequential increments
 
 1. Extend provider/structured-output support beyond the current verified chat checks. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

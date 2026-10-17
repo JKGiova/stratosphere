@@ -2435,3 +2435,25 @@ Both screens are styled and verified. **All 133 tests passed**, including onboar
 I’m publishing the rework and saving previews of the workspace and onboarding.
 
 ---
+
+### 212 — Assistant (progress update)
+
+The rework is published. CI is still blocked before execution by GitHub’s account billing/spending restriction. I’m adding that status and the final previews to the project record.
+
+---
+
+### 213 — Assistant
+
+Applied and pushed Gloomberb’s monochrome style across **the workspace and onboarding**. Tab navigation is preserved.
+
+**133 local tests and live chat passed.** CI remains blocked by GitHub billing.
+
+[Workspace preview](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/ui/gloomberb/workspace-120x36.png) · [Onboarding preview](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/ui/gloomberb/onboarding.png)
+
+Restart:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+---

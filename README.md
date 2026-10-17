@@ -12,6 +12,8 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 The terminal and onboarding follow [Gloomberb](https://github.com/gloom-sh/gloomberb)'s monochrome style: black/charcoal surfaces, white focus accents, square dividers and compact title bars. **Tab / Shift+Tab** cycle through Library, Focus, Chat, Tests, Positions and Session; F1–F4 remain alternate pane shortcuts. Small terminals show one pane at a time. See [layout and keyboard controls](docs/terminal-interface.md#workspace-layout-and-navigation).
 
+Every interactive launch maximizes its macOS Terminal window to the display's usable area before the full-screen TUI starts. Other terminal emulators receive a maximize request, subject to their support and settings. Native automation permissions still apply; see [startup window behavior](docs/terminal-interface.md#terminal-window-size-at-launch).
+
 ## Confirmed direction
 
 - **Permanent terminal interface:** a TUI with a chief-agent chat and slash commands; no planned migration to a web UI.

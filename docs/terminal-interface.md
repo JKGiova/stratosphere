@@ -31,6 +31,14 @@ Home/onboarding and `/model` use the same monochrome design: an opaque black scr
 
 The interface does not populate synthetic strategies, tests, balances or positions. An unavailable account is not displayed as an empty live portfolio. Session status distinguishes model configuration from a completed online request. This visual redesign adds no research or trading integration.
 
+### Terminal window size at launch
+
+Each interactive CLI launch maximizes its hosting window before starting the full-screen Textual interface. The user selected **macOS Terminal**. For a local `Apple_Terminal` session, the native launcher finds the window containing the caller's exact TTY, selects the display with the largest window overlap, and sets its bounds to that display's current [usable frame](https://developer.apple.com/documentation/appkit/nsscreen/visibleframe). This reserves the menu bar and Dock and accounts for secondary displays and Terminal/AppKit's different coordinate systems. It does not target an unrelated front window or change saved Terminal preferences. macOS automation permissions still apply.
+
+Other terminals receive an advisory [XTWINOPS maximize request](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html); they may ignore or disable it. For example, [iTerm2's terminal preferences](https://iterm2.com/documentation-preferences-profiles-terminal.html) control whether a session may resize its window. SSH and terminal-multiplexer sessions use this advisory path rather than trying to control a server's or unrelated desktop window. A native failure or five-second timeout falls back to the advisory request and leaves normal TUI launch available. A universal maximized-window guarantee across all terminal emulators is not implemented.
+
+The TUI fills the resulting terminal area and responds to resize events, including during onboarding. Startup requests run on every launch; they do not toggle the window size or the selected pane. Redirected input/output and missing/dumb/unknown terminals receive no window operation. These launch checks do not affect the headless test runner or Phase 0 proof commands. Native scripting syntax, mock-window targeting, display geometry and process dispatch are tested; visible resizing in the user's actual desktop session remains a manual acceptance check.
+
 ## Login and optional account setup
 
 Application login uses Supabase Auth OAuth, independent of broker accounts. A browser may be used for the external sign-in/consent step; research, chat, and portfolio interaction remain in the permanent TUI. The exact PKCE/callback flow and local token storage must be verified before implementation.

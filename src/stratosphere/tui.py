@@ -38,6 +38,7 @@ from stratosphere.models.settings import (
     ModelSettings,
 )
 from stratosphere.models.streaming import ModelError, safe_text
+from stratosphere.terminal import request_maximized_window
 
 VIEWS = (
     ("library", "Library"),
@@ -530,4 +531,5 @@ class StratosphereApp(App[None]):
 
 
 def main() -> None:
-    StratosphereApp().run()
+    request_maximized_window()
+    StratosphereApp().run(inline=False)

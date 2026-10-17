@@ -2457,3 +2457,69 @@ Restart:
 ```
 
 ---
+
+### 214 — User
+
+i want the cli to always open in the maximised window
+
+---
+
+### 215 — Assistant (progress update)
+
+I’ll check how the terminal opens and whether it supports maximizing the window automatically.
+
+---
+
+### 216 — Assistant (question)
+
+Which terminal do you use to launch stratosphere? Maximizing the window depends on the terminal app.
+
+Suggested answers:
+
+- macOS Terminal
+- iTerm2 / Ghostty
+- VS Code / Codex terminal
+
+---
+
+### 217 — Assistant (progress update)
+
+The TUI already fills its terminal; the terminal app controls the desktop window size. I’m adding a maximize request at startup for terminals that support it. I can’t verify the visible result until I know which terminal you use.
+
+---
+
+### 218 — Assistant (progress update)
+
+The maximize request is in place and passes the startup checks, including a test through a real terminal connection. It sends no window controls to redirected output, and the TUI still starts if the request fails. I’m running the full regression suite now.
+
+---
+
+### 219 — Assistant (progress update)
+
+All **143 tests passed**. I’m checking the actual CLI startup and packaged build before publishing. The remaining check is whether your terminal app honors the maximize request; the terminal-choice question is still open.
+
+---
+
+### 220 — User
+
+macOS Terminal
+
+---
+
+### 221 — Assistant (progress update)
+
+For macOS Terminal, I’ll add a native startup action that finds the window containing stratosphere and expands it to that display’s usable area. This will leave the menu bar and Dock available and avoid resizing another Terminal window.
+
+---
+
+### 222 — Assistant (progress update)
+
+The macOS Terminal startup path is implemented. Its tests confirm that it selects the window by its terminal connection and calculates the usable area correctly across multiple displays, including space for the Dock and menu bar. The full regression suite is running again with this native path included.
+
+---
+
+### 223 — Assistant (progress update)
+
+All **149 local tests passed**, and the build includes the macOS launcher. I’m publishing it now. The native window-selection and screen calculations are tested; a normal launch from your Terminal is still needed to confirm the visible result.
+
+---

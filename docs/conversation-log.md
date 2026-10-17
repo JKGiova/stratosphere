@@ -2585,3 +2585,32 @@ Keyboard navigation now passes in all five layouts, including the inline setup f
 All **157 local tests passed**. The packaged app handled all five layout modes, left the terminal window size unchanged, and exited correctly during setup. A real free-model reply also rendered successfully as Markdown and reported **$0 cost**. I’m finishing the visual checks and publishing the changes.
 
 ---
+
+### 233 — Assistant
+
+Implemented and pushed:
+
+- Removed auto-maximizing and the title menu.
+- Moved onboarding into agent chat.
+- Added streamed Markdown formatting for headings, lists, code and tables.
+- Preserved drafts, history and Tab navigation across resizes.
+
+Layouts use the first matching size (**columns × rows**):
+
+| Panels | Minimum size |
+| --- | --- |
+| 6 | 144 × 32 |
+| 4 | 96 × 32 |
+| 2 side by side | 96 × 18 |
+| 2 stacked | 48 × 32 |
+| 1 | Otherwise |
+
+**157 local tests passed**, plus a real free-model formatting check at **$0 cost**. GitHub CI remains blocked by account billing limits.
+
+Restart:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+---

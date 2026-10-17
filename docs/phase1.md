@@ -187,6 +187,10 @@ Generated workspace, inline-onboarding and actual live-response renders were vis
 
 One actual inline-onboarding → LangGraph → OpenRouter request using the selected Cohere free model completed a formatted sample in **6.883 seconds**, with **34 streamed text deltas**, one committed conversation turn and reported usage cost **0 USD**. Heading/emphasis/code/table formatting passed, followed by resize/selected-panel preservation and `/jobs` routing without another model request. This is bounded chat/UI verification, not research or trading validation. GitHub CI is recorded separately after publication. Earlier UI/live-model evidence above describes its respective historical revision.
 
+### Responsive redesign CI status
+
+Implementation commit `14fd9d05a413ed77f56dfb53a54814df76b4fd22` is published. [Platform run 39033277280](https://github.com/JKGiova/stratosphere/actions/runs/39033277280) and [Intel engine run 39033277305](https://github.com/JKGiova/stratosphere/actions/runs/39033277305) failed before any job steps executed. All five checks report the existing account payment/spending-limit restriction; the macOS ARM64 capacity advisory is also present. No new cross-platform or Intel-source-build pass is claimed. The 157-test local suite, real free-model formatting check, visual inspection and packaged CLI smoke passed independently. No billing setting was changed.
+
 ## Remaining sequential increments
 
 1. Extend provider/structured-output support beyond the current verified chat checks. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

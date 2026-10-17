@@ -1,0 +1,240 @@
+Screen {
+    background: #0b1220;
+    color: #d6e4f2;
+}
+
+Header, Footer {
+    background: #16243b;
+    color: #9fcfff;
+}
+
+Header .header--title {
+    text-style: bold;
+}
+
+#status {
+    height: 1;
+    padding: 0 1;
+    background: #16243b;
+    color: #9fcfff;
+}
+
+#panes {
+    layout: grid;
+    grid-size: 2 2;
+    grid-columns: 1fr 1fr;
+    grid-rows: 1fr 1fr;
+    grid-gutter: 0 1;
+    height: 1fr;
+}
+
+.pane {
+    height: 100%;
+    padding: 0 1;
+    border: round #415a77;
+    border-title-color: #a5bdd7;
+    background: #101d30;
+}
+
+.pane:focus-within, .pane:focus {
+    border: round #66c6ff;
+    border-title-color: #66c6ff;
+}
+
+.eyebrow {
+    height: auto;
+    margin-top: 1;
+    color: #8da5bf;
+    text-style: bold;
+}
+
+.empty-heading {
+    height: auto;
+    margin: 1 0;
+    color: #d6e4f2;
+    text-style: bold;
+}
+
+.muted {
+    height: auto;
+    color: #8da5bf;
+}
+
+.pane-body {
+    height: 1fr;
+}
+
+DataTable {
+    height: 1;
+    margin-top: 1;
+    background: #101d30;
+}
+
+DataTable > .datatable--header {
+    background: #16243b;
+    color: #9fcfff;
+    text-style: none;
+}
+
+#conversation {
+    height: 1fr;
+}
+
+.message {
+    height: auto;
+    margin: 1 0 0 0;
+    padding: 0 1;
+    border-left: solid #415a77;
+}
+
+.welcome {
+    padding: 1;
+    color: #9fcfff;
+}
+
+.user-message {
+    border-left: solid #66c6ff;
+    background: #16243b;
+}
+
+.assistant-message {
+    border-left: solid #66d8a0;
+}
+
+.system-message {
+    color: #8da5bf;
+}
+
+.interrupted-message {
+    border-left: solid #e9b45f;
+}
+
+#prompt {
+    height: 3;
+    margin-top: 1;
+    background: #0b1220;
+    border: tall #415a77;
+}
+
+#prompt:focus {
+    border: tall #66c6ff;
+}
+
+#workspace-tabs {
+    height: 1fr;
+}
+
+#workspace-tabs ContentSwitcher {
+    height: 1fr;
+}
+
+TabPane {
+    padding: 0;
+}
+
+Tabs {
+    background: #101d30;
+}
+
+Tab {
+    color: #8da5bf;
+    padding: 0 1;
+}
+
+Tab.-active {
+    color: #66c6ff;
+    background: #16243b;
+}
+
+Underline > .underline--bar {
+    color: #66c6ff;
+    background: #16243b;
+}
+
+#session-details {
+    height: auto;
+    margin-top: 1;
+}
+
+.session-note {
+    margin-top: 1;
+}
+
+#panes.dense .eyebrow, #panes.dense DataTable {
+    margin-top: 0;
+}
+
+#panes.dense .empty-heading {
+    margin: 0 0 1 0;
+}
+
+#panes.dense .welcome {
+    margin-top: 0;
+    padding: 0 1;
+}
+
+#panes.compact {
+    layout: vertical;
+}
+
+#panes.compact .pane {
+    display: none;
+}
+
+#panes.compact .pane.active {
+    display: block;
+}
+
+ModelSetup {
+    align: center middle;
+    background: #0b1220 80%;
+}
+
+#setup {
+    width: 66;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    padding: 1 2;
+    border: round #66c6ff;
+    border-title-color: #66c6ff;
+    background: #101d30;
+}
+
+.setup-heading {
+    height: auto;
+    color: #d6e4f2;
+    text-style: bold;
+    margin-bottom: 0;
+}
+
+.field-label {
+    height: auto;
+    margin-top: 0;
+    color: #9fcfff;
+}
+
+#setup Input, #setup Select {
+    background: #0b1220;
+}
+
+#setup-actions {
+    height: 3;
+    margin: 1 0 0 0;
+}
+
+#setup-actions Button {
+    margin-right: 1;
+    min-width: 12;
+}
+
+#privacy-notice {
+    height: auto;
+    margin-top: 1;
+    color: #8da5bf;
+}
+
+#setup-error {
+    height: auto;
+    color: #f28b91;
+}

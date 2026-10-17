@@ -2259,3 +2259,51 @@ Tested six models; four answered. Cohere passed **seven live requests**, includi
 **121 regression tests and all four platform CI jobs passed.** Restart the TUI to use the new default.
 
 ---
+
+### 190 — User
+
+rework the entire ui, i need it more styled like agentic-trading-workflow
+
+---
+
+### 191 — Assistant (progress update)
+
+I’ll look for the agentic-trading-workflow reference and review the current TUI, then redesign the interface around it.
+
+---
+
+### 192 — Assistant (progress update)
+
+I found your `JKGiova/agentic-trading-workflow` terminal: navy colors, cyan focus borders, four visible panes and F1–F4 navigation.
+
+I’ll use that layout for stratosphere, with the strategy library and focus above, chat below, and tests, positions and session details beside it. At small sizes, one pane will fill the screen so the chat input stays usable.
+
+---
+
+### 193 — Assistant (progress update)
+
+The four-pane layout is in place, along with the navy theme and restyled model setup. I’m checking keyboard navigation and compact mode now, especially that resizing keeps your draft intact and streamed replies don’t pull you away from another pane.
+
+---
+
+### 194 — Assistant (progress update)
+
+The first layout checks caught a focus issue when switching panes in a small terminal; that’s fixed. I’m finishing the resize checks and reviewing rendered screens, then I’ll test live chat through the redesigned interface.
+
+---
+
+### 195 — Assistant (progress update)
+
+The keyboard and resize tests now pass. The layout stays in four panes at 80×24 and larger, and switches to one pane at 45×12 while preserving drafts and chat history.
+
+I’m checking the final colors and spacing, then running the full regression suite and a live OpenRouter conversation.
+
+---
+
+### 196 — Assistant (progress update)
+
+The redesigned TUI passed a live two-turn conversation, including memory, and both requests reported zero cost. All **127 local tests passed**, including the native Intel engine checks.
+
+I’m publishing the redesign and checking the Linux/macOS CI results.
+
+---

@@ -1,6 +1,6 @@
 # Decisions and alignment
 
-Last updated: October 14, 2026. Product decisions and Phase 0 implementation selections are separate below. Measured scope/limits are recorded in phase0.md; selections alone do not establish product or live readiness.
+Last updated: October 17, 2026. Product decisions and Phase 0 implementation selections are separate below. Measured scope/limits are recorded in phase0.md; selections alone do not establish product or live readiness.
 
 ## Confirmed decisions
 
@@ -50,6 +50,7 @@ Last updated: October 14, 2026. Product decisions and Phase 0 implementation sel
 | D42 | Do not reopen the TUI-exit choice | Offer exactly the confirmed keep-positions or close-all-positions decision; lifecycle internals are implementation work |
 | D43 | Initial OpenRouter testing choice: Nemotron 3 Ultra free | Its route reported upstream overload; subsequently replaced through the user-authorized comparison in D44. Retain explicit provider choice and no paid fallback |
 | D44 | Test several free text models and choose one that completes live conversations | Selected cohere/north-mini-code:free after seven successful zero-cost live requests, including two TUI conversation checks. The requirement is a working free model; this is a bounded development selection, not research or tool-conformance validation |
+| D45 | Rework the UI in the style of agentic-trading-workflow | Use its navy/cyan four-pane terminal direction for the strategy library, strategy focus, chat and tests/positions workspace. Preserve current capability boundaries and explicit unavailable states; see the [implemented layout](terminal-interface.md#workspace-layout-and-navigation) |
 
 
 

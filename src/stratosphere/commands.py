@@ -3,10 +3,10 @@
 from dataclasses import dataclass
 
 PANELS = {
-    "strategies": "Strategy registry is not connected in this increment. No strategies loaded.",
-    "jobs": "Research job execution is not implemented in this increment. No tests loaded.",
+    "strategies": "The shared library is not connected yet. No strategies loaded.",
+    "jobs": "Research runs are not available yet. No ongoing or completed tests loaded.",
     "portfolio": (
-        "Trading connections are not implemented. Positions are unknown; no account connected."
+        "No trading account connected. Position data is unavailable; trading is not available yet."
     ),
 }
 HELP = """/help — Show commands

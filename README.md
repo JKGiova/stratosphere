@@ -10,6 +10,8 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 **Phase 0 complete.** The repository contains the plan plus verified compatibility/contract proofs: pinned runtime dependencies, a Textual framework probe, canonical examples, a read-only ECB historical integration and a bounded native NautilusTrader simulation. See [Phase 0 gates and evidence](docs/phase0.md). **Phase 1 is in progress:** the first terminal increment adds model onboarding, streaming model chat through LangGraph (OpenRouter Cohere North Mini Code free by default; NVIDIA NIM also selectable), deterministic slash commands and capability panels. See [Phase 1 progress and run instructions](docs/phase1.md). Live streaming chat and multi-turn context are verified with the selected Cohere free model; see the bounded test evidence in Phase 1. Shared registry service, source acquisition, research actions, login, paper/live execution and billing remain unimplemented. The initial proof does not verify tradable market data or broker capabilities.
 
+The terminal now uses a navy/cyan four-pane workspace inspired by [agentic-trading-workflow](https://github.com/JKGiova/agentic-trading-workflow): strategy library, strategy focus, agent chat, and tests/positions/session. Use **F1–F4** to navigate. Small terminals show one pane at a time. See [layout and keyboard controls](docs/terminal-interface.md#workspace-layout-and-navigation).
+
 ## Confirmed direction
 
 - **Permanent terminal interface:** a TUI with a chief-agent chat and slash commands; no planned migration to a web UI.

@@ -2,13 +2,30 @@
 
 ## Product contract
 
-**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected; the exact final layout remains open.
+**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected. The current workspace follows the four-pane terminal style of [agentic-trading-workflow](https://github.com/JKGiova/agentic-trading-workflow).
 
 The user can supply strategy ideas and external sources, inspect recommendations, review formal rules, select experiments, intervene in ongoing workflows, and inspect portfolio state without leaving the terminal.
 
 ## Current implementation
 
 [Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. Agent tools, registry/source operations, research jobs and trading connections remain unimplemented. The command vocabulary below describes the wider planned interface; only the commands listed in phase1.md are available.
+
+### Workspace layout and navigation
+
+The redesigned client uses a navy background, cyan focus borders, numbered pane titles, a model/request status strip and a keyboard footer. At 80×24 and larger, four panes stay visible:
+
+| Key | Pane | Current behavior |
+| --- | --- | --- |
+| F1 | Strategy library, upper left | Empty table and explicit disconnected-library state |
+| F2 | Strategy focus, upper right | Empty selection state; rules/source/version inspection remains planned |
+| F3 | Agent chat, lower left | Literal streamed messages, request errors/cancellation and an inline command input |
+| F4 | Tests / positions, lower right | Tests, Positions and Session tabs; the first two disclose unavailable integrations, while Session shows the selected model, actual request state and completed conversation turns |
+
+Below 80 columns or 24 rows, the selected pane fills the workspace. F1–F4 select panes in either layout. Resizing preserves input drafts and conversation history. Streaming completion and cancellation preserve focus when browsing another pane. Scrollable content remains accessible in small panes.
+
+`/strategies` selects the library; `/jobs` and `/portfolio` select the relevant activity tab. `/` from a non-input pane returns to chat and begins a command if the draft is empty; an existing draft is preserved. Ctrl+K cancels the model response, and Ctrl+Q exits. Model setup uses the same visual theme, a provider picker, an editable model ID and a masked key, with a session/privacy notice before the credential field. It can be reopened with `/model`.
+
+The interface does not populate synthetic strategies, tests, balances or positions. An unavailable account is not displayed as an empty live portfolio. Session status distinguishes model configuration from a completed online request. This visual redesign adds no research or trading integration.
 
 ## Login and optional account setup
 

@@ -1815,3 +1815,54 @@ The independent runner is still in its build step. No new local work is required
 CI remains pending at compilation. The local wheel and test evidence are saved, and I’ll keep the final audit clear about which results are local and which come from CI.
 
 ---
+
+### 134 — Assistant (progress update)
+
+The CI build is still pending. Its result is the only unfinished check; the local wheel and test evidence are already saved.
+
+---
+
+### 135 — Assistant (progress update)
+
+CI is still in compilation, with no failure reported. I’m waiting for its result; all local acceptance checks have already passed.
+
+---
+
+### 136 — User
+
+check the ci and the results
+
+---
+
+### 137 — Assistant (progress update)
+
+I’ll check the Intel CI result, inspect its logs and artifacts, and compare them with the successful local build.
+
+---
+
+### 138 — Assistant (progress update)
+
+The Intel CI passed, and the standard platform checks are also green. I’m checking the saved wheel and experiment reports to confirm the results match the local build.
+
+---
+
+### 139 — Assistant (progress update)
+
+The downloaded artifact checks out: all 111 native binaries are Intel, and the experiment output matches both the local Intel build and Linux exactly. CI passed all 77 tests with no skips. Compilation took about 85 minutes; I’m recording the verified result in the documentation.
+
+---
+
+### 140 — Assistant
+
+Both CI workflows passed.
+
+- **Intel Mac:** 77 tests passed, zero skips; native wheel built and installed successfully.
+- **Artifact verified:** all 111 native binaries are Intel; experiment results exactly match local Intel and Linux.
+- **Standard platform checks:** all green.
+- **Build time:** about 85 minutes, close to the 90-minute timeout.
+
+This verifies the custom build for **macOS 26 Intel / Python 3.14.7**. Documentation and conversation log are synchronized to GitHub.
+
+[CI results](https://github.com/JKGiova/stratosphere/actions/runs/38598597381) · [Verified build guide](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/intel-macos.md)
+
+---

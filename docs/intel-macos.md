@@ -1,6 +1,6 @@
 # Native Intel macOS engine proof
 
-Status: native build and local verification passed; independent Intel CI build is still running. The upstream release has no published Intel macOS wheel. The previously completed Phase 0 audit retains its original scope; this extension verifies a custom native distribution separately.
+Status: native build, local verification and independent Intel CI verification passed. The upstream release has no published Intel macOS wheel. The previously completed Phase 0 audit retains its original scope; this extension verifies a custom native distribution separately.
 
 ## Selected build
 
@@ -25,7 +25,7 @@ The compatibility inspector keeps engine_wheel_available false on Intel; a succe
 
 ## Limits
 
-Initial support, if proven, applies to macOS 26 Intel with CPython 3.14.7 and this custom build. Earlier macOS versions and other Python versions need separate builds and tests. Each upstream version must be rebuilt/reverified; an Intel wheel does not become an upstream-supported artifact merely because stratosphere's tests pass. Licensing notices for the third-party engine remain attached; the private stratosphere repository's visibility/licensing is unchanged.
+Verified support applies to macOS 26 Intel with CPython 3.14.7 and this custom build. Earlier macOS versions and other Python versions need separate builds and tests. Each upstream version must be rebuilt/reverified; an Intel wheel does not become an upstream-supported artifact merely because stratosphere's tests pass. Licensing notices for the third-party engine remain attached; the private stratosphere repository's visibility/licensing is unchanged.
 
 ## Local evidence
 
@@ -37,7 +37,17 @@ The complete deterministic engine payload matches the previously verified Linux 
 
 All 111 binaries' dynamic load commands reference only macOS system libraries/frameworks; no original source or Homebrew dependency is loaded. The Rust dylib retains its build-path self-install name, which is metadata rather than a load dependency. To verify this distinction in practice, the source checkout was temporarily moved away, and all three engine tests passed again in a fresh process. The original source location was then restored.
 
-Local wheel, upstream license, build log, provenance, compatibility JSON, test XML and comparison/engine reports are retained in ignored reports/intel/. The normal .venv and global shell/tool configuration were not replaced. Independent CI evidence must be recorded below after that job completes.
+Local wheel, upstream license, build log, provenance, compatibility JSON, test XML and comparison/engine reports are retained in ignored reports/intel/. The normal .venv and global shell/tool configuration were not replaced. Independent CI evidence is recorded below.
+
+## Independent CI evidence
+
+[Intel workflow run 38598597381](https://github.com/JKGiova/stratosphere/actions/runs/38598597381) passed on October 14, 2026, testing stratosphere commit `dcd00eb255e15d216e20b3ed181f35622d1bd527` on a fresh macos-26-intel runner. The native build step took about 85 minutes; the complete job took about 87 minutes, close to its 90-minute timeout.
+
+All **77 tests passed with zero skips**, including the three native-engine tests. Dependency validation, Ruff lint/format checks, required-engine compatibility inspection, online ECB acquisition and the engine CLI proof all passed. The ten pytest warnings are the existing upstream Timestamp.utcnow deprecation warnings. The [standard platform workflow](https://github.com/JKGiova/stratosphere/actions/runs/38598597068) for the same code commit also passed.
+
+The [intel-native-engine artifact](https://github.com/JKGiova/stratosphere/actions/runs/38598597381/artifacts/11918620260) was downloaded and independently inspected on October 17. All 111 native binaries are Intel x86_64; the wheel checksum matches its provenance: `ad4143b9c546ac493a46b22f1b5f14831e654ba87ec411e625a1d2b1bf98ada7`. The source revision and high-precision configuration match the selected build. This archive differs from the local wheel, as permitted by the build manifest's reproducibility limits.
+
+The complete deterministic CI payload equals both the local Intel and previously verified Linux payloads, with SHA-256 `c8a33f029794cdd19a0ffddd5671e70c15fc92a0fdb37f3dd404566945add799`. Repeatability, independent oracle and timing/cost/balance checks are true. The online ECB result contains the same 63 observations and pinned normalized digest, with no missing or duplicate dates. Downloaded evidence is retained in ignored reports/intel-ci/; it does not change the Phase 0 experiment's stated limitations or constitute a customer release.
 
 ## Install a finished wheel without a compiler
 

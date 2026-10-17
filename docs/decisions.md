@@ -55,6 +55,7 @@ Last updated: October 17, 2026. Product decisions and Phase 0 implementation sel
 | D47 | Final visual rework follows Gloomberb, including home/onboarding | Use Gloomberb's default White Phosphor direction: black/charcoal surfaces, white focus, square dividers and compact pane title bars. Apply the same style to first-run welcome and model settings. This supersedes the navy/cyan palette in D45 while preserving D46 navigation and current capability boundaries |
 | D48 | Start the CLI in a maximized terminal window; the user uses macOS Terminal | Superseded by D49. The previous implementation: local Apple_Terminal sessions resize the window containing the caller's TTY to the current display's usable area before the TUI starts. Other hosts use advisory XTWINOPS. Native permissions and unsupported hosts can prevent resizing; tests verify targeting/geometry/dispatch, while actual desktop acceptance remains manual |
 | D49 | Remove automatic maximization; use responsive panels, formatted replies, an inert brand and onboarding inside chat | Six independent panels adapt to six/four/two horizontal/two vertical/one layouts; initial thresholds are documented in the [terminal interface](terminal-interface.md#workspace-layout-and-navigation). Preserve drafts, model state and navigation through resizes. Render assistant Markdown while keeping keys masked and user/command text literal. Replace the separate setup screen with an inline chat form; remove the brand menu. This supersedes D48 and the screen/layout details in D45–D47 |
+| D50 | Start Phase 2; use BTC/USDT spot hourly candles from Binance public archives for the first case | Phase 1 registry/content adapters remain unfinished. Implement and verify a bounded pasted-text → reviewed SMA specification → approved native backtests → reproducible report path; further strategy families/data profiles remain work |
 
 
 
@@ -112,3 +113,9 @@ See [Phase 0](phase0.md), [canonical contracts](phase0-contracts.md) and [access
 ## Phase 1 implementation progress
 
 October 17, 2026: the user authorized Phase 1. The first sequential increment implements the terminal and conversational model workflow described in [phase1.md](phase1.md). It does not complete the registry, source adapters, model execution tools or live provider verification. NVIDIA's current documentation lists V4 Flash while the selected testing model remains V4.1 Flash; the client preserves explicit model selection without substitution. Login and fee collection remain deferred.
+
+## Phase 2 implementation selection
+
+| ID | Selection | Verified scope / consequence |
+| --- | --- | --- |
+| I07 | First research profile: January 2025 archive, long-only fixed-quantity SMA template, base/doubled-cost pair, private local evidence and native subprocess | Engineering defaults and limitations are shown in each plan. Execution requires one exact-plan approval; no arbitrary generated-code execution, shared registration, broker/live integration or release is implied. See [Phase 2](phase2.md) |

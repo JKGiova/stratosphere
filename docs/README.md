@@ -2,7 +2,7 @@
 
 This directory contains the initial plan for **stratosphere**, the component of the **tradingsphere** suite dedicated to agent-driven quantitative strategies.
 
-**Status:** Phase 0 complete, October 14, 2026. [Compatibility and contract proofs](phase0.md) are verified within their stated limits; [Phase 1](phase1.md) is in progress with its first terminal/model-chat increment; later phases remain unimplemented. The [decision log](decisions.md) separates product requirements, selected implementation decisions and open proposals. Detailed physical schema, production components and operational criteria remain implementation work.
+**Status:** Phase 0 complete, October 14, 2026. [Compatibility and contract proofs](phase0.md) are verified within their stated limits; [Phase 1](phase1.md) is in progress with its first terminal/model-chat increment; [Phase 2](phase2.md) has begun with the reviewed BTC/USDT hourly SMA research workflow; Phases 3–7 remain unimplemented. The [decision log](decisions.md) separates product requirements, selected implementation decisions and open proposals. Detailed physical schema, production components and operational criteria remain implementation work.
 
 ## Reading order
 
@@ -39,3 +39,5 @@ Additional planning records: [commercial model](commercial-model.md) and [Supaba
 See [research and release proposals](research-and-release-proposals.md) for the next payment/data/operation choices and explanations of research budgets and release gates.
 
 See [Phase 1 implementation progress](phase1.md) for current client capabilities, commands, test evidence and remaining increments.
+
+See [Phase 2 research progress](phase2.md) for implemented source/specification review, approval, native worker, reports, test evidence and remaining work.

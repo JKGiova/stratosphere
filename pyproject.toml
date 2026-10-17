@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "stratosphere"
 version = "0.0.1"
-description = "Phase 0 compatibility and contract proofs for stratosphere"
+description = "Online terminal research client with reproducible NautilusTrader backtests"
 requires-python = ">=3.14,<3.15"
 dependencies = [
   "httpx==0.28.1",

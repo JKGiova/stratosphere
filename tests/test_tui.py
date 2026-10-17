@@ -136,10 +136,18 @@ async def test_busy_cancellation_and_retry_without_partial_history():
 
 
 @pytest.mark.asyncio
-async def test_cancel_inline_onboarding_blocks_chat_and_can_reopen():
+async def test_cancel_inline_onboarding_blocks_chat_and_can_reopen(monkeypatch):
     app = StratosphereApp(provider_factory=FakeProvider)
     async with app.run_test() as pilot:
         screen = app.screen
+        setup = app.setup
+        remove = setup.remove
+
+        async def remove_with_pending_focus():
+            await remove()
+            app.focus_active_pane()
+
+        monkeypatch.setattr(setup, "remove", remove_with_pending_focus)
         await pilot.press("escape")
         await send(app, pilot, "hello")
         assert "Configure your online model" in visible(app)

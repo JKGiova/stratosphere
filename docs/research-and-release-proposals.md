@@ -1,6 +1,6 @@
 # Research, collection and release proposals
 
-Status: proposals for user review, October 13, 2026. Payment collection and login are now deferred. No data provider, numerical job budget or paper duration is approved by this document. The TUI-exit keep/close choice is already confirmed.
+Status: proposals for user review, October 13, 2026. Payment collection and login are now deferred. This proposal did not approve a data provider, numerical job budget or paper duration. The user subsequently selected BTC/USDT spot hourly Binance archive data for the first [Phase 2 case](phase2.md); broader data choices and numerical release budgets remain open. The TUI-exit keep/close choice is already confirmed.
 
 ## Payment collection — deferred
 
@@ -18,7 +18,7 @@ Local logic cannot run while the host is off. Broker-side protective orders must
 
 ## First data proof
 
-Proposed initial engineering instruments: BTC and ETH, one-hour candles. The initial proof verifies data ingestion, timing, costs, rule conformance and reproducibility, not investment suitability or profitability.
+BTC/USDT spot with hourly Binance candles is now selected for the first Phase 2 engineering case. ETH remains a proposal. The initial proof verifies data ingestion, timing, costs, rule conformance and reproducibility, not investment suitability or profitability.
 
 - [Binance public archives](https://github.com/binance/binance-public-data) offer downloadable historical candles and trades with checksums. Pin snapshots and normalize timestamp units. Verify data quality, symbol/instrument semantics and actual access before integration.
 - Liquid paper/live validation requires the historical/live data and funding semantics of the actual execution instrument and venue. Binance spot observations must not be transferred as perpetual performance evidence.

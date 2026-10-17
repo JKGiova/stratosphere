@@ -2614,3 +2614,106 @@ Restart:
 ```
 
 ---
+
+### 234 — User
+
+ok lets push phase2
+
+---
+
+### 235 — Assistant (progress update)
+
+I’ll check Phase 2’s scope and the current implementation, then start the next tested step toward the strategy-to-backtest-to-report workflow.
+
+---
+
+### 236 — Assistant (progress update)
+
+Phase 2 is the research workflow: turn a strategy description into a reviewed specification, run it in NautilusTrader, and produce a reproducible report. Phase 1 still has registry and source integrations pending; I’ll keep those marked unfinished while building this path from pasted text.
+
+I’m using the Firecrawl skill to check the engine’s official documentation against the pinned version.
+
+---
+
+### 237 — Assistant (question)
+
+For Phase 2’s first backtest, I propose BTC/USDT spot with 1-hour candles from Binance’s public archive. Which starting dataset do you prefer?
+
+Suggested answers:
+
+- BTC/USDT hourly candles (Recommended)
+- Existing EUR/USD reference-rate engineering dataset
+
+---
+
+### 238 — User
+
+BTC/USDT hourly candles (Recommended)
+
+---
+
+### 239 — Assistant (progress update)
+
+BTC/USDT hourly candles it is. I’ll start with a long-only SMA crossover and a review step that shows the rules, data window, sizing and costs before running. Strategies outside that initial implementation will get an explicit limitation or clarification request.
+
+---
+
+### 240 — Assistant (progress update)
+
+The archive is accessible and its checksum matches. Binance uses microsecond timestamps for spot archives from 2025 onward, so the loader will validate timestamps, hourly continuity, price ranges and snapshot integrity before testing.
+
+The model will propose structured rules and source quotes. A fixed NautilusTrader implementation will execute only the supported, approved specification.
+
+---
+
+### 241 — Assistant (progress update)
+
+The native engine has completed base-cost and doubled-cost runs on all 744 January 2025 candles. I’m checking fills and account balances against an independent calculation, then wiring plan review, job controls and reports into the TUI.
+
+---
+
+### 242 — Assistant (progress update)
+
+The first **44 research checks pass**, including approval gating, source and plan integrity, pause/resume checkpoints, next-open fills, fees and cash reconciliation. I’m now testing the same workflow through the TUI and installing the already verified Intel engine in the normal launch environment.
+
+---
+
+### 243 — Assistant (progress update)
+
+The TUI can now create a local draft, show its source evidence and assumptions, and run the two simulations after approval. Pause/resume keeps completed checkpoints, and completed jobs have inspectable reports. The existing chat, provider and navigation checks also passed; I’m finishing restart, worker-cleanup and live end-to-end testing.
+
+---
+
+### 244 — Assistant (progress update)
+
+The live end-to-end case passed: one free-model request produced a reviewable specification, approval launched two native backtests, and the report was saved. It processed all **744 candles**; a separate replay matched the base result exactly.
+
+I’m tightening one final source check so numeric parameters must appear in their cited passages, then running the full suite.
+
+---
+
+### 245 — Assistant (progress update)
+
+All **213 local tests passed**, including seven native-engine checks. The live model also asked for missing periods and sizing, and rejected an RSI/stop-loss strategy without launching a backtest.
+
+I’m checking the packaged app and final screens, then I’ll push this first Phase 2 increment. Phase 1’s registry and content-source adapters remain unfinished.
+
+---
+
+### 246 — Assistant (progress update)
+
+The visual check found a clipping issue: a horizontal scrollbar could hide the only row in Library. That is fixed, and I’ve added a regression check for it. I’m also making sure the approval controls appear without extra scrolling.
+
+---
+
+### 247 — Assistant (progress update)
+
+The package checks passed too: the installed wheel reproduced both native runs, and the approval controls are visible. I’m publishing the first Phase 2 increment now, then I’ll check GitHub CI.
+
+---
+
+### 248 — Assistant (progress update)
+
+A final onboarding check caught a focus race when setup is canceled quickly. I’m fixing that so a queued focus update cannot target a removed form, then publishing the verified result.
+
+---

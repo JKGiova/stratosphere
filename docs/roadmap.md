@@ -1,6 +1,6 @@
 # Roadmap and open implementation decisions
 
-Last updated: October 17, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. [Phase 1](phase1.md) is **in progress**, beginning with terminal/model chat; Phases 2–7 remain **not implemented**. An internal proof is not a release.
+Last updated: October 17, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. [Phase 1](phase1.md) is **in progress**, beginning with terminal/model chat; [Phase 2](phase2.md) is **in progress** with its first reviewed text-to-native-backtest workflow; Phases 3–7 remain **not implemented**. An internal proof is not a release.
 
 ## Selected foundation
 
@@ -14,7 +14,7 @@ See the [decision log](decisions.md) for confirmed requirements and remaining pr
 | --- | --- | --- |
 | 0 — Compatibility and contracts | Select runtime/engine versions, first test adapters/data, TUI library, canonical spec, and access boundary | Verified compatibility matrix and example strategy/data protocol |
 | 1 — Online TUI, onboarding, registry and sources | English Linux/macOS TUI, chief-agent chat, slash commands and panels; selectable model setup; registry contracts and internal development harness; YouTube, Instagram, X, TradingView and GitHub acquisition | Model setup, private ownership contracts, exact deduplication, source accumulation, distinct variants and catalog projection in controlled development tests and all five source integrations tested against accessible examples; unavailable material explicitly reported |
-| 2 — Research MVP | Text/article → specification → conforming implementation → NautilusTrader backtest → report | Reproducible end-to-end case with costs, rule evidence, immutable references, and user intervention |
+| [2 — Research MVP](phase2.md), in progress | Text/article → specification → conforming implementation → NautilusTrader backtest → report | Reproducible end-to-end case with costs, rule evidence, immutable references, and user intervention |
 | 3 — Iteration and recommendations | Bounded variants, out-of-sample validation, evidence-aware catalog recommendations, dated applicability | All attempts retained; recommendations distinguish compatibility, empirical evidence, and current context |
 | 4 — Source maturity and market coverage | Improve the Phase 1 source integrations and conversion conformance; progressively verify crypto/equity/ETF/forex data integrations | Source provenance, format/provider failure cases, behavioral conversion and capability-based routing tested |
 | 5 — Live data and paper | Feed/runtime, budget and risk agents, optional account linking, verified paper adapter, personal instances | Sustained operation with restart/reconciliation tests and overnight/multi-day holding checks |
@@ -53,7 +53,7 @@ Recommended dependency order: register identities and provenance before communit
 | Detail | Required before |
 | --- | --- |
 | Tradable-data and operational engine adapters beyond the verified Phase 0 proof | Corresponding research/paper/live integration |
-| First instruments/data providers, Alpaca/Liquid account capabilities, connector order and engine adapters | Corresponding data/paper/live phase |
+| Additional instruments/data profiles and Alpaca/Liquid account capabilities/adapters beyond the selected BTC/USDT hourly Binance research profile | Corresponding data/paper/live phase |
 | LLM providers/structured output and user-approved job budgets (meaning explained; values unconfirmed); Textual is selected | TUI/research implementation |
 | Physical schema/migrations, canonical extensions and transactional constraints; IDs/canonical v1 selected in Phase 0 | Registry implementation |
 | Supabase provisioning and project plan (organization/Frankfurt region selected), OAuth provider/callback/session configuration, API access, RLS, hosting, secure session storage and online outage handling | Shared service release |
@@ -68,17 +68,17 @@ Recommended dependency order: register identities and provenance before communit
 
 ## Deferred login and collection
 
-Login implementation/configuration and fee-collection selection are deferred to later pre-release work. Google/GitHub, browser-hosted login and the opening-order fee rules remain confirmed. They do not block the current compatibility, TUI, research, source-acquisition or backtesting proof. The Phase 1 registry uses a controlled development harness, not an unauthenticated public deployment; real shared-user access still requires verified authentication and ownership controls before release. Final onboarding continues to include login and optional trading connections. Do not reopen payment-collection or login questions during the current planning pass.
+Login implementation/configuration and fee-collection selection are deferred to later pre-release work. Google/GitHub, browser-hosted login and the opening-order fee rules remain confirmed. They do not block the current compatibility, TUI, research, source-acquisition or backtesting proof. The planned Phase 1 registry uses a controlled development harness, not an unauthenticated public deployment; real shared-user access still requires verified authentication and ownership controls before release. Final onboarding continues to include login and optional trading connections. Do not reopen payment-collection or login questions during the current planning pass.
 
 ## Next step
 
-The [Phase 0 audit](phase0.md) is complete. Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. The user has now authorized Phase 1. Its [sequential increment record](phase1.md) distinguishes implemented client behavior from pending registry, source and agent-operation work.
+The [Phase 0 audit](phase0.md) is complete. Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. The user authorized Phase 1 and subsequently [Phase 2](phase2.md). Phase 1 remains unfinished: its [increment record](phase1.md) distinguishes implemented client behavior from pending shared registry, source and broader agent-operation work. Phase 2 begins with a reviewed BTC/USDT hourly SMA research path using a pinned Binance archive; this does not defer or claim completion of the five Phase 1 content adapters.
 
 Quiver remains a possible optional alternative-data integration. VectorBT remains a possible optional research accelerator. Neither is required for the first usable increment.
 
 ## Roadmap refinement
 
-The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; Phase 1 has started; later application phases remain unimplemented. AGENTS.md rules remain in force.
+The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; Phase 1 has started; Phase 2 has begun within the verified scope in its increment record; Phases 3–7 remain unimplemented. AGENTS.md rules remain in force.
 
 ## Release policy and confirmed experience
 

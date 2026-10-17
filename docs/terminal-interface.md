@@ -8,7 +8,7 @@ The user can supply strategy ideas and external sources, inspect recommendations
 
 ## Current implementation
 
-[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. Agent tools, registry/source operations, research jobs and trading connections remain unimplemented. The command vocabulary below describes the wider planned interface; only the commands listed in phase1.md are available.
+[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. The [first Phase 2 increment](phase2.md) adds local research plans, approved native backtests, job controls and reports from pasted text. Broad agent tools, registry/external source adapters and trading connections remain unimplemented. The command vocabulary below describes the wider planned interface; implemented commands are listed in phase1.md and phase2.md.
 
 ### Workspace layout and navigation
 
@@ -38,11 +38,19 @@ First-run model setup appears as an inline form in the agent conversation. There
 
 Assistant replies render Markdown while streaming: headings, emphasis, lists, fenced code blocks with syntax coloring, inline code and tables. Unfinished Markdown is rerendered as text arrives. User messages and command/status text remain literal. Terminal controls are stripped, Rich markup is not interpreted in model text, and rendering neither fetches images nor automatically opens links. Formatting does not execute code or change the stored model conversation. Failed/canceled replies remain marked incomplete and excluded from model history.
 
-The interface does not populate synthetic strategies, tests, balances or positions. Unavailable account data is explicitly unknown. Session displays the configured model, actual request state and completed conversation turns; configuration alone is not a verified online request. This redesign adds no research or trading integration.
+The interface lists actual local research drafts/jobs as they are created; the shared catalog remains disconnected. It does not populate synthetic strategies, tests, balances or trading positions. Unavailable account data is explicitly unknown. Session displays the configured model, actual request state and completed conversation turns; configuration alone is not a verified online request. Local research execution is documented in [Phase 2](phase2.md); trading integrations remain unavailable.
 
 ### Terminal window size at launch
 
 Automatic maximization has been removed at the user’s request, superseding the previous native macOS Terminal/XTWINOPS launcher. The full-screen TUI adapts to the existing terminal character grid on Linux and macOS. No native launch script, Automation permission or terminal window-size control is needed.
+
+## Implemented research interaction
+
+`/new [text]` opens a source/cost form in agent chat. The hosted model proposes a supported specification and source evidence; missing/incompatible rules block execution. A visible review control or `/approve <job-id> <plan-sha256>` authorizes exactly the displayed base/stress plan. `/jobs` lists real local states; selecting a row or `/show <job-id>` opens Focus. `/report <job-id>` displays the completed report in chat. `/pause`, `/resume` and `/cancel` address exact local job IDs. See [commands, setup and capability limits](phase2.md#try-it).
+
+Research form fields use ordinary Tab navigation, source Enter inserts a line, and Escape cancels. Model keys detected in source text are neither persisted nor sent. Source/code is analyzed as data, not executed. The native worker receives no model/service credentials. New simulations and resume always verify the pinned dataset online. Inspecting retained plans/reports through the app also checks online connectivity; retained audit files are not an offline application mode. Pausing/canceling remains available to stop local work.
+
+Real local drafts populate Library with their behavioral hash; they are not public registrations. Tests displays local job progress/results. Positions stays explicitly unknown without a verified account connection. Completed native results are retained separately from conversational model interpretation. Closing the TUI pauses an approved active research job and retains completed checkpoints; no trading exit policy is operational yet.
 
 ## Login and optional account setup
 

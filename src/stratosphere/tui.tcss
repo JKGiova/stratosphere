@@ -318,3 +318,56 @@ DataTable > .datatable--header {
     height: auto;
     color: #ff6666;
 }
+
+#research-form {
+    height: auto;
+    margin: 1;
+    padding: 1;
+    border-left: solid #cccccc;
+}
+
+#research-source {
+    height: 8;
+    min-height: 3;
+    border: solid #555555;
+    background: #111111;
+}
+
+#research-form Input {
+    height: 1;
+    padding: 0 1;
+    border: none;
+    background: #111111;
+}
+
+#research-form Input:focus {
+    background: #333333;
+}
+
+.research-help {
+    height: auto;
+    color: #8a8a8a;
+}
+
+#research-error {
+    height: auto;
+    color: #ff6666;
+}
+
+.research-actions, .research-review {
+    height: 3;
+    margin-top: 1;
+}
+
+.research-review {
+    margin: 1;
+}
+
+.research-actions Button, .research-review Button {
+    min-width: 10;
+    width: auto;
+    margin-right: 1;
+    background: #1a1a1a;
+    border: solid #555555;
+    color: #cccccc;
+}

@@ -4,6 +4,7 @@ import asyncio
 import os
 
 from pydantic import SecretStr, ValidationError
+from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -19,8 +20,10 @@ from textual.widgets import (
     Input,
     Select,
     Static,
+    Tab,
     TabbedContent,
     TabPane,
+    Tabs,
 )
 from textual.worker import Worker
 
@@ -35,6 +38,27 @@ from stratosphere.models.settings import (
     ModelSettings,
 )
 from stratosphere.models.streaming import ModelError, safe_text
+
+VIEWS = (
+    ("library", "Library"),
+    ("focus", "Focus"),
+    ("chat", "Chat"),
+    ("jobs", "Tests"),
+    ("portfolio", "Positions"),
+    ("session", "Session"),
+)
+
+
+def message_text(text: str) -> Text:
+    """Style trusted role labels while keeping all message content literal."""
+    content = Text(safe_text(text))
+    if text.startswith("You:"):
+        content.stylize("bold #66c6ff", 0, 4)
+    elif text.startswith("Assistant"):
+        end = text.find(":")
+        if end >= 0:
+            content.stylize("bold #d6e4f2", 0, end + 1)
+    return content
 
 
 class ModelSetup(ModalScreen[ModelSettings | None]):
@@ -156,13 +180,15 @@ class StratosphereApp(App[None]):
     CSS_PATH = "tui.tcss"
     ENABLE_COMMAND_PALETTE = False
     BINDINGS = [
-        ("f1", "focus_pane('library')", "Library"),
-        ("f2", "focus_pane('focus')", "Focus"),
-        ("f3", "focus_pane('chat')", "Chat"),
-        ("f4", "focus_pane('activity')", "Activity"),
-        Binding("ctrl+k", "cancel_response", "Cancel", priority=True),
+        Binding("tab", "cycle_view(1)", "Next", key_display="Tab", priority=True),
+        Binding("shift+tab", "cycle_view(-1)", "Back", key_display="Shift+Tab", priority=True),
+        Binding("f1", "focus_pane('library')", "Library", show=False),
+        Binding("f2", "focus_pane('focus')", "Focus", show=False),
+        Binding("f3", "focus_pane('chat')", "Chat", show=False),
+        Binding("f4", "focus_pane('activity')", "Activity", show=False),
+        Binding("ctrl+k", "cancel_response", "Stop", priority=True),
         ("ctrl+q", "quit", "Quit"),
-        Binding("slash", "command", "Command", show=False),
+        Binding("slash", "command", "Commands", key_display="/"),
     ]
 
     def __init__(self, *, provider_factory=create_provider):
@@ -194,7 +220,12 @@ class StratosphereApp(App[None]):
         self.theme = "stratosphere"
 
     def compose(self) -> ComposeResult:
-        yield Header(show_clock=True, icon="◆")
+        yield Header(icon="◆")
+        yield Tabs(
+            *(Tab(label, id=f"nav-{view}") for view, label in VIEWS),
+            active="nav-chat",
+            id="navigation",
+        )
         yield Static("", id="status", markup=False)
         with Container(id="panes"):
             with WorkspacePane(id="library-pane", classes="pane"):
@@ -215,15 +246,19 @@ class StratosphereApp(App[None]):
             with WorkspacePane(id="chat-pane", classes="pane active"):
                 with VerticalScroll(id="conversation"):
                     yield Static(
-                        "stratosphere / research desk\n\n"
-                        "Explore a trading idea with your model.\n"
-                        "Use /help for commands · F1–F4 to move between panes.",
+                        "Start with a trading idea.\n\n"
+                        "Ask a question, outline your rules, or type /help.",
                         classes="message system-message welcome",
                         markup=False,
                     )
-                yield Input(
-                    placeholder="Ask your agent or /command", id="prompt", select_on_focus=False
-                )
+                with Horizontal(id="composer"):
+                    yield Static("›", id="prompt-marker")
+                    yield Input(
+                        placeholder="Message your agent or /help",
+                        id="prompt",
+                        select_on_focus=False,
+                        compact=True,
+                    )
             with WorkspacePane(id="activity-pane", classes="pane"):
                 with TabbedContent(id="workspace-tabs", initial="jobs"):
                     with TabPane("Tests", id="jobs"):
@@ -250,6 +285,7 @@ class StratosphereApp(App[None]):
 
     def on_mount(self) -> None:
         self.panes = self.query_one("#panes", Container)
+        self.workspace_screen = self.screen
         for pane, title in [
             ("library", "1  STRATEGY LIBRARY"),
             ("focus", "2  STRATEGY FOCUS"),
@@ -271,11 +307,48 @@ class StratosphereApp(App[None]):
             self.update_layout()
 
     def update_layout(self) -> None:
+        self.workspace_screen.set_class(self.compact, "compact-workspace")
         self.panes.set_class(self.compact, "compact")
         self.panes.set_class(self.dense, "dense")
         self.query_one(Footer).compact = self.dense
         for pane in self.panes.query(".pane"):
             pane.set_class(pane.id == f"{self.active_pane}-pane", "active")
+        self.sync_navigation()
+
+    @property
+    def active_view(self) -> str:
+        if self.active_pane == "activity":
+            return self.query_one("#workspace-tabs", TabbedContent).active or "jobs"
+        return self.active_pane
+
+    def sync_navigation(self) -> None:
+        self.query_one("#navigation", Tabs).active = f"nav-{self.active_view}"
+        activity = self.query_one("#workspace-tabs", TabbedContent).active or "jobs"
+        self.query_one("#activity-pane").border_title = f"4  {dict(VIEWS)[activity].upper()}"
+
+    def action_cycle_view(self, direction: int) -> None:
+        views = [view for view, _ in VIEWS]
+        self.action_select_view(views[(views.index(self.active_view) + direction) % len(views)])
+
+    def action_select_view(self, view: str) -> None:
+        if isinstance(self.screen, ModalScreen):
+            return
+        if view in {"jobs", "portfolio", "session"}:
+            self.query_one("#workspace-tabs", TabbedContent).active = view
+            self.action_focus_pane("activity")
+        else:
+            self.action_focus_pane(view)
+
+    def on_tabs_tab_activated(self, event: Tabs.TabActivated) -> None:
+        if event.tabs.id != "navigation" or not hasattr(self, "panes"):
+            return
+        view = event.tab.id.removeprefix("nav-")
+        if view != self.active_view:
+            self.action_select_view(view)
+
+    def on_tabbed_content_tab_activated(self, event: TabbedContent.TabActivated) -> None:
+        if hasattr(self, "panes"):
+            self.sync_navigation()
 
     def on_descendant_focus(self, event: DescendantFocus) -> None:
         widget = event.widget
@@ -302,6 +375,10 @@ class StratosphereApp(App[None]):
         self.query_one(target).focus()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "cycle_view":
+            return not isinstance(self.screen, ModalScreen)
+        if action == "cancel_response":
+            return True if self.request_state in {"CONNECTING", "RESPONDING"} else None
         if action == "command":
             return not isinstance(self.focused, Input) and not isinstance(self.screen, ModelSetup)
         return True
@@ -316,11 +393,25 @@ class StratosphereApp(App[None]):
     def update_status(self, state: str) -> None:
         self.request_state = state
         model = (
-            f"{PROVIDER_LABELS[self.settings.provider]} / {self.settings.model}"
+            f"{PROVIDER_LABELS[self.settings.provider]} · {self.settings.model}"
             if self.settings
             else "/model to connect"
         )
-        self.query_one("#status", Static).update(f"{state}  ·  {model}")
+        label = {
+            "MODEL NOT SET": "○ Set up a model with /model",
+            "MODEL SET · NOT YET VERIFIED": "○ Model set · not yet verified",
+            "CONNECTING": "◌ Connecting",
+            "RESPONDING": "◌ Responding",
+            "READY": "● Ready",
+            "CANCELED": "○ Canceled",
+        }.get(state, "! Model unavailable · /model or retry")
+        self.query_one("#status", Static).update(f"{label}    {model}" if self.settings else label)
+        self.query_one("#status").set_class(state.startswith("MODEL UNAVAILABLE"), "error-status")
+        self.query_one("#status").set_class(state in {"CONNECTING", "RESPONDING"}, "busy-status")
+        self.query_one("#composer").border_subtitle = (
+            "Ctrl+K stop" if state in {"CONNECTING", "RESPONDING"} else "Enter send · / commands"
+        )
+        self.refresh_bindings()
         turns = len(self.session.history) // 2 if self.session else 0
         self.query_one("#session-details", Static).update(
             f"{model}\n\nRequest    {state.lower()}\nCompleted turns    {turns}\n\n"
@@ -343,7 +434,7 @@ class StratosphereApp(App[None]):
             if text.startswith("Assistant:")
             else "system-message"
         )
-        message = Static(safe_text(text), classes=f"message {role}", markup=False)
+        message = Static(message_text(text), classes=f"message {role}", markup=False)
         view = self.query_one("#conversation", VerticalScroll)
         await view.mount(message)
         view.scroll_end(animate=False)
@@ -353,24 +444,23 @@ class StratosphereApp(App[None]):
         if event.input.id != "prompt":
             return
         text = event.value.strip()
-        event.input.value = ""
         if not text:
             return
         if self.settings and self.settings.api_key.get_secret_value() in text:
+            event.input.value = ""
             await self.add_message("API key detected. Enter credentials only in /model.")
             return
         if text.startswith("/"):
+            event.input.value = ""
             command = route_command(text)
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
             if command.action == "message":
                 await self.add_message(command.message)
             elif command.action in PANELS:
-                if command.action == "strategies":
-                    self.action_focus_pane("library")
-                else:
-                    self.query_one("#workspace-tabs", TabbedContent).active = command.action
-                    self.action_focus_pane("activity")
+                self.action_select_view(
+                    "library" if command.action == "strategies" else command.action
+                )
             elif command.action == "cancel":
                 self.action_cancel_response()
             elif command.action == "quit":
@@ -395,6 +485,7 @@ class StratosphereApp(App[None]):
             )
             return
         self.action_focus_pane("chat")
+        event.input.value = ""
         await self.add_message(f"You: {text}")
         self.response_worker = self.generate_response(text)
 
@@ -409,16 +500,18 @@ class StratosphereApp(App[None]):
                 if not reply:
                     self.update_status("RESPONDING")
                 reply += delta
-                bubble.update(f"Assistant: {reply}")
+                bubble.update(message_text(f"Assistant: {reply}"))
                 self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
             self.update_status("READY")
         except asyncio.CancelledError:
-            bubble.update(f"Assistant (canceled; not kept in model history): {reply}")
+            bubble.update(message_text(f"Assistant (canceled; not kept in model history): {reply}"))
             bubble.add_class("interrupted-message")
             self.update_status("CANCELED")
             raise
         except ModelError as error:
-            bubble.update(f"Assistant (incomplete; not kept in model history): {reply}\n{error}")
+            bubble.update(
+                message_text(f"Assistant (incomplete; not kept in model history): {reply}\n{error}")
+            )
             bubble.add_class("interrupted-message")
             self.update_status("MODEL UNAVAILABLE · /model or retry")
 

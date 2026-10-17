@@ -2331,3 +2331,45 @@ Restart from the project folder:
 ![Redesigned stratosphere workspace](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/ui/workspace-120x36.png)
 
 ---
+
+### 199 — User
+
+lets use tab for switching tabs, polish again the tui, take inspo from tuis like claude code, codex and so on, great tool rn
+
+---
+
+### 200 — Assistant (progress update)
+
+I’ll make Tab cycle between the main panes, with Shift+Tab going back, and polish the spacing, chat, and keyboard hints. I’ll keep normal form navigation in model setup.
+
+---
+
+### 201 — Assistant (progress update)
+
+I’m making one Tab cycle cover Library → Focus → Chat → Tests → Positions → Session, with a visible navigation strip. I’ll also simplify the chat input and status text, and keep drafts intact while you move around.
+
+---
+
+### 202 — Assistant (progress update)
+
+Tab now cycles through all six views, including Tests, Positions, and Session. The polish adds a clearer navigation strip, a quieter status bar, more chat space in larger terminals, and a simpler `›` input.
+
+I’m checking mouse and keyboard navigation together, including switching views during a response and keeping Tab inside the model-setup form.
+
+---
+
+### 203 — Assistant (progress update)
+
+All **131 tests passed**, including forward and backward Tab cycling, form navigation, draft and cursor retention, and switching views during a streamed response.
+
+I’m doing the final visual check and publishing this polish pass.
+
+---
+
+### 204 — Assistant (progress update)
+
+The live check passed too: two replies, conversation memory, and Tab/Shift+Tab navigation without extra model calls. Both requests reported zero cost.
+
+The visual checks are complete; I’m saving the updated controls and test evidence to GitHub.
+
+---

@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
-from textual.widgets import DataTable, Input, Static, TabbedContent
+from textual.widgets import DataTable, Input, Static, TabbedContent, Tabs
 
 from stratosphere.models.nim import ModelError
 from stratosphere.tui import ModelSetup, StratosphereApp
@@ -94,6 +94,7 @@ async def test_busy_cancellation_and_retry_without_partial_history():
         app.session.provider.wait = True
         await send(app, pilot, "first")
         await send(app, pilot, "second")
+        assert app.query_one("#prompt", Input).value == "second"
         assert len(app.session.provider.requests) == 1
         await send(app, pilot, "/model")
         assert not isinstance(app.screen, ModelSetup)
@@ -126,6 +127,7 @@ async def test_cancel_onboarding_blocks_chat_and_can_reopen():
         await pilot.press("escape")
         await send(app, pilot, "hello")
         assert "Configure your online model" in visible(app)
+        assert app.query_one("#prompt", Input).value == "hello"
         await send(app, pilot, "/model")
         await configure(app, pilot)
         assert "test-only-key" not in app.export_screenshot()
@@ -252,9 +254,9 @@ async def test_completed_stream_preserves_other_pane_focus():
         await configure(app, pilot)
         app.session.provider.wait = True
         await send(app, pilot, "finish in the background")
-        await pilot.press("f4")
-        app.query_one("#workspace-tabs", TabbedContent).active = "session"
+        await pilot.press("tab", "tab", "tab")
         await pilot.pause()
+        assert app.active_view == "session"
         app.session.provider.release.set()
         await app.response_worker.wait()
         await pilot.pause()
@@ -262,3 +264,78 @@ async def test_completed_stream_preserves_other_pane_focus():
         assert app.active_pane == "activity" and app.focused.id == "activity-pane"
         assert app.query_one("#activity-pane").display
         assert not app.query_one("#chat-pane").display
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("size", [(120, 36), (45, 12)])
+async def test_tab_cycles_all_views_in_both_directions_without_losing_draft(size):
+    app = StratosphereApp(provider_factory=FakeProvider)
+    async with app.run_test(size=size) as pilot:
+        await configure(app, pilot)
+        field = app.query_one("#prompt", Input)
+        field.value = "draft [keep literally]"
+        field.cursor_position = 5
+        for key, views in [
+            ("tab", ["jobs", "portfolio", "session", "library", "focus", "chat"]),
+            ("shift+tab", ["focus", "library", "session", "portfolio", "jobs", "chat"]),
+        ]:
+            for view in views:
+                await pilot.press(key)
+                await pilot.pause()
+                assert app.active_view == view
+                assert app.query_one("#navigation", Tabs).active == f"nav-{view}"
+                pane = "activity" if view in {"jobs", "portfolio", "session"} else view
+                assert app.query_one(f"#{pane}-pane").display
+            assert field.has_focus and field.value == "draft [keep literally]"
+            assert field.cursor_position == 5
+        assert app.session.provider.requests == []
+        await pilot.resize_terminal(80, 24)
+        await pilot.pause()
+        await pilot.press("tab")
+        assert app.active_view == "jobs"
+        assert field.value == "draft [keep literally]"
+
+
+@pytest.mark.asyncio
+async def test_setup_tab_navigation_stays_in_modal():
+    app = StratosphereApp(provider_factory=FakeProvider)
+    async with app.run_test(size=(45, 12)) as pilot:
+        setup = app.screen
+        model = setup.query_one("#model-id", Input)
+        key = setup.query_one("#api-key", Input)
+        model.focus()
+        await pilot.press("tab")
+        assert key.has_focus and app.screen is setup
+        await pilot.press("shift+tab")
+        assert model.has_focus and app.screen is setup
+        assert app.active_view == "chat"
+        await configure(app, pilot)
+        await send(app, pilot, "/model")
+        app.screen.query_one("#model-id", Input).focus()
+        await pilot.press("tab")
+        assert app.screen.query_one("#api-key", Input).has_focus
+        await pilot.press("escape")
+        await pilot.pause()
+        await pilot.press("tab")
+        assert app.active_view == "jobs"
+
+
+@pytest.mark.asyncio
+async def test_navigation_strip_mouse_and_commands_stay_synchronized():
+    app = StratosphereApp(provider_factory=FakeProvider)
+    async with app.run_test(size=(120, 36)) as pilot:
+        await configure(app, pilot)
+        await pilot.click("#nav-portfolio")
+        await pilot.pause()
+        assert app.active_view == "portfolio"
+        assert app.query_one("#workspace-tabs", TabbedContent).active == "portfolio"
+        await pilot.click("#strategies")
+        await pilot.pause()
+        assert app.active_view == "library"
+        assert app.query_one("#navigation", Tabs).active == "nav-library"
+        assert app.focused.id == "strategies"
+        await send(app, pilot, "/jobs")
+        assert app.query_one("#navigation", Tabs).active == "nav-jobs"
+        await pilot.press("shift+tab")
+        assert app.active_view == "chat" and app.query_one("#prompt", Input).has_focus
+        assert app.session.provider.requests == []

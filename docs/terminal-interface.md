@@ -12,18 +12,20 @@ The user can supply strategy ideas and external sources, inspect recommendations
 
 ### Workspace layout and navigation
 
-The redesigned client uses a navy background, cyan focus borders, numbered pane titles, a model/request status strip and a keyboard footer. At 80×24 and larger, four panes stay visible:
+The redesigned client uses a navy background, cyan focus borders, a shared navigation strip, numbered pane titles, a model/request status strip and a keyboard footer. At 80×24 and larger, four panes stay visible. Larger terminals give chat more vertical space:
 
-| Key | Pane | Current behavior |
+| Alternate shortcut | Pane | Current behavior |
 | --- | --- | --- |
 | F1 | Strategy library, upper left | Empty table and explicit disconnected-library state |
 | F2 | Strategy focus, upper right | Empty selection state; rules/source/version inspection remains planned |
 | F3 | Agent chat, lower left | Literal streamed messages, request errors/cancellation and an inline command input |
-| F4 | Tests / positions, lower right | Tests, Positions and Session tabs; the first two disclose unavailable integrations, while Session shows the selected model, actual request state and completed conversation turns |
+| F4 | Activity, lower right | Tests, Positions and Session views; the first two disclose unavailable integrations, while Session shows the selected model, actual request state and completed conversation turns |
 
-Below 80 columns or 24 rows, the selected pane fills the workspace. F1–F4 select panes in either layout. Resizing preserves input drafts and conversation history. Streaming completion and cancellation preserve focus when browsing another pane. Scrollable content remains accessible in small panes.
+**Tab** cycles through Library → Focus → Chat → Tests → Positions → Session, then wraps. **Shift+Tab** reverses that order. Clicking the navigation strip selects the same views. F1–F4 remain alternate direct pane shortcuts. All navigation is local UI routing and makes no model request.
 
-`/strategies` selects the library; `/jobs` and `/portfolio` select the relevant activity tab. `/` from a non-input pane returns to chat and begins a command if the draft is empty; an existing draft is preserved. Ctrl+K cancels the model response, and Ctrl+Q exits. Model setup uses the same visual theme, a provider picker, an editable model ID and a masked key, with a session/privacy notice before the credential field. It can be reopened with `/model`.
+Below 80 columns or 24 rows, the selected pane fills the workspace and the brand header is hidden to preserve reading space. Tab/Shift+Tab work in either layout. Resizing preserves input drafts, cursor position and conversation history. Streaming completion and cancellation preserve focus when browsing another pane. Scrollable content remains accessible in small panes. Inside model setup, Tab/Shift+Tab retain standard form-field navigation; they cannot switch the underlying workspace.
+
+`/strategies` selects the library; `/jobs` and `/portfolio` select the relevant activity view. `/` from a non-input pane returns to chat and begins a command if the draft is empty; an existing draft is preserved. The inline `›` composer shows the send/command hint or the active response's stop shortcut. Submitting a draft while the model is busy or unconfigured preserves it for retry. Ctrl+K cancels the model response, and Ctrl+Q exits. Model setup uses the same visual theme, a provider picker, an editable model ID and a masked key, with a session/privacy notice before the credential field. It can be reopened with `/model`.
 
 The interface does not populate synthetic strategies, tests, balances or positions. An unavailable account is not displayed as an empty live portfolio. Session status distinguishes model configuration from a completed online request. This visual redesign adds no research or trading integration.
 

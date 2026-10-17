@@ -80,6 +80,10 @@ A clean environment installed the built wheel with locked dependencies and the v
 
 Source review, real reports/jobs, compact Library and approval controls were visually inspected. Exact-credential scans cover tracked/new files, current evidence and decompressed distributions; keys are not committed. Sanitized evidence and private engineering artifacts are retained under ignored `reports/phase2/`. GitHub CI status is recorded separately after publication.
 
+### GitHub CI status
+
+Implementation commit `d7bf9932ea6c472e7cae57473603aa242febd6a7` is published in the private repository. [Platform run 39037040147](https://github.com/JKGiova/stratosphere/actions/runs/39037040147) and [Intel engine run 39037040058](https://github.com/JKGiova/stratosphere/actions/runs/39037040058) failed before any job steps executed. All five check annotations report the existing account payment/spending-limit restriction; the macOS ARM64 capacity advisory is also present. No fresh cross-platform or Intel-source-build pass is claimed. The final 213-test local suite, real free-model cases, installed-wheel/native replay, visual and packaged-CLI checks passed independently. No account billing setting was changed.
+
 ## Remaining Phase 2 work
 
 - Broader validated strategy families/conversion, with conformance cases and explicit capability boundaries.

@@ -2717,3 +2717,27 @@ The package checks passed too: the installed wheel reproduced both native runs, 
 A final onboarding check caught a focus race when setup is canceled quickly. I’m fixing that so a queued focus update cannot target a removed form, then publishing the verified result.
 
 ---
+
+### 249 — Assistant (progress update)
+
+The first Phase 2 increment is pushed. The final 213-test run and package checks passed. GitHub blocked all CI jobs before they started because of the account payment/spending-limit restriction; I’m recording that separately from the local results.
+
+---
+
+### 250 — Assistant
+
+The **first Phase 2 increment is pushed**: pasted rules → reviewed plan → approved NautilusTrader backtests → report, with pause/resume and saved evidence.
+
+Start:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+Then use `/new`. Currently supports **BTC/USDT hourly SMA crossovers** on January 2025 data. [Usage guide](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/phase2.md).
+
+**213 tests passed**, plus live and packaged-app checks. Model calls reported **$0 cost**.
+
+Broader Phase 2 features and Phase 1 registry/source adapters remain pending. GitHub CI is blocked by account billing restrictions.
+
+---

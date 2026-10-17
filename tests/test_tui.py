@@ -49,6 +49,7 @@ def visible(app):
 @pytest.mark.asyncio
 async def test_onboarding_chat_commands_resize_and_quit(monkeypatch):
     monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     app = StratosphereApp(provider_factory=FakeProvider)
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.click("#use-model")
@@ -139,7 +140,7 @@ async def test_small_terminal_onboarding_with_keyboard():
     app = StratosphereApp(provider_factory=FakeProvider)
     async with app.run_test(size=(45, 12)) as pilot:
         field = app.screen.query_one("#model-id", Input)
-        field.value = "my-selected-model"
+        field.value = "my-selected-model:free"
         field.focus()
         await pilot.press("enter")
         key_field = app.screen.query_one("#api-key", Input)
@@ -147,5 +148,5 @@ async def test_small_terminal_onboarding_with_keyboard():
         key_field.value = "test-only-key"
         await pilot.press("enter")
         await pilot.pause()
-        assert app.settings.model == "my-selected-model"
+        assert app.settings.model == "my-selected-model:free"
         assert app.query_one("#prompt", Input).has_focus

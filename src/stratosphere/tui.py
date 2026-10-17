@@ -8,12 +8,20 @@ from textual import work
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Input, Static, TabbedContent, TabPane
+from textual.widgets import Button, Footer, Header, Input, Select, Static, TabbedContent, TabPane
 from textual.worker import Worker
 
 from stratosphere.chat import ChatSession
 from stratosphere.commands import PANELS, route_command
-from stratosphere.models.nim import DEFAULT_MODEL, ModelError, ModelSettings, NimChat, safe_text
+from stratosphere.models import create_provider
+from stratosphere.models.settings import (
+    DEFAULT_MODELS,
+    DEFAULT_PROVIDER,
+    KEY_ENVIRONMENTS,
+    PROVIDER_LABELS,
+    ModelSettings,
+)
+from stratosphere.models.streaming import ModelError, safe_text
 
 
 class ModelSetup(ModalScreen[ModelSettings | None]):
@@ -29,34 +37,64 @@ class ModelSetup(ModalScreen[ModelSettings | None]):
     def __init__(self, current: ModelSettings | None = None):
         super().__init__()
         self.current = current
+        initial = (
+            current.provider if current else os.getenv("STRATOSPHERE_PROVIDER", DEFAULT_PROVIDER)
+        )
+        self.selected_provider = initial if initial in PROVIDER_LABELS else DEFAULT_PROVIDER
+
+    def defaults(self, provider: str) -> tuple[str, str]:
+        if self.current and self.current.provider == provider:
+            return self.current.model, self.current.api_key.get_secret_value()
+        return DEFAULT_MODELS[provider], os.getenv(KEY_ENVIRONMENTS[provider], "")
+
+    def privacy_notice(self) -> str:
+        destination = (
+            "OpenRouter and its routed model provider"
+            if self.selected_provider == "openrouter"
+            else "NVIDIA"
+        )
+        return (
+            f"Chat is sent to {destination}. The app keeps your key and chat only for this "
+            "session. Login and trading setup are deferred. Future registered strategy "
+            "definitions will be shared automatically; chat is not catalog content."
+        )
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="setup"):
-            yield Static("Model setup · NVIDIA NIM", markup=False)
-            yield Static(
-                "Chat is sent to NVIDIA. Key and conversation stay in memory for this session. "
-                "Login and trading setup are deferred. Future registered strategy definitions "
-                "will be shared automatically; chat is not catalog content.",
-                markup=False,
+            yield Static("Model setup", markup=False)
+            yield Select(
+                [(label, name) for name, label in PROVIDER_LABELS.items()],
+                value=self.selected_provider,
+                allow_blank=False,
+                id="provider",
             )
+            yield Static(self.privacy_notice(), id="privacy-notice", markup=False)
             yield Static("Model ID (sent exactly as entered)")
             yield Input(
-                value=self.current.model
+                value=self.defaults(self.selected_provider)[0]
                 if self.current
-                else os.getenv("STRATOSPHERE_MODEL", DEFAULT_MODEL),
+                else os.getenv("STRATOSPHERE_MODEL", DEFAULT_MODELS[self.selected_provider]),
                 id="model-id",
             )
             yield Static("API key · never enter this in chat")
             yield Input(
-                value=self.current.api_key.get_secret_value()
-                if self.current
-                else os.getenv("NVIDIA_API_KEY", ""),
+                value=self.defaults(self.selected_provider)[1],
                 password=True,
                 id="api-key",
             )
             yield Static("", id="setup-error", markup=False)
             yield Button("Use model", id="use-model", variant="primary")
             yield Button("Cancel", id="cancel-setup")
+
+    def on_select_changed(self, event: Select.Changed) -> None:
+        if event.value not in PROVIDER_LABELS or event.value == self.selected_provider:
+            return
+        self.selected_provider = event.value
+        model, key = self.defaults(self.selected_provider)
+        self.query_one("#model-id", Input).value = model
+        self.query_one("#api-key", Input).value = key
+        self.query_one("#privacy-notice", Static).update(self.privacy_notice())
+        self.query_one("#setup-error", Static).update("")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "cancel-setup":
@@ -75,12 +113,15 @@ class ModelSetup(ModalScreen[ModelSettings | None]):
         model = self.query_one("#model-id", Input).value.strip()
         key = self.query_one("#api-key", Input).value.strip()
         try:
-            settings = ModelSettings(model=model, api_key=SecretStr(key))
-            if not key:
-                raise ValueError
+            settings = ModelSettings(
+                provider=self.selected_provider,
+                model=model,
+                api_key=SecretStr(key),
+            )
         except ValueError, ValidationError:
             self.query_one("#setup-error", Static).update(
-                "Enter a valid model ID and a nonempty API key."
+                "Enter a valid model ID and a nonempty API key. "
+                "OpenRouter models must end in :free."
             )
             return
         self.query_one("#api-key", Input).value = ""
@@ -104,7 +145,7 @@ class StratosphereApp(App[None]):
     .capability { padding: 1; }
     """
 
-    def __init__(self, *, provider_factory=NimChat):
+    def __init__(self, *, provider_factory=create_provider):
         super().__init__()
         self.provider_factory = provider_factory
         self.settings: ModelSettings | None = None
@@ -140,7 +181,7 @@ class StratosphereApp(App[None]):
             self.settings = settings
             self.session = ChatSession(self.provider_factory(settings))
             self.query_one("#status", Static).update(
-                f"NVIDIA NIM · {settings.model} · not yet verified online"
+                f"{PROVIDER_LABELS[settings.provider]} · {settings.model} · not yet verified online"
             )
         self.query_one("#prompt", Input).focus()
 
@@ -206,7 +247,8 @@ class StratosphereApp(App[None]):
                 bubble.update(f"Assistant: {reply}")
                 self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
             self.query_one("#status", Static).update(
-                f"NVIDIA NIM · {self.session.provider.settings.model} · last response completed"
+                f"{PROVIDER_LABELS[self.settings.provider]} · "
+                f"{self.settings.model} · last response completed"
             )
         except asyncio.CancelledError:
             bubble.update(f"Assistant (canceled; not kept in model history): {reply}")

@@ -117,7 +117,7 @@ async def test_errors_do_not_echo_provider_body_or_retry(status, expected):
         ([event("Partial"), "data: [DONE]\n\n"], "incomplete"),
         ([event(finish="stop"), "data: [DONE]\n\n"], "incomplete"),
         (["data: not-json\n\n"], "invalid"),
-        (['data: {"error":"unit-test-secret"}\n\n'], "invalid"),
+        (['data: {"error":"unit-test-secret"}\n\n'], "request failed"),
         ([event("Partial", finish="length")], "truncated"),
         ([event(tool_calls=[{"name": "trade"}])], "invalid"),
         ([httpx.ReadTimeout(KEY)], "timed out"),

@@ -2116,3 +2116,65 @@ The app handled the failure without adding an incomplete turn to history. The ca
 Your key stays in the ignored local `.env` file and was not logged or committed.
 
 ---
+
+### 171 — User
+
+lets use nemotron 3 ultra free on openrouter
+
+---
+
+### 172 — Assistant (progress update)
+
+I’ll add OpenRouter support, check the exact free Nemotron model ID, and test the integration. Your NVIDIA key will stay separate from the OpenRouter key.
+
+---
+
+### 173 — Assistant (progress update)
+
+The free model is `nvidia/nemotron-3-ultra-550b-a55b:free`, and OpenRouter currently lists zero token pricing for it. It still needs an OpenRouter API key. I’ll keep this exact free variant selected, with no fallback to a paid model.
+
+---
+
+### 174 — Assistant (question)
+
+Add your OpenRouter key after OPENROUTER_API_KEY= in the local .env file and save it. Keep the NVIDIA key unchanged, and don’t paste either key here. Reply Ready when saved so I can run a live test.
+
+Suggested answers: Ready — OpenRouter key saved; I’ll test it later.
+
+---
+
+### 175 — User
+
+Ready — OpenRouter key saved
+
+---
+
+### 176 — Assistant (progress update)
+
+OpenRouter is wired into the provider picker. Its requests use the exact `:free` model and a zero-price ceiling for input and output tokens.
+
+I also found an OpenRouter streaming detail we need to handle: its final usage frame repeats the completion marker. I’ve added support for that and tests to distinguish it from a malformed stream.
+
+---
+
+### 177 — Assistant (progress update)
+
+All **119 regression tests passed**. The endpoint is accepting streamed requests, but the first live TUI attempt didn’t complete. I’m checking the streamed result before calling the live connection verified.
+
+---
+
+### 178 — Assistant (progress update)
+
+The live stream reports **“Service temporarily overloaded”** from NVIDIA through OpenRouter. That explains why no answer arrived on these attempts.
+
+I’m updating the app to show a clear service-unavailable message instead of calling this a malformed stream. The free model selection and zero-price limit will stay in place.
+
+---
+
+### 179 — Assistant (progress update)
+
+The switch is implemented, and **all 121 local tests passed**, including native Intel engine regression tests. The free endpoint is still reporting overload; the TUI now handles that correctly.
+
+I’m publishing the change and checking CI. OpenRouter is the default, and NVIDIA NIM remains selectable.
+
+---

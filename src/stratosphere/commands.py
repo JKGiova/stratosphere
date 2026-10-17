@@ -10,7 +10,7 @@ PANELS = {
     ),
 }
 HELP = """/help — Show commands
-/model — Configure NVIDIA NIM model and API key for this session
+/model — Choose OpenRouter (free) or NVIDIA NIM and configure the model key
 /strategies — Open strategies panel
 /jobs — Open ongoing/completed tests panel
 /portfolio — Open positions panel

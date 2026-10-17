@@ -7,7 +7,7 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, START, StateGraph
 from langsmith import tracing_context
 
-from stratosphere.models.nim import NimChat
+from stratosphere.models.streaming import ChatCompletions
 
 SYSTEM_PROMPT = """You are the chief research assistant for stratosphere, part of tradingsphere.
 Respond in English. This development increment supports conversation only. You have no tools,
@@ -23,7 +23,7 @@ class ChatState(TypedDict):
 
 
 class ChatSession:
-    def __init__(self, provider: NimChat):
+    def __init__(self, provider: ChatCompletions):
         self.provider = provider
         self.history: list[dict[str, str]] = []
         self.busy = False

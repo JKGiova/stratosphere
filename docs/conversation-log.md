@@ -2307,3 +2307,27 @@ The redesigned TUI passed a live two-turn conversation, including memory, and bo
 I’m publishing the redesign and checking the Linux/macOS CI results.
 
 ---
+
+### 197 — Assistant (progress update)
+
+The redesign is pushed. GitHub couldn’t start any CI jobs: its annotations report failed account payments or a spending limit that needs increasing. The **127 local tests and live chat checks passed**.
+
+I’m recording that CI blocker and saving the final preview.
+
+---
+
+### 198 — Assistant
+
+Reworked and pushed: navy/cyan styling, four panes, **F1–F4 navigation**, redesigned onboarding/chat, and compact terminal layouts.
+
+**127 local tests passed**, plus two live OpenRouter replies. [GitHub CI](https://github.com/JKGiova/stratosphere/actions/runs/39023183524) couldn’t start because of account billing/spending limits.
+
+Restart from the project folder:
+
+```sh
+.venv/bin/python -m stratosphere
+```
+
+![Redesigned stratosphere workspace](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/ui/workspace-120x36.png)
+
+---

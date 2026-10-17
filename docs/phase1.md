@@ -125,6 +125,10 @@ Verification: **127 tests passed locally with zero skips** (124 core plus three 
 
 The redesigned UI also passed two real requests through onboarding → LangGraph → OpenRouter using the selected Cohere default. It remembered the previous turn, completed both history commits, and routed `/portfolio` without another model request. Responses completed in **1.259 and 2.277 seconds**, each reporting **0 USD**. These short checks verify chat continuity through the redesign, not strategy or research quality. Credentials were excluded from tracked files and saved diagnostic/screen artifacts. GitHub verification is recorded separately after publishing.
 
+### Redesign CI status
+
+Implementation commit `b387cea2c926a1475cc51f80f872326a276e779d` is published in the private repository. [Platform run 39023183524](https://github.com/JKGiova/stratosphere/actions/runs/39023183524) and [Intel engine run 39023183497](https://github.com/JKGiova/stratosphere/actions/runs/39023183497) both failed **before any job steps executed**. All five check annotations report an account payment or spending-limit restriction. GitHub also posted a macOS ARM64 capacity advisory; it did not run the job. No fresh cross-platform or Intel-source-build success is claimed for this commit. Account billing/spending settings must be resolved before rerunning these checks; no billing setting was changed. Local Intel regression, visual inspection, distribution and live-chat evidence above remain valid and separate from blocked CI.
+
 ## Remaining sequential increments
 
 1. Extend provider/structured-output support beyond the current verified chat checks. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.

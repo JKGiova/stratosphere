@@ -7,7 +7,7 @@ Status: **in progress**, October 17, 2026. Phase 0 remains complete. The user au
 Implemented:
 
 - Launch the English Textual client with `python -m stratosphere`.
-- Session onboarding with an explicit OpenRouter/NVIDIA provider picker, editable model ID and masked API key input. OpenRouter Nemotron 3 Ultra (free) is the current default. Enter advances from model to key and submits setup; Escape cancels. Reopen with `/model`. Canceling setup blocks chat until configured.
+- Session onboarding with an explicit OpenRouter/NVIDIA provider picker, editable model ID and masked API key input. OpenRouter Cohere North Mini Code (free) is the current default. Enter advances from model to key and submits setup; Escape cancels. Reopen with `/model`. Canceling setup blocks chat until configured.
 - HTTPX hosted streaming chat through a LangGraph workflow and fixed provider endpoints. No tool execution exists in this increment; model text cannot launch operations. Completed turns form alternating user/assistant history. Failed, truncated or canceled turns are excluded from subsequent model context and labeled incomplete on screen.
 - `/help`, `/model`, `/strategies`, `/jobs`, `/portfolio`, `/cancel`, `/clear`, `/quit`. These commands are deterministic and never call an LLM. Invalid arguments/commands cause no action. One model response runs at a time; cancellation is required before changing model or clearing history. Changing model starts a fresh model history.
 - Chat, strategies, ongoing/completed tests and positions tabs. The latter three explicitly report unavailable integrations rather than invented strategies, tests or zero positions.
@@ -18,9 +18,9 @@ Both adapters use fixed HTTPS endpoints. Each requests `stream=true`, a 4,096-to
 
 ### Model availability
 
-The previous development model, retained as an explicit NVIDIA alternative, is `deepseek-ai/deepseek-v4.1-flash`, passed exactly as configured. The current user-selected default is the OpenRouter free variant documented below. Its [NVIDIA model page](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash) and the public hosted `/v1/models` catalog confirmed that exact ID on October 17. The generic [NVIDIA model index](https://docs.api.nvidia.com/nim/reference/llm-apis) previously showed V4 Flash rather than V4.1; that discrepancy is resolved by the specific page and catalog. A catalog listing is not proof of inference availability or account permission, and the catalog also returns 200 without authentication.
+The previous development model, retained as an explicit NVIDIA alternative, is `deepseek-ai/deepseek-v4.1-flash`, passed exactly as configured. The current user-authorized development default is Cohere North Mini Code on OpenRouter, selected by the live comparison below. Its [NVIDIA model page](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash) and the public hosted `/v1/models` catalog confirmed that exact ID on October 17. The generic [NVIDIA model index](https://docs.api.nvidia.com/nim/reference/llm-apis) previously showed V4 Flash rather than V4.1; that discrepancy is resolved by the specific page and catalog. A catalog listing is not proof of inference availability or account permission, and the catalog also returns 200 without authentication.
 
-At initial increment implementation no key was available, so provider protocol tests used simulated responses. The subsequent authorized live attempt below failed. The client keeps explicit model selection; it does not substitute another model. The [V4 Flash inference reference](https://docs.api.nvidia.com/nim/reference/deepseek-ai-deepseek-v4-flash-infer) documents SSE and reasoning modes; successful V4.1 inference and the effect of the reasoning parameter remain unverified.
+At initial increment implementation no key was available, so provider protocol tests used simulated responses. The subsequent authorized NVIDIA live attempt below failed. The client keeps explicit model selection; it does not substitute another model. The [V4 Flash inference reference](https://docs.api.nvidia.com/nim/reference/deepseek-ai-deepseek-v4-flash-infer) documents SSE and reasoning modes; successful V4.1 inference and the effect of the reasoning parameter remain unverified.
 
 ## Try it
 
@@ -30,7 +30,7 @@ The existing project `.venv` can run the client without the optional engine. Fro
 .venv/bin/python -m stratosphere
 ```
 
-Choose OpenRouter in onboarding and enter its API key; the exact Nemotron free model ID is prefilled. `OPENROUTER_API_KEY` optionally prefills the OpenRouter key; `NVIDIA_API_KEY` is used only for the NVIDIA selection. `STRATOSPHERE_PROVIDER` and `STRATOSPHERE_MODEL` optionally select initial settings. Confirmation still precedes any request. Do not paste credentials into chat. Settings and history must be entered again after restarting. The app does not automatically load `.env`; the live test harness explicitly loads its selected key. Chat/key data goes to the chosen API endpoint; OpenRouter routes chat to an upstream model provider, as stated in onboarding. Changing provider resets model history and does not carry the other provider's key or previous private conversation into the new request.
+Choose OpenRouter in onboarding and enter its API key; the exact Cohere free model ID is prefilled. `OPENROUTER_API_KEY` optionally prefills the OpenRouter key; `NVIDIA_API_KEY` is used only for the NVIDIA selection. `STRATOSPHERE_PROVIDER` and `STRATOSPHERE_MODEL` optionally select initial settings. Confirmation still precedes any request. Do not paste credentials into chat. Settings and history must be entered again after restarting. The app does not automatically load `.env`; the live test harness explicitly loads its selected key. Chat/key data goes to the chosen API endpoint; OpenRouter routes chat to an upstream model provider, as stated in onboarding. Changing provider resets model history and does not carry the other provider's key or previous private conversation into the new request.
 
 For a fresh core environment, use the project-pinned uv 0.13.0 and Python 3.14.7:
 
@@ -72,7 +72,7 @@ October 17, 2026: the user authorized a live test and provided the key through a
 
 Outcome: **live conversational verification failed**. The UI handled the timeout without executing any operation or adding an incomplete turn to history. The underlying cause remains unconfirmed. No production adapter or timeout change was made solely to hide these failures. Automated protocol/TUI tests and the earlier native-engine/platform verification remain separate evidence, not substitutes for a successful live chat. Sanitized diagnostic reports are retained under ignored reports/phase1/.
 
-## OpenRouter Nemotron free selection
+## Previous OpenRouter Nemotron free selection
 
 October 17, 2026: the user replaced the development/testing model with **`nvidia/nemotron-3-ultra-550b-a55b:free` on OpenRouter**. Both the [specific model page](https://openrouter.ai/nvidia/nemotron-3-ultra-550b-a55b:free) and public `/api/v1/models` catalog list that exact variant, with prompt/completion pricing zero at verification time. A separate OpenRouter API key is required; the NVIDIA key is never selected automatically for that endpoint. Free capacity and rate limits remain provider-controlled.
 
@@ -86,11 +86,32 @@ The OpenRouter extension passed **121 tests locally with zero skips** (118 core 
 
 ### OpenRouter extension CI evidence
 
-[Platform run 39019591120](https://github.com/JKGiova/stratosphere/actions/runs/39019591120) passed for implementation commit `6ad421bab6298e8854cc625169076eebbbaa4272`. All four platform jobs passed **118 core tests**, lint, formatting and the online data proof; Linux x86_64/ARM64 and macOS ARM64 additionally passed three mandatory native-engine tests each. The local Intel run passed all 121 tests using the previously verified custom wheel. The [separate fresh Intel source rebuild](https://github.com/JKGiova/stratosphere/actions/runs/39019591125) remains in progress at this update; its result is not claimed. Successful live OpenRouter inference remains unverified because of the observed upstream overload.
+[Platform run 39019591120](https://github.com/JKGiova/stratosphere/actions/runs/39019591120) passed for implementation commit `6ad421bab6298e8854cc625169076eebbbaa4272`. All four platform jobs passed **118 core tests**, lint, formatting and the online data proof; Linux x86_64/ARM64 and macOS ARM64 additionally passed three mandatory native-engine tests each. The local Intel run passed all 121 tests using the previously verified custom wheel. The [separate fresh Intel source rebuild](https://github.com/JKGiova/stratosphere/actions/runs/39019591125) remains in progress at this update; its result is not claimed. At that snapshot, successful live OpenRouter inference remained unverified because of the observed upstream overload; the later Cohere checks below passed.
+
+## Working free text model selection
+
+October 17, 2026: the user authorized testing several free text-to-text models and choosing one that works. Candidates came from the current [OpenRouter model catalog](https://openrouter.ai/api/v1/models), requiring `:free`, zero prompt/completion prices, text-only input and text output. Each was tested through the actual adapter and LangGraph session with identical request controls, including the zero-price ceiling. Two probes ran concurrently at most; the availability probe had an explicit 35-second deadline, without changing product timeouts.
+
+| Model | Initial streamed text check | Follow-up checks |
+| --- | --- | --- |
+| `cohere/north-mini-code:free` | Passed, 1.028 s | Memory and exact JSON/arithmetic passed; two full TUI checks passed |
+| `liquid/lfm-2.5-2.6b:free` | Passed, 1.227 s | Not run |
+| `poolside/laguna-s-2.1:free` | Passed, 3.392 s | Not run |
+| `poolside/laguna-xs-2.1:free` | Passed, 0.519 s | Rate-limited on the memory follow-up |
+| `xingchen-agi/xing4.0-29b-a4b:free` | No completion within 35 s | Not run |
+| `nvidia/nemotron-3.5-lightning:free` | No completion within 35 s | Not run |
+
+The initial prompt required exactly `STRATOSPHERE_OK`. The two fastest successful candidates received a memory prompt followed by a request for only JSON containing the remembered label and the sum of 17 and 25. Cohere returned the exact expected object, `{"label":"CEDAR_734","total":42}`. Poolside XS's follow-up hit a rate limit, so the faster initial response alone was not sufficient for selection.
+
+**Selected default: `cohere/north-mini-code:free`.** Cohere completed seven live requests: the initial probe, two memory/JSON turns, two turns through the actual headless Textual onboarding → LangGraph → OpenRouter flow with an explicit candidate selection, and two more after changing the source default with no model override. The TUI checks confirmed remembered context, the reported model ID, streaming deltas, successful history commits, key masking and a `/portfolio` navigation command without an additional model call. Each request reported usage cost **0 USD**; completed reply times ranged from **0.715 to 3.228 seconds** across these short checks. Those are observations, not latency guarantees or a general capability ranking.
+
+The same 121 local regression tests passed with zero skips after the default change, including the three native Intel engine tests; lint and formatting passed. Zero-price restrictions, the explicit `:free` model requirement and no paid-model fallback remain in place. NVIDIA remains an explicitly selectable alternative. Keys were excluded from tracked files and diagnostic JSON. Sanitized test reports are retained in ignored reports/phase1/free-text-model-tests.json, cohere-candidate-tui.json and openrouter-live-smoke.json.
+
+This verifies current chat availability, basic memory and plain JSON instruction following. It does not verify tool use, enforced JSON-schema generation, strategy correctness or research quality. Rate limits and provider availability still apply. This selection supersedes the Nemotron default while retaining its earlier failure evidence.
 
 ## Remaining sequential increments
 
-1. Verify a successful live exchange on the selected free development model when provider capacity permits. Provider selection now supports OpenRouter and NVIDIA; further provider/structured-output support remains incremental. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.
+1. Extend provider/structured-output support beyond the current verified chat checks. Build the shared validated operation layer before giving the chief agent execution tools. Keep consequential actions subject to their required approval and capability gates.
 2. Implement the controlled registry harness: immutable canonical definitions, exact deduplication, persistent random-ID uniqueness/collision retry, source accumulation, distinct variants and shared/private projections with ownership/transaction tests. Do not expose an unauthenticated public service.
 3. Implement all five required source adapters: YouTube, Instagram, X, TradingView and GitHub. Preserve provenance and return explicit inaccessible/unsupported outcomes. Verify accessible examples and provider failure paths for each; none is implemented by this terminal increment.
 4. Wire registry/source operations into the same deterministic layer for chat and slash commands, with private/public notices and acceptance tests on Linux/macOS. Add intervention/job behavior as its worker implementation exists.

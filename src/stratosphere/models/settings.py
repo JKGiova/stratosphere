@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 
 DEFAULT_PROVIDER = "openrouter"
 DEFAULT_MODELS = {
-    "openrouter": "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "openrouter": "cohere/north-mini-code:free",
     "nvidia": "deepseek-ai/deepseek-v4.1-flash",
 }
 PROVIDER_LABELS = {"openrouter": "OpenRouter", "nvidia": "NVIDIA NIM"}

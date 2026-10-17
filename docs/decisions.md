@@ -34,7 +34,7 @@ Last updated: October 14, 2026. Product decisions and Phase 0 implementation sel
 | D26 | Agent chat and forced slash commands plus inspectable panels | Panels expose strategies, ongoing/completed tests and actual trading positions |
 | D27 | First-run onboarding covers model setup, application login and trading connections | Existing optional-connector requirement remains; onboarding introduces connecting or skipping trading accounts |
 | D28 | Browser-based hosted login | Google/GitHub selected in D38; hosting domain and secure terminal callback remain open |
-| D29 | User-selectable models from multiple providers; initial testing choice was NVIDIA NIM DeepSeek V4.1 Flash | The current development selection is replaced by D43; provider availability and tool conformance require separate verification |
+| D29 | User-selectable models from multiple providers; initial testing choice was NVIDIA NIM DeepSeek V4.1 Flash | The current development selection is recorded in D44; provider availability and tool conformance require separate verification |
 | D30 | YouTube, Instagram, X, TradingView and GitHub integrations all belong in Phase 1 | Include accessible material acquisition and explicit unavailable-source handling; source-specific credentials and acceptance examples remain open |
 | D31 | No application-imposed upload size/type/count limits requested | Do not silently add product quotas; actual provider, infrastructure and format capabilities must be verified and reported |
 | D32 | Develop runnable strategies for NautilusTrader; convert externally authored strategies | Conversion must preserve behavior or surface unresolved differences; engine selection does not replace application-owned strategy generation |
@@ -48,7 +48,8 @@ Last updated: October 14, 2026. Product decisions and Phase 0 implementation sel
 | D40 | Live approval behavior depends on configuration or explicit permission | Per-order review and mandate-based modes are intended; provider-required confirmations remain binding |
 | D41 | Defer login and fee-collection planning/implementation to later roadmap work | Preserve confirmed auth/pricing direction; focus now on core TUI, sources, strategies, research and backtesting |
 | D42 | Do not reopen the TUI-exit choice | Offer exactly the confirmed keep-positions or close-all-positions decision; lifecycle internals are implementation work |
-| D43 | Use Nemotron 3 Ultra free on OpenRouter for development/testing | Exact ID nvidia/nemotron-3-ultra-550b-a55b:free; require a separate OpenRouter key, retain explicit provider choice and do not silently fall back to paid models |
+| D43 | Initial OpenRouter testing choice: Nemotron 3 Ultra free | Its route reported upstream overload; subsequently replaced through the user-authorized comparison in D44. Retain explicit provider choice and no paid fallback |
+| D44 | Test several free text models and choose one that completes live conversations | Selected cohere/north-mini-code:free after seven successful zero-cost live requests, including two TUI conversation checks. The requirement is a working free model; this is a bounded development selection, not research or tool-conformance validation |
 
 
 

@@ -2200,3 +2200,45 @@ Restart the TUI:
 ```
 
 ---
+
+### 182 — User
+
+test some free text to text free models on openrouter and chose one that works
+
+---
+
+### 183 — Assistant (progress update)
+
+I’ll test several free text models with your OpenRouter key, then set the default to one that completes a live conversation. I’ll keep the zero-price limits in place.
+
+---
+
+### 184 — Assistant (progress update)
+
+Cohere North Mini Code, Liquid LFM 2.5 and Poolside Laguna S have already returned valid streamed replies at zero reported cost. I’m checking conversation memory and JSON responses before choosing a default.
+
+---
+
+### 185 — Assistant (progress update)
+
+Four of the six models passed the initial text check. Cohere North Mini Code also passed the memory and exact JSON/arithmetic tests, with zero reported cost on all three requests. The faster Poolside XS hit a rate limit on its follow-up.
+
+I’m verifying Cohere through the full TUI before making it the default.
+
+---
+
+### 186 — Assistant (progress update)
+
+Cohere passed the full TUI test: both live replies completed, it remembered the earlier message, and the slash command ran without another model call. All five Cohere requests so far reported zero cost.
+
+I’m setting `cohere/north-mini-code:free` as the default and checking it once more without a model override.
+
+---
+
+### 187 — Assistant (progress update)
+
+The new default passed again without an override. Cohere has now completed **seven live requests**, all at zero reported cost, including both TUI conversation checks.
+
+All **121 regression tests passed** too. I’m saving the comparison results and publishing the selection.
+
+---

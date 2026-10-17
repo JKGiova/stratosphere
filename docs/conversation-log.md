@@ -1936,3 +1936,53 @@ reports/intel/test-env/bin/python -m stratosphere.phase0.engine_proof --output-d
 The first fetches real ECB reference data. The second runs the example strategy in NautilusTrader using the retained dataset and prints the path to its JSON report. It simulates orders; it does not place real trades.
 
 ---
+
+### 147 — User
+
+okok, lets go with phase 1
+
+---
+
+### 148 — Assistant (progress update)
+
+I’ll read the Phase 1 plan and current code, then start with its first implementation step and tests.
+
+---
+
+### 149 — Assistant (progress update)
+
+Keeping the step-by-step approach, I’ll start Phase 1 with model setup, streaming chat, slash commands and the strategy/test/position panels. The panels will show what is actually available as the registry and other integrations are added.
+
+I’m using the Firecrawl skill to check the provider API documentation. Login and fee collection remain deferred.
+
+---
+
+### 150 — Assistant (progress update)
+
+The chat and command routing are in place. Responses stream while they arrive, cancellation stops the request, and failed or canceled turns stay out of model history. API keys stay in memory.
+
+NVIDIA’s current documentation lists `deepseek-ai/deepseek-v4-flash`, while our plan names `deepseek-ai/deepseek-v4.1-flash`. I’ve kept the configured model ID explicit and editable, with no automatic substitution.
+
+---
+
+### 151 — Assistant (progress update)
+
+The new tests cover streaming, provider errors, incomplete responses, cancellation, secret redaction and command routing. I’m now checking the terminal interactions and running the regression suite in a separate environment.
+
+There’s no NVIDIA key available to this session, so the live model connection will remain unverified; automated provider tests use simulated responses.
+
+---
+
+### 152 — Assistant (progress update)
+
+The full regression run passed, including the native Intel engine tests. I’m finishing the small-terminal onboarding check and updating the roadmap to mark Phase 1 as in progress. This increment supports chat and navigation; the registry, five source integrations and research actions are still ahead.
+
+---
+
+### 153 — Assistant (progress update)
+
+The first increment is ready: **108 tests passed with zero skips**, and lint and formatting checks passed. You can launch it with `.venv/bin/python -m stratosphere`.
+
+I’m publishing it now and checking CI. The live NVIDIA exchange still needs a key entered in onboarding.
+
+---

@@ -1,6 +1,6 @@
 # Roadmap and open implementation decisions
 
-Last updated: October 14, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. Phases 1–7 remain **not implemented**. An internal proof is not a release.
+Last updated: October 17, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. [Phase 1](phase1.md) is **in progress**, beginning with terminal/model chat; Phases 2–7 remain **not implemented**. An internal proof is not a release.
 
 ## Selected foundation
 
@@ -72,13 +72,13 @@ Login implementation/configuration and fee-collection selection are deferred to 
 
 ## Next step
 
-The [Phase 0 audit](phase0.md) is complete. Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. Start Phase 1 only after a new instruction; the current implementation request is limited to Phase 0.
+The [Phase 0 audit](phase0.md) is complete. Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. The user has now authorized Phase 1. Its [sequential increment record](phase1.md) distinguishes implemented client behavior from pending registry, source and agent-operation work.
 
 Quiver remains a possible optional alternative-data integration. VectorBT remains a possible optional research accelerator. Neither is required for the first usable increment.
 
 ## Roadmap refinement
 
-The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; application phases remain unimplemented. AGENTS.md rules remain in force.
+The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; Phase 1 has started; later application phases remain unimplemented. AGENTS.md rules remain in force.
 
 ## Release policy and confirmed experience
 

@@ -1,6 +1,6 @@
 # Phase 0 — sequential verification
 
-Status: **complete within the Phase 0 scope**, October 14, 2026. All five sequential gates passed. Phase 1 and product/release work have not started.
+Status: **complete within the Phase 0 scope**, October 14, 2026. All five sequential gates passed. [Phase 1](phase1.md) has subsequently started; the original Phase 0 gates below retain their historical scope.
 
 **Verified Intel extension:** native engine support for macOS 26 Intel / Python 3.14.7 is now implemented through a custom source-built wheel and a dedicated CI workflow. Independent CI passed all 77 tests with zero skips; its deterministic engine output matches local Intel and Linux. See [native Intel evidence and installation](intel-macos.md). The original five-gate audit and its platform/test counts below describe the earlier baseline before this extension; they are retained as historical evidence. Customer installation/packaging remains future work.
 

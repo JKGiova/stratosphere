@@ -2,9 +2,13 @@
 
 ## Product contract
 
-**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. TUI library and exact layout remain open.
+**Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected; the exact final layout remains open.
 
 The user can supply strategy ideas and external sources, inspect recommendations, review formal rules, select experiments, intervene in ongoing workflows, and inspect portfolio state without leaving the terminal.
+
+## Current implementation
+
+[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. Agent tools, registry/source operations, research jobs and trading connections remain unimplemented. The command vocabulary below describes the wider planned interface; only the commands listed in phase1.md are available.
 
 ## Login and optional account setup
 

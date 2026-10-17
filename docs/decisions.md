@@ -101,3 +101,7 @@ These engineering decisions were made within the authorized Phase 0 work; they d
 | I06 | Hosted HTTPS/JSON application API; explicit shared/private DTOs | Pure projection/ownership contract proof; no deployed API, authentication, Supabase schema or RLS verification |
 
 See [Phase 0](phase0.md), [canonical contracts](phase0-contracts.md) and [access boundary](phase0-access-boundary.md) for exact evidence and deferred responsibilities.
+
+## Phase 1 implementation progress
+
+October 17, 2026: the user authorized Phase 1. The first sequential increment implements the terminal and conversational model workflow described in [phase1.md](phase1.md). It does not complete the registry, source adapters, model execution tools or live provider verification. NVIDIA's current documentation lists V4 Flash while the selected testing model remains V4.1 Flash; the client preserves explicit model selection without substitution. Login and fee collection remain deferred.

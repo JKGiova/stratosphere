@@ -8,7 +8,7 @@ Planned sources include YouTube videos, Instagram Reels, articles, X posts and t
 
 ## Project status
 
-**Phase 0 complete.** The repository contains the plan plus verified compatibility/contract proofs: pinned runtime dependencies, a Textual framework probe, canonical examples, a read-only ECB historical integration and a bounded native NautilusTrader simulation. See [Phase 0 gates and evidence](docs/phase0.md). There is no product TUI/chat, shared registry service, login, source extraction, paper/live execution or billing. Those remain development objectives. The initial proof does not verify tradable market data or broker capabilities.
+**Phase 0 complete.** The repository contains the plan plus verified compatibility/contract proofs: pinned runtime dependencies, a Textual framework probe, canonical examples, a read-only ECB historical integration and a bounded native NautilusTrader simulation. See [Phase 0 gates and evidence](docs/phase0.md). **Phase 1 is in progress:** the first terminal increment adds model onboarding, streaming NVIDIA NIM chat through LangGraph, deterministic slash commands and capability panels. See [Phase 1 progress and run instructions](docs/phase1.md). Live authenticated inference is not yet verified. Shared registry service, source acquisition, research actions, login, paper/live execution and billing remain unimplemented. The initial proof does not verify tradable market data or broker capabilities.
 
 ## Confirmed direction
 

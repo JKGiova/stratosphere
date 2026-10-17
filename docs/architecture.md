@@ -4,7 +4,7 @@
 
 **Confirmed:** Python for the backend, LangGraph for agent orchestration, Supabase-managed PostgreSQL for the registry and related records, Supabase Auth with OAuth login, and NautilusTrader for backtesting and execution. Alpaca and Liquid are optional operational connectors, not login requirements. [Phase 0](phase0.md) pins Python 3.14.7/NautilusTrader 1.231.0 and verifies a bounded native simulation on Linux x86_64/ARM64 and macOS 26 ARM64. Intel macOS has no pinned engine wheel. This proof does not implement a research application or live adapter.
 
-**Selected in Phase 0:** Pydantic contracts, Textual TUI framework and a hosted HTTPS/JSON application API boundary for the shared catalog. Only contract/framework proofs exist. **Still proposed:** Parquet, DuckDB, isolated research-worker implementation and the hosted API framework/hosting. FastAPI remains optional, not a requirement for a web interface.
+**Selected in Phase 0:** Pydantic contracts, Textual TUI framework and a hosted HTTPS/JSON application API boundary for the shared catalog. Contract/framework proofs and the [first Phase 1 terminal/model-chat increment](phase1.md) exist. **Still proposed:** Parquet, DuckDB, isolated research-worker implementation and the hosted API framework/hosting. FastAPI remains optional, not a requirement for a web interface.
 
 ## Proposed structure
 

@@ -2016,3 +2016,103 @@ Enter your model ID and API key in onboarding.
 Provider expansion, the registry and all five source integrations remain ahead; **Phase 1 is not complete yet**.
 
 ---
+
+### 156 — User
+
+try it yourself: i saved the key
+
+---
+
+### 157 — Assistant (progress update)
+
+I’ll check whether the saved key is available to the app, then try a short live exchange. I’ll keep the key out of logs and reports.
+
+---
+
+### 158 — Assistant (question)
+
+Where did you save the NVIDIA key? I can’t see it in this process’s environment or the project’s env files. Please give the file path or setup method—don’t paste the key here.
+
+Suggested answers: Entered it in the TUI onboarding; Exported it in another terminal; Saved it in a file.
+
+---
+
+### 159 — User
+
+Entered it in the TUI onboarding
+
+---
+
+### 160 — Assistant (progress update)
+
+Onboarding keeps the key only in that running TUI; my test process can’t access it. I’ll open a local `.env` file where you can enter it. The file is ignored by Git and won’t be committed.
+
+---
+
+### 161 — Assistant (question)
+
+Add your key after NVIDIA_API_KEY= in the local .env file, save it, then reply Ready. Don’t paste the key into this chat.
+
+Suggested answer: Ready — saved in .env
+
+---
+
+### 162 — User
+
+Ready — saved in .env
+
+---
+
+### 163 — Assistant (progress update)
+
+I’m running two short live messages through the TUI now, checking streaming, conversation memory and a slash command.
+
+---
+
+### 164 — Assistant (progress update)
+
+The first live request timed out after about 60 seconds without returning any text. It used the configured `deepseek-ai/deepseek-v4.1-flash` model, and no turn was added to history. I’m checking whether this is an access, model or request issue.
+
+---
+
+### 165 — Assistant (progress update)
+
+The key is accepted, and NVIDIA’s authenticated model catalog lists `deepseek-ai/deepseek-v4.1-flash`. I’ve confirmed the model ID is valid. I’m now trying a minimal streaming request to narrow down the timeout.
+
+---
+
+### 166 — Assistant (progress update)
+
+The model catalog responds quickly, but the minimal inference request is still waiting for a response. I’m letting this longer, bounded request finish before deciding whether the app’s timeout needs changing.
+
+---
+
+### 167 — Assistant (progress update)
+
+The minimal request also timed out after 120 seconds, before returning response headers. I’m making one tiny control request to another model listed by the same NVIDIA account to check whether inference generally works. The app’s selected model remains unchanged.
+
+---
+
+### 168 — Assistant (progress update)
+
+I need to correct one point: the model catalog is public, so its success didn’t validate your key. The model ID is confirmed, but access is still unproven. I’m checking authentication separately and trying the text format shown in NVIDIA’s current example.
+
+---
+
+### 169 — Assistant (progress update)
+
+The live chat test failed: no text arrived before the timeout, and even the minimal request timed out at 120 seconds. The app handled the failure without adding an incomplete turn to history.
+
+A deliberately invalid key returned 401 immediately; the saved-key requests stalled instead. That helps narrow the diagnosis, but it doesn’t prove a successful connection. I’m recording the result as failed and leaving the model and timeout settings unchanged.
+
+---
+
+### 170 — Assistant
+
+I tested it with your saved key. **The live chat test failed:** no text returned before the 60-second timeout. A minimal request also timed out after 120 seconds.
+
+The app handled the failure without adding an incomplete turn to history. The cause remains unconfirmed; live NVIDIA inference is still unverified.
+
+Your key stays in the ignored local `.env` file and was not logged or committed.
+
+---

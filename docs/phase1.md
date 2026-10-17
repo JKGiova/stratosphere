@@ -18,7 +18,9 @@ The first provider adapter is NVIDIA NIM, with its fixed HTTPS endpoint. It requ
 
 ### Model availability
 
-The requested development model remains `deepseek-ai/deepseek-v4.1-flash`, passed exactly as configured. The [NVIDIA model index](https://docs.api.nvidia.com/nim/reference/llm-apis), checked October 17, lists `deepseek-ai/deepseek-v4-flash`; its [inference reference](https://docs.api.nvidia.com/nim/reference/deepseek-ai-deepseek-v4-flash-infer) documents streaming SSE and `none/high/max` reasoning modes. This discrepancy does not authorize silently substituting the user's selected model. Use the explicit model field or `STRATOSPHERE_MODEL` to select a model available to the user's account. No live authenticated request was made in this increment because no NVIDIA_API_KEY was available to the development process. Protocol tests do not establish actual model availability.
+The development model remains `deepseek-ai/deepseek-v4.1-flash`, passed exactly as configured. Its [NVIDIA model page](https://build.nvidia.com/deepseek-ai/deepseek-v4.1-flash) and the public hosted `/v1/models` catalog confirmed that exact ID on October 17. The generic [NVIDIA model index](https://docs.api.nvidia.com/nim/reference/llm-apis) previously showed V4 Flash rather than V4.1; that discrepancy is resolved by the specific page and catalog. A catalog listing is not proof of inference availability or account permission, and the catalog also returns 200 without authentication.
+
+At initial increment implementation no key was available, so provider protocol tests used simulated responses. The subsequent authorized live attempt below failed. The client keeps explicit model selection; it does not substitute another model. The [V4 Flash inference reference](https://docs.api.nvidia.com/nim/reference/deepseek-ai-deepseek-v4-flash-infer) documents SSE and reasoning modes; successful V4.1 inference and the effect of the reasoning parameter remain unverified.
 
 ## Try it
 
@@ -58,6 +60,17 @@ Local regression evidence and a terminal screenshot are saved under ignored `rep
 [Platform run 39017709666](https://github.com/JKGiova/stratosphere/actions/runs/39017709666) passed for implementation commit `a2cecf6088c63ae8b8bf4ee66fc0ffcffb120bd4`. All four runners (Linux x86_64/ARM64, macOS 26 ARM64/Intel) passed 105 core tests, lint, formatting and the online data proof. The three published-wheel runners additionally passed three mandatory native-engine tests each. Engine tests are deliberately excluded from the ordinary Intel matrix job, not counted as successful there.
 
 The [dedicated fresh Intel source rebuild](https://github.com/JKGiova/stratosphere/actions/runs/39017709685) is still in progress at this update; no result is claimed for it. All 108 local tests passed using the downloaded, previously verified Intel CI wheel. Live authenticated NVIDIA inference remains unverified.
+
+## Live attempt with the user's saved key
+
+October 17, 2026: the user authorized a live test and provided the key through a local, Git-ignored `.env` file with owner-only permissions. The test harness explicitly loads that file into its own process; this does not add automatic dotenv loading or persistent credential storage to the product. The key was not printed or committed.
+
+- The actual headless Textual onboarding → LangGraph → NVIDIA adapter request used the selected V4.1 Flash model with streaming and the existing reasoning setting. It timed out after **60.394 seconds**, with zero visible text deltas and no turn committed to model history. The planned second-turn memory check and subsequent slash-command live check were not reached.
+- A direct minimal streaming request to the same model, with 128 output tokens and the reasoning parameter omitted, timed out after **120.154 seconds** before response headers. Extending the read deadline alone did not produce a successful inference.
+- A structured text-content request matching the shape in NVIDIA's model example also timed out at **25.127 seconds**. A deliberately invalid credential control returned **401 in 0.222 seconds**. The saved-key requests did not receive an access-denied response, but they also did not complete; neither credential permission nor end-to-end inference is claimed as verified.
+- A diagnostic request to the other DeepSeek model listed by the same public catalog returned 404. It did not change the application model or serve as a fallback.
+
+Outcome: **live conversational verification failed**. The UI handled the timeout without executing any operation or adding an incomplete turn to history. The underlying cause remains unconfirmed. No production adapter or timeout change was made solely to hide these failures. Automated protocol/TUI tests and the earlier native-engine/platform verification remain separate evidence, not substitutes for a successful live chat. Sanitized diagnostic reports are retained under ignored reports/phase1/.
 
 ## Remaining sequential increments
 

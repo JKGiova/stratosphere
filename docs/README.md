@@ -41,3 +41,5 @@ See [research and release proposals](research-and-release-proposals.md) for the 
 See [Phase 1 implementation progress](phase1.md) for current client capabilities, commands, test evidence and remaining increments.
 
 See [Phase 2 research progress](phase2.md) for implemented source/specification review, approval, native worker, reports, test evidence and remaining work.
+
+See [model providers](model-providers.md) for all 12 adapters, credential environment variables, official/local API addresses and verification limits.

@@ -32,6 +32,7 @@ from stratosphere.chat import ChatSession
 from stratosphere.commands import PANELS, route_command
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
+    BASE_URLS,
     DEFAULT_MODELS,
     DEFAULT_PROVIDER,
     KEY_ENVIRONMENTS,
@@ -106,15 +107,31 @@ class ModelSetup(Vertical):
             return self.current.model, self.current.api_key.get_secret_value()
         return DEFAULT_MODELS[provider], os.getenv(KEY_ENVIRONMENTS[provider], "")
 
+    def default_base_url(self) -> str:
+        if self.current and self.current.provider == self.selected_provider:
+            return self.current.resolved_base_url
+        return os.getenv(
+            f"{self.selected_provider.upper()}_BASE_URL", BASE_URLS[self.selected_provider]
+        )
+
     def privacy_notice(self) -> str:
         destination = (
             "OpenRouter and its routed model provider"
             if self.selected_provider == "openrouter"
-            else "NVIDIA"
+            else PROVIDER_LABELS[self.selected_provider]
         )
+        cost = (
+            "OpenRouter is restricted to free models. "
+            if self.selected_provider == "openrouter"
+            else "Your provider's API pricing applies. "
+        )
+        if self.selected_provider == "ollama":
+            cost = "Local Ollama needs a running server and an installed model; no key required. "
         return (
-            f"Chat is sent to {destination}. The app keeps your key and chat only for this "
-            "session. Research sources/results are saved privately on this computer. "
+            f"Chat is sent to {destination} at the API address below. "
+            + cost
+            + "The app keeps your key and chat only for this session. "
+            "Research sources/results are saved privately on this computer. "
             "Future registered strategies will be shared automatically; chat is "
             "separate. Login and trading setup come later."
         )
@@ -141,7 +158,11 @@ class ModelSetup(Vertical):
             id="model-id",
             compact=True,
         )
-        yield Static("API KEY · masked, session only", classes="field-label")
+        yield Static("API BASE URL · official address; local Ollama allowed", classes="field-label")
+        yield Input(value=self.default_base_url(), id="base-url", compact=True)
+        yield Static(
+            "API KEY · masked, session only; optional for local Ollama", classes="field-label"
+        )
         yield Input(
             value=self.defaults(self.selected_provider)[1],
             password=True,
@@ -164,6 +185,7 @@ class ModelSetup(Vertical):
         model, key = self.defaults(self.selected_provider)
         self.query_one("#model-id", Input).value = model
         self.query_one("#api-key", Input).value = key
+        self.query_one("#base-url", Input).value = self.default_base_url()
         self.query_one("#privacy-notice", Static).update(self.privacy_notice())
         self.query_one("#setup-error", Static).update("")
 
@@ -178,6 +200,8 @@ class ModelSetup(Vertical):
         event.stop()
         if event.input.id == "model-id":
             self.query_one("#api-key", Input).focus()
+        elif event.input.id == "base-url":
+            self.query_one("#api-key", Input).focus()
         elif event.input.id == "api-key":
             self.apply_settings()
 
@@ -189,11 +213,12 @@ class ModelSetup(Vertical):
                 provider=self.selected_provider,
                 model=model,
                 api_key=SecretStr(key),
+                base_url=self.query_one("#base-url", Input).value.strip(),
             )
         except ValueError, ValidationError:
             self.query_one("#setup-error", Static).update(
-                "Enter a valid model ID and a nonempty API key. "
-                "OpenRouter models must end in :free."
+                "Enter a valid model ID, official API base URL and a nonempty API key "
+                "(optional for local Ollama). OpenRouter models must end in :free."
             )
             return
         self.query_one("#api-key", Input).value = ""
@@ -567,7 +592,7 @@ class StratosphereApp(App[None]):
         text = event.value.strip()
         if not text:
             return
-        if self.settings and self.settings.api_key.get_secret_value() in text:
+        if self.settings and (key := self.settings.api_key.get_secret_value()) and key in text:
             event.input.value = ""
             await self.add_message("API key detected. Enter credentials only in /model.")
             return
@@ -744,7 +769,11 @@ class StratosphereApp(App[None]):
 
     async def on_research_form_finished(self, event: ResearchForm.Finished) -> None:
         event.stop()
-        if event.source is not None and self.settings.api_key.get_secret_value() in event.source:
+        if (
+            event.source is not None
+            and (key := self.settings.api_key.get_secret_value())
+            and key in event.source
+        ):
             self.research_form.query_one("#research-error", Static).update(
                 "API key detected. Remove credentials from the source; they were not saved or sent."
             )

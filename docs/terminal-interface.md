@@ -32,7 +32,7 @@ Side-by-side takes priority when both two-panel arrangements fit. Selecting a hi
 
 ### Model setup inside agent chat
 
-First-run model setup appears as an inline form in the agent conversation. There is no separate welcome screen or modal. `/model` reopens the same form in chat with update wording. The provider picker, model ID, masked key, privacy/publication notice, validation and cancellation remain available. Keys never enter the conversation history. The composer is hidden and disabled while the form is open, and normal Tab/Shift+Tab traverse its fields when it has focus. Enter advances from model to key and submits from the key field; Escape cancels. Users may still select other panels. Focused setup fields scroll into view, including after resizing a small terminal. Settings remain session-only.
+First-run model setup appears as an inline form in the agent conversation. There is no separate welcome screen or modal. `/model` reopens the same form in chat with update wording. The [12-provider picker](model-providers.md), model ID, API base URL, masked key, privacy/publication notice, validation and cancellation remain available. Tab traverses the API address field; Enter on the model retains the shortcut to the key. A local Ollama key is optional. Keys never enter the conversation history. The composer is hidden and disabled while the form is open, and normal Tab/Shift+Tab traverse its fields when it has focus. Enter advances from model to key and submits from the key field; Escape cancels. Users may still select other panels. Focused setup fields scroll into view, including after resizing a small terminal. Settings remain session-only.
 
 ### Model reply formatting
 
@@ -123,7 +123,7 @@ Chats, source access credentials, account details, and personal mandates are not
 
 Use an English-only online TUI inspired by the conversational terminal experience of Claude Code and Codex. Linux and macOS are the first supported clients; all operating systems remain the longer-term goal. Alongside chat and forced slash-command operations, expose panels for opening strategies, ongoing/completed tests and actual trading positions. These surfaces are required rather than tentative.
 
-First-run onboarding configures the user's selected model/provider, hosted browser login and trading connections. Trading connections remain optional; offer an explicit skip choice for research without a broker. No offline functionality is planned. Hosted login deployment, OAuth provider and terminal callback details still need decisions.
+First-run onboarding configures the user's selected model/provider, hosted browser login and trading connections. Trading connections remain optional; offer an explicit skip choice for research without a broker. The explicit local Ollama selection permits local model inference; research operations retain online data checks. No general offline research functionality is planned. Hosted login deployment, OAuth provider and terminal callback details still need decisions.
 
 ## Confirmed execution and onboarding refinements
 

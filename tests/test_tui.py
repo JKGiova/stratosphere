@@ -370,15 +370,17 @@ async def test_setup_tab_navigation_stays_in_inline_form_and_can_be_canceled():
         key = app.query_one("#api-key", Input)
         model.focus()
         await pilot.press("tab")
-        assert key.has_focus and app.screen is screen
-        await pilot.press("shift+tab")
+        assert app.query_one("#base-url", Input).has_focus and app.screen is screen
+        await pilot.press("tab")
+        assert key.has_focus
+        await pilot.press("shift+tab", "shift+tab")
         assert model.has_focus and app.active_view == "chat"
         assert app.query_one("#prompt", Input).disabled
         await configure(app, pilot)
         await send(app, pilot, "/model")
         app.query_one("#model-id", Input).focus()
         await pilot.press("tab")
-        assert app.query_one("#api-key", Input).has_focus
+        assert app.query_one("#base-url", Input).has_focus
         await pilot.press("escape")
         await pilot.pause()
         assert app.setup is None and app.session is not None

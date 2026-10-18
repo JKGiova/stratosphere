@@ -16,7 +16,7 @@ HELP = """/help — Show commands
 /resume <job-id> — Resume the same approved plan online
 /show <job-id> — Inspect a local research job
 /report <job-id> — Display a completed research report
-/model — Choose OpenRouter (free) or NVIDIA NIM and configure the model key
+/model — Choose a model provider, API address and session key
 /strategies — Open strategies panel
 /jobs — Open ongoing/completed tests panel
 /portfolio — Open positions panel

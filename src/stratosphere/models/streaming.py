@@ -41,7 +41,8 @@ class SecretFilter:
 
     def feed(self, text: str, *, final: bool = False) -> str:
         self.pending += text
-        self.pending = self.pending.replace(self.secret, "[redacted]")
+        if self.secret:
+            self.pending = self.pending.replace(self.secret, "[redacted]")
         keep = 0
         if not final:
             for size in range(1, min(len(self.pending), len(self.secret) - 1) + 1):
@@ -61,8 +62,7 @@ class ChatCompletions:
     ):
         if settings.provider != self.provider:
             raise ValueError("Provider and credential configuration do not match.")
-        if not settings.api_key.get_secret_value().strip():
-            raise ValueError("A model API key is required.")
+        self.endpoint = settings.endpoint
         self.settings = settings
         self.transport = transport
 
@@ -75,12 +75,23 @@ class ChatCompletions:
         }
         return body
 
+    def request_headers(self) -> dict[str, str]:
+        headers = {"Accept": "text/event-stream"}
+        key = self.settings.api_key.get_secret_value()
+        if key:
+            headers["Authorization"] = f"Bearer {key}"
+        return headers
+
+    async def events(self, response: httpx.Response):
+        async for data in sse_data(response):
+            if data == "[DONE]":
+                yield "", None, False, True
+            else:
+                yield (*self._parse(data), False)
+
     async def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
         body = self.request_body(messages)
-        headers = {
-            "Authorization": f"Bearer {self.settings.api_key.get_secret_value()}",
-            "Accept": "text/event-stream",
-        }
+        headers = self.request_headers()
         redactor = SecretFilter(self.settings.api_key.get_secret_value())
         try:
             async with asyncio.timeout(180):
@@ -97,40 +108,29 @@ class ChatCompletions:
                             raise provider_failure(response.status_code)
                         if "text/event-stream" not in response.headers.get("content-type", ""):
                             raise ModelError("Provider did not return a streaming response.")
-                        data: list[str] = []
                         stopped = False
                         received_content = False
-                        async for line in response.aiter_lines():
-                            if line.startswith("data:"):
-                                data.append(line[5:].lstrip(" "))
-                            elif line == "" and data:
-                                event = "\n".join(data)
-                                data.clear()
-                                if event == "[DONE]":
-                                    if not stopped or not received_content:
-                                        raise ModelError(
-                                            "Model response was incomplete. Please retry."
-                                        )
-                                    tail = redactor.feed("", final=True)
-                                    if tail:
-                                        yield tail
-                                    return
-                                content, finish, usage = self._parse(event)
-                                if stopped and (content or finish):
-                                    if not content and finish == "stop" and usage:
-                                        continue
-                                    raise ModelError("Provider returned an invalid stream.")
-                                if content:
-                                    received_content |= bool(safe_text(content).strip())
-                                    visible = redactor.feed(content)
-                                    if visible:
-                                        yield visible
-                                if finish is not None:
-                                    if finish != "stop":
-                                        raise ModelError(
-                                            "Model response was truncated. Please retry."
-                                        )
-                                    stopped = True
+                        async for content, finish, usage, done in self.events(response):
+                            if done:
+                                if not stopped or not received_content:
+                                    raise ModelError("Model response was incomplete. Please retry.")
+                                tail = redactor.feed("", final=True)
+                                if tail:
+                                    yield tail
+                                return
+                            if stopped and (content or finish):
+                                if not content and finish == "stop" and usage:
+                                    continue
+                                raise ModelError("Provider returned an invalid stream.")
+                            if content:
+                                received_content |= bool(safe_text(content).strip())
+                                visible = redactor.feed(content)
+                                if visible:
+                                    yield visible
+                            if finish is not None:
+                                if finish != "stop":
+                                    raise ModelError("Model response was truncated. Please retry.")
+                                stopped = True
                         raise ModelError(
                             "Model stream disconnected before completion. Please retry."
                         )
@@ -167,3 +167,14 @@ class ChatCompletions:
             return content, finish, isinstance(event.get("usage"), dict)
         except ValueError, KeyError, IndexError, TypeError, AttributeError:
             raise ModelError("Provider returned an invalid stream.") from None
+
+
+async def sse_data(response: httpx.Response) -> AsyncIterator[str]:
+    """Read complete SSE data frames, ignoring comments and named event headers."""
+    data: list[str] = []
+    async for line in response.aiter_lines():
+        if line.startswith("data:"):
+            data.append(line[5:].lstrip(" "))
+        elif line == "" and data:
+            yield "\n".join(data)
+            data.clear()

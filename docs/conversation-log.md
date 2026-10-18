@@ -2741,3 +2741,63 @@ Then use `/new`. Currently supports **BTC/USDT hourly SMA crossovers** on Januar
 Broader Phase 2 features and Phase 1 registry/source adapters remain pending. GitHub CI is blocked by account billing restrictions.
 
 ---
+
+### 251 — User
+
+implement claude apis, openai, grok, groq, deepseek, gemini, kimi, qwen, glm and ollama
+
+---
+
+### 252 — Assistant (progress update)
+
+I’ll add these providers to model setup and connect them to chat and research. I’ll check their official API formats, add provider-specific tests, and preserve credential isolation and cancellation.
+
+---
+
+### 253 — Assistant (progress update)
+
+I’m using the read-docs and OpenAI Docs skills to check the API contracts. Compatible providers can share the existing transport; Claude needs its own message format. I’ll keep OpenRouter as the default and add Ollama at its standard local address.
+
+---
+
+### 254 — Assistant (progress update)
+
+The endpoint checks are complete. Qwen’s current documentation uses a workspace URL, so I’ll add a provider-specific API address field. Credentials and addresses will reset when switching providers. Ollama will allow an empty key; hosted providers will require one.
+
+---
+
+### 255 — Assistant (progress update)
+
+The provider settings are in place. I’m now connecting the streaming adapters and onboarding fields, including provider-specific token limits and Claude’s completion events. Tests will check that interrupted or truncated responses never enter conversation history.
+
+---
+
+### 256 — Assistant (progress update)
+
+The new provider tests pass for request routing, authentication, cancellation, response validation, and research extraction. I also caught and updated a keyboard test affected by the new API address field. I’ll now run the full suite and check onboarding at small terminal sizes.
+
+---
+
+### 257 — Assistant (progress update)
+
+The full suite is nearly finished. I’m also checking that the existing free OpenRouter route still works and that the package includes the new adapters. Live verification of the new cloud providers remains pending their API keys; their protocol and workflow tests use simulated responses.
+
+---
+
+### 258 — Assistant (progress update)
+
+All **368 tests passed**, including the native backtest tests. The live free OpenRouter check passed too. I found a running Ollama server with installed models, so I can test that adapter locally without downloading anything.
+
+---
+
+### 259 — Assistant (progress update)
+
+The live Ollama chat passed using your installed 1.7B model. The built package also passed credential scans and onboarding checks at 45×12 and 110×40. I’m finishing validation and documentation, then I’ll push and check GitHub CI.
+
+---
+
+### 260 — Assistant (progress update)
+
+Final validation passed: **380 tests**, lint, formatting, package checks, and both live chat checks. I’m pushing the implementation and updated provider guide to the private repository now.
+
+---

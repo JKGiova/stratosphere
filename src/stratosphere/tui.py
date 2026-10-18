@@ -9,6 +9,7 @@ from pydantic import SecretStr, ValidationError
 from rich.console import Group
 from rich.markdown import Markdown
 from rich.text import Text
+from rich.theme import Theme as RichTheme
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -33,6 +34,7 @@ from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.catalog.contracts import AssessmentTarget
 from stratosphere.catalog.service import assessment_markdown, recommendations_markdown
 from stratosphere.commands import PANELS, route_command
+from stratosphere.market_data.routing import capabilities_markdown
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
     BASE_URLS,
@@ -287,6 +289,22 @@ class StratosphereApp(App[None]):
         source_service=None,
     ):
         super().__init__()
+        self.console.push_theme(
+            RichTheme(
+                {
+                    "markdown.h1": "bold underline #ffffff",
+                    "markdown.h2": "bold #ffffff",
+                    "markdown.h3": "bold #eeeeee",
+                    "markdown.h4": "bold #dddddd",
+                    "markdown.h5": "bold #cccccc",
+                    "markdown.h6": "bold #cccccc",
+                    "markdown.link": "underline #cccccc",
+                    "markdown.link_url": "#aaaaaa",
+                    "markdown.code": "#dddddd on #161616",
+                    "markdown.block_quote": "#aaaaaa",
+                }
+            )
+        )
         self.provider_factory = provider_factory
         self.settings: ModelSettings | None = None
         self.session: Orchestrator | None = None
@@ -666,6 +684,18 @@ class StratosphereApp(App[None]):
                 self.action_focus_pane("chat")
             if command.action in {"new", "study", "approve", "pause", "resume", "show", "report"}:
                 await self.handle_research_command(command.action, command.args)
+            elif command.action == "data":
+                try:
+                    await self.research.require_online()
+                    view = self.query_one("#focus-body", VerticalScroll)
+                    text = capabilities_markdown(*command.args)
+                    await view.remove_children()
+                    await view.mount(Static(Markdown(safe_text(text), hyperlinks=False)))
+                    self.action_select_view("focus")
+                except ResearchError as error:
+                    await self.add_message(str(error))
+                except ValueError:
+                    await self.add_message("Use a listed data profile and purpose; inspect /data.")
             elif command.action in {"assess", "recommend", "assessment"}:
                 await self.handle_assessment_command(command.action, command.args)
             elif command.action in {

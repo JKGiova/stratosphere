@@ -190,3 +190,37 @@ async def test_tui_conformance_gaps_are_inspectable_and_cannot_create_executable
         await pilot.pause()
         assert len(app.source_conformance.store.jobs()) == 2
         assert not app.research.store.jobs() and not app.database.catalog()
+
+
+async def test_tui_data_capability_inspection_is_online_read_only_and_model_free(
+    ui_service,
+    research_provider,
+):
+    app = StratosphereApp(
+        provider_factory=lambda settings: research_provider, research_service=ui_service
+    )
+    async with app.run_test(size=(144, 40)) as pilot:
+        await connect(app, pilot)
+        await send(app, pilot, "/data")
+        assert not research_provider.requests and not ui_service.calls
+        assert not app.research.store.jobs() and not app.database.catalog()
+        await send(app, pilot, "/data authored-fixture paper")
+        text = app.query_one("#focus-body").children[0].content.markup
+        assert "Eligible for this bounded purpose: **no**" in text
+        assert app.active_view == "focus"
+        await pilot.resize_terminal(45, 12)
+        await pilot.pause()
+        await pilot.press("pagedown")
+        await pilot.pause()
+        assert app.query_one("#focus-body").scroll_y > 0
+
+        async def offline():
+            raise ValueError("Offline")
+
+        ui_service.online_check = offline
+        await send(app, pilot, "/data")
+        text = "\n".join(
+            str(w.content) for w in app.query(Static) if not isinstance(w, AssistantMessage)
+        )
+        assert "online access" in text
+        assert not research_provider.requests and not ui_service.calls

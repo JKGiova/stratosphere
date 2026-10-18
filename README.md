@@ -66,6 +66,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Authentication and connectors](docs/authentication-and-connectors.md) | Supabase OAuth login, optional accounts, authorization, and security |
 | [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
 | [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |
+| [Data capabilities](docs/market-data-capabilities.md) | Exact profile/purpose matching, freshness and unresolved provider requirements |
 | [Source conformance](docs/source-conformance.md) | Rule mapping, numerical blockers and limits on converted execution |
 | [Terminal interface](docs/terminal-interface.md) | Chief-agent chat, slash commands, jobs, and user intervention |
 | [Community catalog](docs/community-catalog.md) | Automatic sharing, recommendations, provenance, and reuse |

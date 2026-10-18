@@ -54,6 +54,8 @@ The [source intake increment](phase4-sources.md) adds private immutable snapshot
 
 The [source-conformance diagnostic](source-conformance.md) adds whole-source Pine rule-shape checks, exact source/context references and retained execution blockers. Pine pasted through `/new` stops before model interpretation. Numerical/runtime equivalence remains unverified, so no converted plan or simulation is enabled. The full suite passed 575 tests with zero skips; a subsequent Focus keyboard correction passed 201 source/agent/research/TUI checks and rebuilt-package inspection. This is a tested blocking foundation, not completion of the conversion requirement.
 
+The [market-data capability/quality increment](market-data-capabilities.md) separates exact market/profile matching, bounded reference/fixture purposes, freshness/availability and unresolved entitlement. It adds an online read-only `/data` view and no new real provider or paper feed. Calendar/action, perpetual/funding and tradable-forex adapters remain unverified and blocked rather than being inferred from labels. The full suite passed 617 tests with zero skips; the final Markdown contrast change passed 54 source/TUI checks and built-package inspection.
+
 ## Next implementation sequence
 
 1. Expand the bounded local study increment as required by the remaining ledger, including variants without a standalone parent research job and verified commercial data rights/provider routing.

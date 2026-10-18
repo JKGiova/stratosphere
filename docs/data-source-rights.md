@@ -12,6 +12,10 @@ No commercial data agreement has been supplied or verified for stratosphere. The
 
 Before commercial use, verify an appropriate provider/account/data agreement and its permitted instrument, storage, redistribution and derived-output uses. Do not enable paid capacity or purchase a license without user authorization. A replacement provider must independently pass timestamp, completeness, instrument, session, availability and execution-semantics checks; a similar symbol is not a conforming substitute. Provider rights and operational adapter verification remain open work in Phase 4.
 
+## Kraken public APIs
+
+The [official API notice](https://docs-legacy.kraken.com/api/docs/guides/global-intro/#notices), read October 18, 2026, requires prior permission for non-personal commercial use of public endpoint data, including market/status data. No permission has been supplied or verified for stratosphere, and no new Kraken market/status acquisition was performed. Public reachability is not a verified commercial replacement for Binance. No provider was contacted or license purchased.
+
 ## Other current evidence
 
 The Phase 0 ECB reference-rate proof is not tradable intraday forex data. No equity/ETF tradable-data adapter or commercial real-time-feed entitlement is verified. Authored fixture results establish software behavior and native-engine conformance, not market performance or provider rights.

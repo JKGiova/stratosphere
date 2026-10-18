@@ -3199,3 +3199,56 @@ The full suite passed **575 tests**, then a stricter keyboard check caught a Foc
 The focus fix passed **201 source, agent, research and TUI checks**, and Page Down now works through normal navigation in the built package. I’m publishing the conformance checkpoint with CI skipped, then continuing with data capabilities and the paper runtime.
 
 ---
+
+### 324 — Assistant (progress update)
+
+The conformance checkpoint is published. Kraken’s documentation also requires prior permission for non-personal commercial use of public data, so I won’t treat it as a verified replacement for Binance. I’m building the data checks to separate technical access, market semantics, freshness and entitlement. [Kraken’s notice](https://docs-legacy.kraken.com/api/docs/guides/global-intro/#notices)
+
+---
+
+### 325 — Assistant (progress update)
+
+The first **39 data checks passed**. They reject stale, incomplete, duplicated and unordered observations without repairing them, and keep ECB reference rates and authored fixtures out of paper-feed use. I’m adding a capability view to show the verified scope and remaining blockers for each provider.
+
+---
+
+### 326 — Assistant (progress update)
+
+The **55 data and TUI checks passed**. `/data` now shows capabilities in the scrollable Focus panel. A provenance check also caught that receipt-only evidence must use the receipt timestamp—it cannot invent an earlier publication time. I’m running the full suite and reviewing the pinned NautilusTrader paper interface.
+
+---
+
+### 327 — Assistant (progress update)
+
+The full run passed **616 tests** and exposed one flaky Reports assertion. Equal timestamps can place the selected assessment at the top, where zero scroll is correct. I’m changing the test to check that the selected row is visible, then rerunning the suite.
+
+---
+
+### 328 — Assistant (progress update)
+
+Package inspection also showed that Rich’s colored Markdown headings become too dim in the monochrome terminal. I’m giving headings explicit light styles and checking the rendered view again.
+
+---
+
+### 329 — Assistant (progress update)
+
+The full suite now passes **617 tests** with the corrected visibility check. I’m finishing the Markdown contrast check, then publishing this data checkpoint. Paper work will start with authored fixtures and the pinned native engine while real-feed entitlement remains unresolved.
+
+---
+
+### 330 — Assistant (progress update)
+
+I’m finishing the data checkpoint, then moving into the persistent paper workflow: native execution, risk controls, order reconciliation and the keep-or-close exit choice. Real-feed verification will remain separate from fixture tests.
+
+---
+
+### 331 — Assistant (question)
+
+Which provider/account should we use to verify real-feed paper trading? If you already have authorized API access or written data permission, tell me the provider and where its settings are saved—don’t paste credentials.
+
+Options:
+
+- Use an existing authorized account
+- No account yet; propose testing options
+
+---

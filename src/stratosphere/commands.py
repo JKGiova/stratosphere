@@ -12,6 +12,7 @@ PANELS = {
     ),
 }
 HELP = """/help — Show commands
+/data [provider-profile] [purpose] — Inspect data capabilities and unresolved requirements
 /source <url> [github-ref] — Acquire a read-only source snapshot; inspect access limits
 /sources — List retained source attempts
 /source-show <source-id> — Inspect a retained source snapshot online
@@ -52,6 +53,12 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name == "/data":
+        return (
+            Command("data", args=tuple(words[1:]))
+            if len(words) <= 3
+            else Command("message", "Usage: /data [provider-profile] [purpose]")
+        )
     if name == "/source-text":
         return (
             Command("source-text", args=(text.strip().split(maxsplit=1)[1],))

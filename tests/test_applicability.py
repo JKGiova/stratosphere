@@ -239,7 +239,9 @@ async def test_agent_and_command_assessments_reports_privacy_and_responsive_ui(s
         await pilot.resize_terminal(45, 12)
         await pilot.pause()
         assert app.query_one("#report-body").size.height >= 2
-        assert table.scroll_y > 0
+        assert table.cursor_row == table.get_row_index(key)
+        visible_rows = max(1, table.content_size.height - table.header_height)
+        assert table.scroll_y <= table.cursor_row < table.scroll_y + visible_rows
         await send(app, pilot, "Assess the current applicability of this selected strategy")
         await app.response_worker.wait()
         await pilot.pause()

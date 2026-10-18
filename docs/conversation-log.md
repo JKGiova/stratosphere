@@ -3339,3 +3339,63 @@ Options:
 - I’ll set up the account later
 
 ---
+
+### 344 — Assistant (progress update)
+
+The Liquid connection is verified on GitHub; the repository remains private and no CI run started. While account setup is pending, I’m continuing the paper order ledger with authored fixtures, starting with capital reservations and duplicate-order protection.
+
+---
+
+### 345 — Assistant (progress update)
+
+The ledger now records reservations before delivery, keeps cash reserved through partial fills and cancellation requests, and blocks repeat delivery after a claim. I’m testing concurrent requests, damaged journals, ambiguous outcomes and fills that exceed their bounds.
+
+---
+
+### 346 — Assistant (progress update)
+
+The **22 paper-ledger checks passed**, including native IOC partial fills across streaming batches. Reopening the journal preserved cash and attributed positions. I’m checking currency rounding next: fractional fill costs must match the native account before this can support a paper runtime.
+
+---
+
+### 347 — User
+
+Read-only catalog connected
+
+---
+
+### 348 — Assistant (progress update)
+
+The TUI connection succeeded. I’ll record that as your account’s successful read-only catalog test; paper mode and order access still need separate verification.
+
+The ledger tests also caught a rounding detail: native USDT costs use eight decimals. I’m retaining the native reported notional and checking it against the account balance, rather than assuming an unrounded price × quantity cost.
+
+---
+
+### 349 — Assistant (progress update)
+
+I’m opening a separate read-only diagnostic connection to inspect Liquid’s tool schemas, because the TUI keeps its token in its own process. Complete the read-only browser sign-in if prompted. This diagnostic will list tools only; it won’t call an account or trading tool.
+
+---
+
+### 350 — Assistant (progress update)
+
+All **32 ledger checks passed**, including three native cases with fractional and tiny prices. A boundary test also confirmed that rounding across partial fills can exceed an order’s original budget; the ledger retains the actual cost and blocks further actions. The full suite is running again.
+
+---
+
+### 351 — Assistant (progress update)
+
+The full suite passed **691 tests**. The separate Liquid diagnostic timed out before authorization completed, so your TUI result remains the account-connection evidence so far. I’m finishing package checks and publishing the ledger; real-feed and paper-order verification remain pending.
+
+---
+
+### 352 — Assistant
+
+Your TUI reports a successful **read-only Liquid connection**.
+
+I added the paper-ledger foundation: cash reservations, accounting for partial fills and duplicate protection. **691 tests passed**, along with package checks.
+
+Code, documentation, AGENTS.md and this conversation log are pushed. Liquid feed/order verification remains pending; the separate diagnostic sign-in timed out.
+
+---

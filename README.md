@@ -65,6 +65,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Portfolio and execution](docs/portfolio-and-execution.md) | Allocation, positions, risk, and orders |
 | [Authentication and connectors](docs/authentication-and-connectors.md) | Supabase OAuth login, optional accounts, authorization, and security |
 | [Liquid paper testing](docs/liquid-paper-testing.md) | Read-only browser connection, test options and unverified paper execution |
+| [Paper ledger foundation](docs/phase5-paper-ledger.md) | Internal authored-paper reservations, fill attribution and native accounting checks |
 | [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
 | [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |
 | [Data capabilities](docs/market-data-capabilities.md) | Exact profile/purpose matching, freshness and unresolved provider requirements |

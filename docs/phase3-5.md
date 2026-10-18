@@ -58,6 +58,8 @@ The [market-data capability/quality increment](market-data-capabilities.md) sepa
 
 ## Next implementation sequence
 
+The [authored-paper ledger foundation](phase5-paper-ledger.md) adds durable reservations, pinned local allocation references, idempotent delivery claims, fill/fee accounting and conservative ambiguity gates. Its focused 32 checks include three native streaming/account-balance cases; the full regression suite passed 691 tests with zero skips. It has no feed, transport, activation or operational TUI controls and does not satisfy the production Phase 5 items above.
+
 The user selected **Liquid paper mode** for the first real-feed paper test. The [Liquid connection increment](liquid-paper-testing.md) adds public metadata checks and read-only OAuth/catalog inspection. Public registration was verified without sign-in, the full suite passed 659 tests with zero skips, and built-package/keyboard/credential checks passed. Actual account access, paper isolation and execution remain unverified. This increment does not satisfy the optional-account-linking or paper-adapter acceptance items above.
 
 1. Expand the bounded local study increment as required by the remaining ledger, including variants without a standalone parent research job and verified commercial data rights/provider routing.

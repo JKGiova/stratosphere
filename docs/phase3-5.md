@@ -18,7 +18,7 @@ Status: **in progress**. The user authorized the full Phase 3, 4 and 5 scope, lo
 - [x] Candidate selection uses development/validation only. Final holdout is evaluated once for the frozen selection, cannot be reused for optimization, and exposes local contamination/reuse. External exposure remains explicitly unverifiable.
 - [ ] Native NautilusTrader results, sensitivity/doubled-cost checks, baselines, distributions, equity/trades, limitations and immutable references are retained and inspectable.
 - [ ] Recommendations separate instrument/data compatibility, empirical evidence, dated current context and missing verification; no profitability-only promotion or transferred performance.
-- [ ] Findings and applicability assessments retain their timestamp, context, attempted variant count and evidence references.
+- [x] Local findings/applicability assessments retain timestamp, context, attempted variant denominators and exact evidence references. Hosted synchronization and actual current-provider verification remain pending.
 
 ## Phase 4 — source maturity and market coverage
 
@@ -48,10 +48,12 @@ The first strategy-agent/Reports/private-registry foundation is verified in [str
 
 The next local increment adds [bounded SMA studies](phase3-studies.md): explicit reviewed candidates, per-attempt native checkpoints, validation-only selection, separately acquired holdout protocol, exposure claims and measured comparison reports. Native study verification uses authored data, not a newly acquired market holdout. Local Ollama verifies draft routing/schema, not hypothesis quality. The bounded-study regression suite passed 436 tests with zero skips, including nine native-engine tests; the focused small-terminal form check and rebuilt package inspection also passed. [Binance Vision's commercial data entitlement remains unresolved](data-source-rights.md); this is a material Phase 4 dependency, not a reason to claim the full goal is blocked or complete.
 
+The [dated applicability increment](phase3-applicability.md) adds specialist-owned assessments, explicit rule/market/timeframe checks, exact selected-variant holdout attribution and stable-order local candidates. It passed 457 local tests with zero skips and a real two-request Ollama routing check. The private Supabase schema also protects dated snapshots, and its SQL ownership/immutability harness rolled back all fixtures; security advisors returned no findings. Actual current-market data and authenticated community recommendation remain unverified.
+
 ## Next implementation sequence
 
 1. Expand the bounded local study increment as required by the remaining ledger, including variants without a standalone parent research job and verified commercial data rights/provider routing.
-2. Add dated evidence-aware recommendations and record attempt counts, compatibility and current-context uncertainty.
+2. Expand the local dated applicability/candidate workflow only with verified evidence, appropriate current-context providers and authenticated shared projections; retain explicit uncertainty and attempt counts.
 3. Mature source acquisition/conversion and data capability routing without inventing restricted material or transferring performance between instrument types.
 4. Add the persistent feed/paper runtime, personal instances, budget/risk proposals, deterministic controls, order ledger, reconciliation and the confirmed keep/close exit choice.
 5. Complete authenticated service-mediated registry synchronization before exposing shared-user records; the current private schema and local workspace are foundations, not that deployed service.

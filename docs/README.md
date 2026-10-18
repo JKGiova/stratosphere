@@ -47,3 +47,5 @@ See [model providers](model-providers.md) for all 12 adapters, credential enviro
 See [strategy agents](strategy-agents.md) for orchestration/Reports and the [Phase 3–5 acceptance ledger](phase3-5.md) for the full authorized scope and remaining work.
 
 See [bounded studies](phase3-studies.md) for reviewed experiments, validation-only selection and holdout/exposure controls, and [data-source rights](data-source-rights.md) for the commercial dataset dependency.
+
+See [dated applicability](phase3-applicability.md) for exact-variant evidence, current-context uncertainty, private findings and local research candidate commands.

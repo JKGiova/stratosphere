@@ -138,3 +138,7 @@ Login implementation is deferred to later pre-release work; preserve it in the f
 ## Bounded study interaction
 
 `/study [parent-job-id]` opens an inline hypothesis/candidate/month/budget form. A natural-language experiment request can produce an editable specialist proposal first. Review freezes the protocol; approval and job controls use the same commands as research. Tests retains studies and Reports displays actual comparisons, all attempt states and final holdout status. See [study protocol and verification](phase3-studies.md). Source commercial rights and empirical performance remain separate from software test results.
+
+## Dated applicability interaction
+
+`/assess` records applicability for the selected agent’s fixed target; `/assess <market> <symbol> <seconds>` makes the target explicit. `/recommend <market> <symbol> <seconds>` delegates local candidates to their own agents, without a P&L ranking or model call. `/assessment <digest>` opens the retained dated snapshot in Reports. Natural-language routes use the same operations. Missing current context remains explicit; viewing an old snapshot does not make it current. See [scope and verification](phase3-applicability.md).

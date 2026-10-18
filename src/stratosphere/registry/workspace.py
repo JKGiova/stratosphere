@@ -87,6 +87,10 @@ CREATE TABLE IF NOT EXISTS assessments (
  id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
  payload TEXT NOT NULL, assessed_at TEXT NOT NULL
 );
+CREATE TRIGGER IF NOT EXISTS immutable_assessment BEFORE UPDATE ON assessments
+BEGIN SELECT RAISE(ABORT, 'Assessments are immutable snapshots'); END;
+CREATE TRIGGER IF NOT EXISTS retain_assessment BEFORE DELETE ON assessments
+BEGIN SELECT RAISE(ABORT, 'Assessments are retained evidence'); END;
 CREATE TABLE IF NOT EXISTS dataset_exposures (
  url TEXT NOT NULL, study_id TEXT NOT NULL, role TEXT NOT NULL,
  archive_sha256 TEXT NOT NULL, claimed_at TEXT NOT NULL,
@@ -434,3 +438,52 @@ class WorkspaceDatabase:
                 "INSERT OR IGNORE INTO dataset_exposures VALUES (?,?,?,?,?)",
                 (url, study_id, role, digest, now()),
             )
+
+    def record_assessment(self, public_id: str, assessment: dict) -> str:
+        payload = encoded(assessment)
+        digest = hashlib.sha256(payload.encode()).hexdigest()
+        with self.connect() as db:
+            strategy = self._strategy(db, public_id)
+            if (
+                assessment.get("strategy_id") != public_id
+                or assessment.get("strategy_sha256") != strategy["spec_sha256"]
+            ):
+                raise RegistryError("An assessment cannot be assigned to another strategy")
+            old = db.execute("SELECT payload FROM assessments WHERE id=?", (digest,)).fetchone()
+            if old and old["payload"] != payload:
+                raise RegistryError("Assessment digest collision; no evidence was replaced")
+            db.execute(
+                "INSERT OR IGNORE INTO assessments VALUES (?,?,?,?)",
+                (digest, strategy["id"], payload, assessment["assessed_at"]),
+            )
+            return digest
+
+    def assessment(self, digest: str) -> dict:
+        with self.connect() as db:
+            row = db.execute("SELECT * FROM assessments WHERE id=?", (digest,)).fetchone()
+            if not row or hashlib.sha256(row["payload"].encode()).hexdigest() != digest:
+                raise RegistryError("The retained assessment is unavailable or damaged")
+            payload = json.loads(row["payload"])
+            strategy = self._strategy(db, payload["strategy_id"])
+            if (
+                strategy["id"] != row["strategy_id"]
+                or payload["strategy_sha256"] != strategy["spec_sha256"]
+                or payload["assessed_at"] != row["assessed_at"]
+            ):
+                raise RegistryError("The retained assessment identity or timestamp is damaged")
+            return {
+                "id": digest,
+                "assessment": payload,
+                "assessed_at": row["assessed_at"],
+            }
+
+    def assessments(self, public_id: str | None = None) -> list[dict]:
+        with self.connect() as db:
+            params = ()
+            clause = ""
+            if public_id:
+                clause, params = " WHERE strategy_id=?", (self._strategy(db, public_id)["id"],)
+            rows = db.execute(
+                "SELECT id FROM assessments" + clause + " ORDER BY assessed_at,id", params
+            ).fetchall()
+        return [self.assessment(row["id"]) for row in rows]

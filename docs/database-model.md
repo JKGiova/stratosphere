@@ -235,7 +235,7 @@ Normalize integrity-critical relationships and define access controls. Use JSONB
 
 Supabase is confirmed as the managed PostgreSQL platform. The logical schema is unchanged. Supabase Auth with OAuth login is confirmed. The organization and Frankfurt region are selected. OAuth provider/callback configuration, Storage, other platform products, project plan/provisioning, migrations, and extension choices remain to be specified.
 
-Before exposing tables through the Data API, define least-privilege grants and enable RLS on exposed schemas. Shared strategies and private submissions, preferences, assessments, and instances need different policies. Keep privileged secret/service-role keys and database passwords on trusted backend infrastructure, never in distributed terminal clients or agent inputs. No Supabase project, table, policy, or migration has been created by this documentation update.
+Before exposing tables through the Data API, define least-privilege grants and enable RLS on exposed schemas. Shared strategies and private submissions, preferences, assessments, and instances need different policies. Keep privileged secret/service-role keys and database passwords on trusted backend infrastructure, never in distributed terminal clients or agent inputs. The original conceptual model did not provision infrastructure. The current [private Supabase schema](../supabase/README.md) is provisioned with 13 RLS-enabled tables; authenticated application synchronization remains pending.
 
 Security reference: [Supabase data access guidance](https://supabase.com/docs/guides/database/secure-data).
 
@@ -244,3 +244,5 @@ Security reference: [Supabase data access guidance](https://supabase.com/docs/gu
 Proposed account_connections fields are described in [authentication and connectors](authentication-and-connectors.md). Each connection belongs to an application user and records the provider, verified external principal/account references, environment, granted permissions, secret-storage reference, and lifecycle state. Linking/disconnecting a broker does not change application identity or shared strategy ownership.
 
 Map strategy_instances.account_ref to the corresponding authorized account record in the physical schema. A connection may expose multiple accounts; account rows and permission/environment checks must be modeled explicitly rather than using a free-form ID as authority. Tokens are private secrets, not ordinary JSON profile fields, and are excluded from shared catalog data.
+
+The [local applicability increment](phase3-applicability.md) now retains identity-bound dated findings with immutable payloads and exact-variant evidence references. The Supabase assessments table also rejects updates/deletion through an invoker trigger with a fixed empty search path; ownership isolation is verified with rolled-back fixtures. This is database conformance, not login/session or client synchronization verification.

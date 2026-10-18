@@ -13,6 +13,9 @@ PANELS = {
 HELP = """/help — Show commands
 /new [text] — Draft a supported research plan in chat
 /study [parent-job-id] — Review a bounded SMA experiment with a separate final holdout
+/assess [market symbol interval-seconds] — Record dated applicability for the selected agent
+/recommend <market> <symbol> <interval-seconds> — Ask each local strategy agent for candidates
+/assessment <assessment-id> — Open a retained applicability snapshot
 /approve <job-id> <plan-sha256> — Approve exactly the reviewed plan
 /pause <job-id> — Pause research and retain completed checkpoints
 /resume <job-id> — Resume the same approved plan online
@@ -47,6 +50,22 @@ def route_command(text: str) -> Command:
         return Command("agent", args=tuple(words[1:]))
     if name == "/study" and len(words) <= 2:
         return Command("study", args=tuple(words[1:]))
+    if name == "/assess":
+        if len(words) in {1, 4}:
+            return Command("assess", args=tuple(words[1:]))
+        return Command("message", "Usage: /assess [market symbol interval-seconds]")
+    if name == "/recommend":
+        return (
+            Command("recommend", args=tuple(words[1:]))
+            if len(words) == 4
+            else Command("message", "Usage: /recommend <market> <symbol> <interval-seconds>")
+        )
+    if name == "/assessment":
+        return (
+            Command("assessment", args=tuple(words[1:]))
+            if len(words) == 2
+            else Command("message", "Usage: /assessment <assessment-id>")
+        )
     arities = {"/approve": 2, "/pause": 1, "/resume": 1, "/show": 1, "/report": 1}
     if name in arities:
         if len(words) != arities[name] + 1:

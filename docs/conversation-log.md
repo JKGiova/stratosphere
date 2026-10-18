@@ -3055,3 +3055,51 @@ Visual inspection caught a small-terminal issue: a focused study field could rem
 The suite passed **436 tests**. The small-terminal focus check now passes too, and I verified the rebuilt package’s study form and Reports panel visually. I’m publishing this bounded-study checkpoint with CI skipped, then continuing with dated applicability assessments.
 
 ---
+
+### 300 — Assistant (progress update)
+
+The bounded-study checkpoint is on GitHub. Applicability assessments will separate rule compatibility, retained simulation evidence and dated market context. Missing data rights, stale context and unverified execution capabilities will remain visible; returns alone will not determine a recommendation.
+
+---
+
+### 301 — Assistant (progress update)
+
+The assessment service now links evidence to the exact strategy variant, including whether that variant received the final holdout. I’m testing stale, future-dated and mismatched context, plus provider failures, so none can silently become a current suitability claim.
+
+---
+
+### 302 — Assistant (progress update)
+
+The assessment, agent and TUI checks passed **39 tests**. Forced commands create dated records without a model call. Next I’m checking natural-language routing with Ollama and verifying that cancellation retains only completed assessment snapshots.
+
+---
+
+### 303 — Assistant (progress update)
+
+Ollama passed both natural-language paths: a selected-strategy assessment and a catalog request delegated to two strategy agents. Both kept current market context explicitly unavailable and performed no simulations or price downloads. Cancellation checks passed too.
+
+---
+
+### 304 — Assistant (progress update)
+
+I’m extending the Supabase private schema to make dated assessments immutable there too. I’ll test ownership isolation and rollback of the fixtures, then run the local package and regression checks. This does not enable login or shared-user access.
+
+---
+
+### 305 — Assistant (progress update)
+
+The full suite passed **457 tests**. Supabase’s ownership and immutability checks also passed, with all fixtures rolled back and no security-advisor findings. I’m checking the packaged assessment views before publishing, then moving on to source acquisition and data capability routing.
+
+---
+
+### 306 — Assistant (progress update)
+
+Package inspection found another short-terminal issue: the report list could fill the panel and hide the preview. I’m reserving space for the preview and preserving the selected report when the list refreshes.
+
+---
+
+### 307 — Assistant (progress update)
+
+The packaged Reports view now keeps the selected assessment visible with room for its preview at 45 × 12. The responsive checks passed. I’m publishing the applicability checkpoint with CI skipped, then continuing with the five source adapters and data capability checks.
+
+---

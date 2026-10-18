@@ -29,6 +29,8 @@ from textual.widgets import (
 from textual.worker import Worker
 
 from stratosphere.agents.orchestrator import Orchestrator
+from stratosphere.catalog.contracts import AssessmentTarget
+from stratosphere.catalog.service import assessment_markdown, recommendations_markdown
 from stratosphere.commands import PANELS, route_command
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
@@ -286,9 +288,11 @@ class StratosphereApp(App[None]):
         self.workspace_bridge = Orchestrator(
             None, self.database, self.research, studies=self.studies
         )
+        self.assessments = self.workspace_bridge.assessments
         self.research_worker: Worker | None = None
         self.research_job_id: str | None = None
         self.research_form: ResearchForm | StudyForm | None = None
+        self.selected_report_key: str | None = None
         self.active_pane = "chat"
         self.viewport = (80, 24)
         self.layout_mode = choose_layout(*self.viewport)
@@ -446,6 +450,7 @@ class StratosphereApp(App[None]):
             pane.display = view in visible
             pane.set_class(view == self.active_pane, "active")
         self.sync_navigation()
+        self.call_after_refresh(self.size_report_list)
 
     @property
     def active_view(self) -> str:
@@ -603,6 +608,7 @@ class StratosphereApp(App[None]):
                 self.research,
                 f"{event.settings.provider}/{event.settings.model}",
                 studies=self.studies,
+                assessments=self.assessments,
             )
             self.session.sync_research()
             self.update_status("MODEL SET · NOT YET VERIFIED")
@@ -640,6 +646,8 @@ class StratosphereApp(App[None]):
                 self.action_focus_pane("chat")
             if command.action in {"new", "study", "approve", "pause", "resume", "show", "report"}:
                 await self.handle_research_command(command.action, command.args)
+            elif command.action in {"assess", "recommend", "assessment"}:
+                await self.handle_assessment_command(command.action, command.args)
             elif command.action == "agent":
                 if not self.session:
                     await self.add_message("Configure a model with /model first.")
@@ -734,6 +742,8 @@ class StratosphereApp(App[None]):
                 self.call_after_refresh(self.handle_research_command, "resume", (action["job_id"],))
             elif action and action["action"] == "report":
                 await self.open_report_panel(action["job_id"])
+            elif action and action["action"] == "assessment":
+                await self.open_report_panel("assessment:" + action["id"])
             self.refresh_research_views()
         except asyncio.CancelledError:
             bubble.update_reply(
@@ -807,7 +817,15 @@ class StratosphereApp(App[None]):
                 record["created_at"][:16],
                 key=record["job_id"],
             )
-        reports.styles.height = 1 if not reports.row_count else min(reports.row_count + 2, 8)
+        for record in self.database.assessments():
+            reports.add_row(
+                Text(safe_text(record["assessment"]["name"])),
+                "Assess " + record["id"][:10],
+                record["assessed_at"][:16],
+                key="assessment:" + record["id"],
+            )
+        self.size_report_list()
+        self.select_report_row()
         self.query_one("#reports-empty").display = reports.row_count == 0
         for table in (library, jobs):
             table.styles.height = 1 if not table.row_count else min(table.row_count + 2, 8)
@@ -818,6 +836,31 @@ class StratosphereApp(App[None]):
             if library.row_count
             else "Catalog / not connected"
         )
+
+    def size_report_list(self):
+        if not self.is_running or not self.query("#reports"):
+            return
+        rows = max(1, (self.viewport[1] - CHROME_HEIGHT) // self.layout_mode.rows)
+        short = rows < 14
+        pane = self.query_one("#reports-pane")
+        pane.set_class(short, "short-report")
+        table = self.query_one("#reports", DataTable)
+        capacity = max(2, (rows - 3) // 2 if short else rows - 9)
+        table.styles.height = (
+            1 if not table.row_count else min(table.row_count + (1 if short else 2), capacity, 8)
+        )
+        table.styles.margin = (0 if short else 1, 0, 0, 0)
+        table.styles.overflow_x = "hidden" if short else "auto"
+        self.call_after_refresh(self.select_report_row)
+
+    def select_report_row(self):
+        if not self.is_running or not self.query("#reports"):
+            return
+        table = self.query_one("#reports", DataTable)
+        for key in table.rows:
+            if key.value == self.selected_report_key:
+                table.move_cursor(row=table.get_row_index(key))
+                break
 
     async def add_research_markdown(self, text: str, label: str) -> AssistantMessage:
         bubble = AssistantMessage()
@@ -904,6 +947,62 @@ class StratosphereApp(App[None]):
                 "Check the full job ID, approval hash and job state. "
                 "Use /jobs or /show <job-id>; a running operation must be paused or canceled first."
             )
+
+    async def handle_assessment_command(self, action, args):
+        try:
+            if action == "assessment":
+                await self.open_report_panel("assessment:" + args[0])
+                return
+            if self.research_busy or (
+                self.response_worker and not self.response_worker.is_finished
+            ):
+                raise ResearchError("Pause or cancel the current operation before an assessment.")
+            bridge = self.session or self.workspace_bridge
+            if args:
+                target = AssessmentTarget(
+                    asset_class=args[0], symbol=args[1], timeframe_seconds=int(args[2])
+                )
+            else:
+                target = bridge.agent().default_target()
+            if action == "assess":
+                bridge.agent()
+            self.research_job_id = None
+            self.research_worker = self.assess_records(action, target)
+        except ResearchError as error:
+            await self.add_message(str(error))
+        except ValueError, OSError:
+            await self.add_message(
+                "Use a supported market name, uppercase symbol and positive interval in seconds: "
+                "/assess crypto_spot BTCUSDT 3600 or /recommend crypto_spot BTCUSDT 3600."
+            )
+
+    @work(group="research", exclusive=True)
+    async def assess_records(self, action, target):
+        self.update_status("RESEARCH · Assessing applicability")
+        try:
+            bridge = self.session or self.workspace_bridge
+            if action == "recommend":
+                records = await bridge.recommend(target)
+                text = recommendations_markdown(records, target)
+            else:
+                record = await bridge.agent().assess(target)
+                records, text = [record], assessment_markdown(record)
+            await self.add_research_markdown(text, "Dated applicability:")
+            if records:
+                await self.open_report_panel("assessment:" + records[0]["id"], focus=False)
+            self.update_status("READY")
+        except asyncio.CancelledError:
+            await self.add_message("Assessment canceled; completed snapshots were retained.")
+            self.update_status("CANCELED")
+            raise
+        except ResearchError as error:
+            await self.add_message(str(error))
+            self.update_status("READY")
+        except ValueError, OSError:
+            await self.add_message("Assessment failed; inspect the retained inputs and evidence.")
+            self.update_status("READY")
+        finally:
+            self.refresh_research_views()
 
     def service_for(self, job_id):
         return self.studies if self.studies.store.directory(job_id).is_dir() else self.research
@@ -1168,7 +1267,20 @@ class StratosphereApp(App[None]):
         self.action_select_view("focus")
 
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
+        if job_id.startswith("assessment:"):
+            record = await self.assessments.open(job_id.removeprefix("assessment:"))
+            self.selected_report_key = job_id
+            self.select_report_row()
+            self.query_one("#report-preview", Static).update(
+                Markdown(safe_text(assessment_markdown(record)), hyperlinks=False)
+            )
+            self.query_one("#reports-empty").display = False
+            if focus:
+                self.action_select_view("reports")
+            return
         report = report or await self.service_for(job_id).open_report(job_id)
+        self.selected_report_key = job_id
+        self.select_report_row()
         (self.session or self.workspace_bridge).sync_research()
         self.query_one("#report-preview", Static).update(
             Markdown(safe_text(report_markdown(report)), hyperlinks=False)

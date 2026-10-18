@@ -7,6 +7,8 @@ declare
   a record; b record; c record; d record;
   first_job uuid := gen_random_uuid();
   second_job uuid := gen_random_uuid();
+  alice_assessment uuid := gen_random_uuid();
+  bob_assessment uuid := gen_random_uuid();
   alice_session uuid; bob_session uuid;
   count_value integer;
   blocked boolean;
@@ -67,6 +69,30 @@ begin
   end;
   assert blocked, 'Cross-owner session association was not rejected';
 
+  insert into stratosphere.assessments(id,owner_id,strategy_id,assessed_at,payload)
+    values(alice_assessment,alice,a.strategy_id,'2026-10-18T12:00:00Z',
+           '{"schema_version":"authored-assessment-fixture/1","context":"unavailable"}'),
+          (bob_assessment,bob,a.strategy_id,'2026-10-18T12:00:00Z',
+           '{"schema_version":"authored-assessment-fixture/1","context":"unavailable"}');
+  blocked := false;
+  begin
+    update stratosphere.assessments set payload='{}' where id=alice_assessment;
+  exception when check_violation then blocked:=true;
+  end;
+  assert blocked, 'Assessment payload mutation was not rejected';
+  blocked := false;
+  begin
+    update stratosphere.assessments set assessed_at=now() where id=alice_assessment;
+  exception when check_violation then blocked:=true;
+  end;
+  assert blocked, 'Assessment timestamp mutation was not rejected';
+  blocked := false;
+  begin
+    delete from stratosphere.assessments where id=bob_assessment;
+  exception when check_violation then blocked:=true;
+  end;
+  assert blocked, 'Assessment deletion was not rejected';
+
   -- Temporary privileges exercise RLS in the unexposed schema, then roll back with this transaction.
   grant usage on schema stratosphere to authenticated;
   grant select,insert,update on all tables in schema stratosphere to authenticated;
@@ -76,6 +102,16 @@ begin
   assert count_value=1, 'Alice could read another owner agent history';
   select count(*) into count_value from stratosphere.reports;
   assert count_value=1, 'Alice could read another owner reports';
+  select count(*) into count_value from stratosphere.assessments;
+  assert count_value=1, 'Alice could read another owner assessments';
+  assert (select id from stratosphere.assessments)=alice_assessment;
+  blocked := false;
+  begin
+    insert into stratosphere.assessments(owner_id,strategy_id,payload)
+      values(bob,a.strategy_id,'{"forged":true}');
+  exception when insufficient_privilege then blocked:=true;
+  end;
+  assert blocked, 'Forged assessment owner was not rejected';
   select count(*) into count_value from stratosphere.source_snapshots;
   assert count_value=3, 'Source ownership filter failed';
   blocked := false;

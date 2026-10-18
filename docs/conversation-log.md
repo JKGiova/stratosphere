@@ -3252,3 +3252,90 @@ Options:
 - No account yet; propose testing options
 
 ---
+### 332 — User
+
+No account yet; propose testing options
+
+---
+
+### 333 — Assistant (progress update)
+
+I’ll compare Liquid’s paper mode with Alpaca’s paper API, keeping Liquid first as planned. Neither route should require live funds for our tests. Meanwhile, the native probe confirmed that streaming batches preserve positions and expose partial fills and denials—behavior the paper ledger needs to handle.
+
+---
+
+### 334 — Assistant (progress update)
+
+I recommend **Liquid paper mode** first: it matches our chosen connector and documents a simulated $10,000 balance using live prices. Its custom-client connection still needs verification. [Liquid docs](https://www.liquid.trade/coinvest-docs)
+
+**Alpaca Paper Only** is a useful second option: free, separate paper credentials and endpoint, with IEX-only stock data. It would test a different connector. [Alpaca docs](https://docs.alpaca.markets/us/docs/paper-trading)
+
+We can keep testing risk controls, partial fills and restarts with authored data immediately. Those tests won’t establish real-feed integration.
+
+---
+
+### 335 — Assistant (question)
+
+Which account would you prefer to set up for the first real-feed paper test? Liquid remains our first planned connector; choosing Alpaca would add a separate test connector.
+
+Options:
+
+- Liquid paper mode (recommended)
+- Alpaca Paper Only as an additional connector
+- Continue local tests; decide on an account later
+
+---
+
+### 336 — User
+
+Liquid paper mode (recommended)
+
+---
+
+### 337 — Assistant (progress update)
+
+We’ll use **Liquid paper mode**. I’ll check its connection and authorization flow next. The remaining safety question is whether each simulated order can be bound to paper mode, even if another client changes the account’s mode.
+
+---
+
+### 338 — Assistant (progress update)
+
+Both Liquid endpoints responded with an OAuth challenge and published metadata for `read` and `trade` scopes. No account was accessed. I’m adding a browser connection flow that requests only `read` and inspects the MCP tool catalog. It will have no order-calling path.
+
+---
+
+### 339 — Assistant (progress update)
+
+The connection flow now opens a local callback, requests `read` access and keeps credentials in memory. I’m testing changed OAuth endpoints, excess scopes, redirects, cancellation and streamed MCP responses before trying the sign-in flow.
+
+---
+
+### 340 — Assistant (progress update)
+
+The **37 authorization tests passed**, including the real localhost callback test. Liquid also accepted our public-client registration and produced a sign-in URL requesting only `read`; I stopped before sign-in. I’m checking TUI cancellation and credential handling next. Account access and paper execution remain unverified.
+
+---
+
+### 341 — Assistant (progress update)
+
+The focused TUI run passed **45 tests**. The Liquid view works at **45 × 12**, scrolls by keyboard and cancels pending sign-in cleanly. Public registration passed; the full regression suite and built-package checks are still running before the account sign-in test.
+
+---
+
+### 342 — Assistant (progress update)
+
+The full suite passed **659 tests**, including the pinned native-engine checks. The rebuilt package also passed source, credential-exclusion and small-terminal checks. I’m publishing the read-only Liquid connection now; account sign-in is the next verification step.
+
+---
+
+### 343 — Assistant (question)
+
+The read-only Liquid test is ready. Run `/liquid-connect` in stratosphere, then sign in or create your Liquid account in the browser and authorize only read access. Which result does the TUI show? If it requests live funding or trade access, stop and choose the second option.
+
+Options:
+
+- Read-only catalog connected
+- An error or additional permissions were requested
+- I’ll set up the account later
+
+---

@@ -58,6 +58,8 @@ The [market-data capability/quality increment](market-data-capabilities.md) sepa
 
 ## Next implementation sequence
 
+The user selected **Liquid paper mode** for the first real-feed paper test. The [Liquid connection increment](liquid-paper-testing.md) adds public metadata checks and read-only OAuth/catalog inspection. Public registration was verified without sign-in, the full suite passed 659 tests with zero skips, and built-package/keyboard/credential checks passed. Actual account access, paper isolation and execution remain unverified. This increment does not satisfy the optional-account-linking or paper-adapter acceptance items above.
+
 1. Expand the bounded local study increment as required by the remaining ledger, including variants without a standalone parent research job and verified commercial data rights/provider routing.
 2. Expand the local dated applicability/candidate workflow only with verified evidence, appropriate current-context providers and authenticated shared projections; retain explicit uncertainty and attempt counts.
 3. Mature source acquisition/conversion and data capability routing without inventing restricted material or transferring performance between instrument types.

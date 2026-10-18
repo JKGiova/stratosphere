@@ -1,0 +1,43 @@
+# Liquid paper testing and connection status
+
+Status: **read-only connection foundation implemented; hosted account and paper execution unverified**. The user selected Liquid paper mode for the first real-feed paper test. This preserves Liquid as the first connector; Alpaca remains optional later. Application login and fee collection remain deferred.
+
+## Testing choices
+
+| Route | Useful evidence | Requirements and limits |
+| --- | --- | --- |
+| Liquid paper mode, selected | First-provider connection, account state and eventually simulated orders against real prices | Liquid account and explicit OAuth consent; custom-client identity, paper isolation, confirmations, instruments and reconciliation must still be verified |
+| Alpaca Paper Only, optional later | Separate paper API/account tests | Free paper account and distinct paper credentials/endpoint; free stock data is IEX-only, not consolidated exchange coverage; this would be a separate connector |
+| Authored local fixtures, available now | Native execution behavior, deterministic controls, failure/restart tests | No broker account or acquired market dataset; cannot establish real-feed integration or market performance |
+
+Provider documentation describes [Liquid's paper mode](https://www.liquid.trade/coinvest-docs) with simulated capital and live prices. Its mode persists across conversations and can be changed by another connected client. A pre-order status read therefore does **not** prove that a subsequent operation is confined to paper. Per-request simulation binding, applicable confirmations and event/reconciliation behavior must be verified before enabling an external action. Liquid perpetuals are distinct from spot BTC/USDT and owned stocks or currencies; no historical spot results or fixture fills transfer to them.
+
+[Alpaca's paper documentation](https://docs.alpaca.markets/us/docs/paper-trading) describes globally available email-based Paper Only accounts, separate paper credentials and `https://paper-api.alpaca.markets`. Its documented fill model and [free IEX coverage](https://docs.alpaca.markets/us/docs/about-market-data-api) differ from a real execution venue. No Alpaca account was created or linked.
+
+## Implemented operations
+
+Run the usual TUI and use these commands independently of model configuration:
+
+1. `/liquid` checks current public OAuth metadata against the fixed standard Co-Invest endpoint. No account, registration or MCP tool call occurs.
+2. `/liquid-connect` registers a public native OAuth client, opens the system browser, requests only `read`, and waits up to four minutes for explicit browser consent. Sign in or create your Liquid account in that provider-controlled browser flow. Do not paste credentials into chat. This step needs no funded live test or trade activation in stratosphere; if the provider demands live funding/activation, stop and report that requirement rather than proceeding.
+3. A successful read connection inspects only the MCP tool **catalog**. Focus shows the connection scope and tool count. The client has no `tools/call` path and never invokes a provider tool, changes account/paper mode or submits an order. Tool names, descriptions and schemas do not enter model prompts.
+4. `/liquid-disconnect` cancels pending sign-in and forgets local session credentials. `/cancel`, Ctrl+K and quitting also cancel pending connection work. Provider-side consent is separate: revoke it in Liquid when desired.
+
+The implementation supports the standard endpoint `https://coinvest.liquid.trade/mcp`. Co-Invest Computer is not an implemented alternative. OAuth metadata changes, unsupported public-client registration, unconfirmed/additional token scopes, an unbounded/expired token, incompatible protocol negotiation and malformed/repeated catalog pages fail explicitly. There is no trade-scope fallback.
+
+Tokens, client-registration responses, authorization codes and refresh tokens are not persisted. The short-lived access token remains in memory until disconnect or process exit; expiry blocks use and requires disconnect/reconnection. Local forgetting is not a cryptographic memory-wipe guarantee or provider-side revocation. Active connector credentials are rejected from chat, research proposals and source storage without copying them into the source store's retained secret list. Provider response/error bodies and callback queries are not recorded in conversation logs or reports.
+
+## Verified evidence
+
+- Public checks on October 18, 2026: both documented standard/Computer endpoints returned HTTP 401 with their protected-resource metadata location. Their public metadata advertised `read`/`trade`, PKCE S256, authorization-code flow and public-client authentication. This is advertised capability, not account permission verification.
+- The production standard-client discovery and registration path accepted a public loopback client and generated a valid read-scope/resource-bound authorization URL. The acceptance run deliberately stopped before browser sign-in; no code/token exchange, account access, provider tool or order occurred.
+- Local fixtures cover PKCE/resource/state binding, same-origin metadata, redirects/failures, scope/expiry rejection, cancellation, paginated catalogs, protocol negotiation and SSE streams that remain open after returning a result. A real localhost listener test exercises wrong host/path/state/issuer, duplicate parameters and one-use callback behavior.
+- The full regression suite passed **659 tests with zero skips**, including the pinned native-engine checks (33 upstream Pandas deprecation warnings). The focused TUI run passed 45 tests. Built wheel/sdist checks confirmed source/CSS equality, configured-credential exclusion and private-state exclusion. The packaged fixture flow and keyboard scrolling passed at 180 × 48 and 45 × 12; both views were visually inspected. Fixtures never prove an actual Liquid account, paper mode, quote semantics or order behavior.
+
+## Required next verification
+
+Complete a real browser consent flow, verify the actually granted read scope, then inspect the provider's actual tool schemas before selecting any read operation. Verify provider account identity and environment explicitly. OAuth success/catalog access alone must not mark an account as verified, claim a feed entitlement, activate a personal instance or expose trading controls.
+
+The persistent paper runtime, native adapter, per-strategy mandate/budget/risk controls, authoritative order ledger, partial-fill attribution, restart/reconciliation, sustained-feed checks and keep/close exit behavior remain pending in the [full Phase 3–5 acceptance ledger](phase3-5.md). The existing native streaming/liquidity probe uses authored fixtures and is not that production runtime.
+
+Protocol references: [MCP authorization](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization), [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports), [initialization lifecycle](https://modelcontextprotocol.io/specification/2025-06-18/basic/lifecycle). The client negotiates the explicit `2025-06-18` protocol and rejects an unsupported negotiated version.

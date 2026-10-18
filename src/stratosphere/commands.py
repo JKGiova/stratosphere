@@ -13,6 +13,9 @@ PANELS = {
 }
 HELP = """/help — Show commands
 /data [provider-profile] [purpose] — Inspect data capabilities and unresolved requirements
+/liquid — Check public connection metadata; no account or tool access
+/liquid-connect — Open browser for read-only MCP catalog authorization
+/liquid-disconnect — Cancel connection and forget session credentials
 /source <url> [github-ref] — Acquire a read-only source snapshot; inspect access limits
 /sources — List retained source attempts
 /source-show <source-id> — Inspect a retained source snapshot online
@@ -53,6 +56,12 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name in {"/liquid", "/liquid-connect", "/liquid-disconnect"}:
+        return (
+            Command(name[1:])
+            if len(words) == 1
+            else Command("message", "Liquid commands take no arguments; never paste credentials.")
+        )
     if name == "/data":
         return (
             Command("data", args=tuple(words[1:]))

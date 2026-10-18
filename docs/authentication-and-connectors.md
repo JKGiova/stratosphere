@@ -132,3 +132,7 @@ Liquid is the first operational connector; Alpaca follows later. The product sho
 ## Scheduling correction
 
 The user deferred login discussion, configuration and implementation to later roadmap work. Preserve Supabase Auth, Google/GitHub providers and browser-hosted login as final-product decisions. Current core development does not require choosing a login domain or configuring providers. Verified auth/ownership remains required before exposing a shared-user service.
+
+## Liquid paper testing increment
+
+The user selected Liquid paper mode for the first real-feed test. The TUI now implements public metadata checks and a memory-only, browser-authorized **read-scope MCP catalog connection**, separate from deferred Supabase application login. It invokes no provider tools, does not verify account identity/paper mode and cannot submit an order. Public discovery/registration was exercised; actual account consent and paper capability remain unverified. See [Liquid paper testing](liquid-paper-testing.md) for commands, evidence and the required paper-isolation checks.

@@ -60,6 +60,7 @@ Last updated: October 17, 2026. Product decisions and Phase 0 implementation sel
 | D52 | Proceed with Phases 3, 4 and 5; use local Ollama testing where useful | Preserve the full iteration/recommendation, source/data and live-data/paper scope in the [acceptance ledger](phase3-5.md). This does not authorize Phase 6 live orders or billing |
 | D53 | The orchestrator bridges the user to one AI agent per strategy; agents analyze, use the database, test and report; replace Session with Reports | Stable per-strategy identity and separate private contexts; shared validated operations retain exact-plan approval and deterministic runtime gates. See [strategy agents](strategy-agents.md) |
 | D54 | Create a new Supabase organization named tradingsphere | Supersedes Matti Barbershop as the project target. The organization and stratosphere project were created on the quoted $0 allowance, retaining Frankfurt. The old unrelated project remains untouched |
+| D55 | Use Liquid paper mode for the first real-feed paper test | Confirmed after comparing Liquid, optional Alpaca Paper Only and authored local tests. This selects a testing route, not a verified account, funding instruction, trade-scope grant or live-order mandate; see [Liquid paper testing](liquid-paper-testing.md) |
 
 
 

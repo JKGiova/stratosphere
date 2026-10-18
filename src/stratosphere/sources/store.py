@@ -30,6 +30,7 @@ class SourceStore(ResearchStore):
     def __init__(self, root: Path, *, known_secrets=()):
         super().__init__(root)
         self.known_secrets = tuple(s for s in known_secrets if s)
+        self.session_secret_check = None
 
     def directory(self, source_id):
         if not re.fullmatch(r"[a-f0-9]{32}", source_id):
@@ -47,7 +48,9 @@ class SourceStore(ResearchStore):
         return super().read(source_id, name)
 
     def has_secret(self, content: bytes) -> bool:
-        return any(secret.encode() in content for secret in self.known_secrets)
+        return any(secret.encode() in content for secret in self.known_secrets) or bool(
+            self.session_secret_check and self.session_secret_check(content)
+        )
 
     def create(self, request: SourceRequest | SuppliedRequest):
         if self.has_secret(request.model_dump_json().encode()):

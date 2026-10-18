@@ -34,6 +34,7 @@ from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.catalog.contracts import AssessmentTarget
 from stratosphere.catalog.service import assessment_markdown, recommendations_markdown
 from stratosphere.commands import PANELS, route_command
+from stratosphere.connectors.liquid import LiquidConnection
 from stratosphere.market_data.routing import capabilities_markdown
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
@@ -287,6 +288,7 @@ class StratosphereApp(App[None]):
         research_service=None,
         study_service=None,
         source_service=None,
+        liquid_connection=None,
     ):
         super().__init__()
         self.console.push_theme(
@@ -306,6 +308,8 @@ class StratosphereApp(App[None]):
             )
         )
         self.provider_factory = provider_factory
+        self.liquid = liquid_connection or LiquidConnection()
+        self.liquid_worker: Worker | None = None
         self.settings: ModelSettings | None = None
         self.session: Orchestrator | None = None
         self.response_worker: Worker | None = None
@@ -322,6 +326,7 @@ class StratosphereApp(App[None]):
             SourceStore(self.research.store.root / "sources"),
             online_check=self.research.require_online,
         )
+        self.sources.store.session_secret_check = self.liquid.contains_credential
         self.source_conformance = ConformanceService(
             self.sources, ResearchStore(self.research.store.root / "source-conformance")
         )
@@ -673,9 +678,16 @@ class StratosphereApp(App[None]):
         text = event.value.strip()
         if not text:
             return
-        if self.settings and (key := self.settings.api_key.get_secret_value()) and key in text:
+        session_keys = []
+        if self.settings:
+            session_keys.append(self.settings.api_key.get_secret_value())
+        if any(key and key in text for key in session_keys) or self.liquid.contains_credential(
+            text.encode()
+        ):
             event.input.value = ""
-            await self.add_message("API key detected. Enter credentials only in /model.")
+            await self.add_message(
+                "Credential detected. Keep credentials out of chat and commands."
+            )
             return
         if text.startswith("/"):
             event.input.value = ""
@@ -684,6 +696,21 @@ class StratosphereApp(App[None]):
                 self.action_focus_pane("chat")
             if command.action in {"new", "study", "approve", "pause", "resume", "show", "report"}:
                 await self.handle_research_command(command.action, command.args)
+            elif command.action in {"liquid", "liquid-connect", "liquid-disconnect"}:
+                if command.action == "liquid-disconnect":
+                    if self.liquid_worker and not self.liquid_worker.is_finished:
+                        self.liquid_worker.cancel()
+                    self.liquid.disconnect()
+                    await self.add_message(
+                        "Liquid credentials forgotten for this process. Revoke provider consent "
+                        "separately in Liquid. No order was submitted."
+                    )
+                elif self.liquid_worker and not self.liquid_worker.is_finished:
+                    await self.add_message(
+                        "Liquid connection is running. Use /liquid-disconnect to cancel."
+                    )
+                else:
+                    self.liquid_worker = self.inspect_liquid(command.action == "liquid-connect")
             elif command.action == "data":
                 try:
                     await self.research.require_online()
@@ -765,6 +792,29 @@ class StratosphereApp(App[None]):
         event.input.value = ""
         await self.add_message(f"You: {text}")
         self.response_worker = self.generate_response(text)
+
+    @work(group="liquid", exclusive=True)
+    async def inspect_liquid(self, connect: bool):
+        try:
+            if connect:
+                await self.add_message(
+                    "Opening Liquid browser authorization for read-only catalog inspection. "
+                    "Approve only read access. No tool or order will be called. "
+                    "Use /liquid-disconnect to cancel; sign-in expires after four minutes."
+                )
+                text = await self.liquid.connect()
+            else:
+                await self.liquid.discover()
+                text = self.liquid.status_markdown()
+            view = self.query_one("#focus-body", VerticalScroll)
+            await view.remove_children()
+            await view.mount(Static(Markdown(safe_text(text), hyperlinks=False)))
+            self.action_select_view("focus")
+        except asyncio.CancelledError:
+            self.liquid.disconnect()
+            raise
+        except ResearchError as error:
+            await self.add_message(str(error))
 
     @work(group="chat", exclusive=True)
     async def generate_response(self, text: str) -> None:
@@ -1200,11 +1250,13 @@ class StratosphereApp(App[None]):
         form = self.research_form
         if not isinstance(form, StudyForm):
             return
-        if (
-            event.proposal
-            and self.settings
-            and (key := self.settings.api_key.get_secret_value())
-            and key in json.dumps(event.proposal)
+        if event.proposal and (
+            (
+                self.settings
+                and (key := self.settings.api_key.get_secret_value())
+                and key in json.dumps(event.proposal)
+            )
+            or self.liquid.contains_credential(json.dumps(event.proposal).encode())
         ):
             form.query_one("#study-error", Static).update(
                 "Remove credentials from the study proposal."
@@ -1246,10 +1298,9 @@ class StratosphereApp(App[None]):
 
     async def on_research_form_finished(self, event: ResearchForm.Finished) -> None:
         event.stop()
-        if (
-            event.source is not None
-            and (key := self.settings.api_key.get_secret_value())
-            and key in event.source
+        if event.source is not None and (
+            ((key := self.settings.api_key.get_secret_value()) and key in event.source)
+            or self.liquid.contains_credential(event.source.encode())
         ):
             self.research_form.query_one("#research-error", Static).update(
                 "API key detected. Remove credentials from the source; they were not saved or sent."
@@ -1506,13 +1557,14 @@ class StratosphereApp(App[None]):
 
         if self.active_research_service.active_job:
             self.active_research_service.stop_state = "paused"
-        for worker in (self.response_worker, self.research_worker):
+        for worker in (self.response_worker, self.research_worker, self.liquid_worker):
             if worker and not worker.is_finished:
                 worker.cancel()
                 try:
                     await worker.wait()
                 except WorkerCancelled, WorkerFailed:
                     pass
+        self.liquid.disconnect()
         self.exit()
 
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
@@ -1525,6 +1577,8 @@ class StratosphereApp(App[None]):
             self.update_status(self.request_state)
 
     def action_cancel_response(self) -> None:
+        if self.liquid_worker and not self.liquid_worker.is_finished:
+            self.liquid_worker.cancel()
         if self.research_busy:
             self.active_research_service.stop_state = "canceled"
             self.research_worker.cancel()

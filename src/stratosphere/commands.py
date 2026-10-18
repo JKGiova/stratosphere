@@ -23,6 +23,9 @@ HELP = """/help — Show commands
 /source-file <path> — Retain an explicit UTF-8 file; quote paths containing spaces
 /conformance <source-id> [market symbol seconds chart-type properties] — Check conversion gaps
 /conformance-show <assessment-id> — Inspect a retained conversion assessment
+/source-review <source-id> [strategy-id] — Ask that strategy's agent to review source evidence
+/source-reviews — List retained source-review attempts
+/source-review-show <review-id> — Inspect a verified source review
 /new [text] — Draft a supported research plan in chat
 /study [parent-job-id] — Review a bounded SMA experiment with a separate final holdout
 /assess [market symbol interval-seconds] — Record dated applicability for the selected agent
@@ -81,6 +84,9 @@ def route_command(text: str) -> Command:
         "/source-file",
         "/conformance",
         "/conformance-show",
+        "/source-review",
+        "/source-reviews",
+        "/source-review-show",
     }:
         try:
             source_words = shlex.split(text)
@@ -93,6 +99,9 @@ def route_command(text: str) -> Command:
             "/source-file": {2},
             "/conformance": {2, 7},
             "/conformance-show": {2},
+            "/source-review": {2, 3},
+            "/source-reviews": {1},
+            "/source-review-show": {2},
         }
         if len(source_words) in arity[name]:
             return Command(name[1:], args=tuple(source_words[1:]))

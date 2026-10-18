@@ -83,6 +83,15 @@ CREATE TABLE IF NOT EXISTS reports (
  job_id TEXT NOT NULL UNIQUE, report_json TEXT NOT NULL, created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS reports_strategy ON reports(strategy_id,created_at);
+CREATE TABLE IF NOT EXISTS source_reviews (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL, reviewed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS source_reviews_strategy ON source_reviews(strategy_id,reviewed_at);
+CREATE TRIGGER IF NOT EXISTS immutable_source_review BEFORE UPDATE ON source_reviews
+BEGIN SELECT RAISE(ABORT, 'Source reviews are immutable'); END;
+CREATE TRIGGER IF NOT EXISTS retain_source_review BEFORE DELETE ON source_reviews
+BEGIN SELECT RAISE(ABORT, 'Source reviews are retained evidence'); END;
 CREATE TABLE IF NOT EXISTS assessments (
  id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
  payload TEXT NOT NULL, assessed_at TEXT NOT NULL
@@ -383,6 +392,77 @@ class WorkspaceDatabase:
         with self.connect() as db:
             row = self._strategy(db, public_id)
             db.execute("DELETE FROM agent_turns WHERE strategy_id=?", (row["id"],))
+
+    def record_source_review(self, public_id: str, review: dict):
+        from stratosphere.sources.review import SourceReview
+
+        value = SourceReview.model_validate(review)
+        payload = encoded(value.model_dump(mode="json"))
+        with self.connect() as db:
+            strategy = self._strategy(db, public_id)
+            if value.strategy_id != public_id or value.strategy_sha256 != strategy["spec_sha256"]:
+                raise RegistryError("A source review must belong to its exact strategy identity.")
+            old = db.execute("SELECT * FROM source_reviews WHERE id=?", (value.id,)).fetchone()
+            if old:
+                if old["strategy_id"] != strategy["id"] or old["payload"] != payload:
+                    raise RegistryError("An immutable source review cannot be replaced.")
+                return
+            db.execute(
+                "INSERT INTO source_reviews VALUES (?,?,?,?,?)",
+                (
+                    value.id,
+                    strategy["id"],
+                    payload,
+                    hashlib.sha256(payload.encode()).hexdigest(),
+                    value.reviewed_at.isoformat(),
+                ),
+            )
+
+    @staticmethod
+    def _source_review(row):
+        from stratosphere.sources.review import SourceReview
+
+        if hashlib.sha256(row["payload"].encode()).hexdigest() != row["payload_sha256"]:
+            raise RegistryError("Retained source review failed its integrity check.")
+        value = SourceReview.model_validate_json(row["payload"])
+        if (
+            value.id != row["id"]
+            or value.reviewed_at.isoformat() != row["reviewed_at"]
+            or value.strategy_id != row["public_id"]
+            or value.strategy_sha256 != row["spec_sha256"]
+        ):
+            raise RegistryError("Retained source review has an invalid strategy owner.")
+        return {
+            "id": value.id,
+            "name": row["name"],
+            "strategy_id": value.strategy_id,
+            "reviewed_at": value.reviewed_at.isoformat(),
+            "review": value.model_dump(mode="json"),
+        }
+
+    def source_reviews(self, public_id=None):
+        with self.connect() as db:
+            if public_id:
+                self._strategy(db, public_id)
+            rows = db.execute(
+                "SELECT r.*,s.public_id,s.spec_sha256,s.name FROM source_reviews r "
+                "JOIN strategies s ON s.id=r.strategy_id "
+                + ("WHERE s.public_id=? " if public_id else "")
+                + "ORDER BY r.reviewed_at,r.id",
+                (public_id,) if public_id else (),
+            )
+            return [self._source_review(row) for row in rows]
+
+    def source_review(self, identity, *, strategy_id=None):
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT r.*,s.public_id,s.spec_sha256,s.name FROM source_reviews r "
+                "JOIN strategies s ON s.id=r.strategy_id WHERE r.id=?",
+                (identity,),
+            ).fetchone()
+            if row is None or (strategy_id and row["public_id"] != strategy_id):
+                raise RegistryError("That source review is unavailable for this strategy.")
+            return self._source_review(row)
 
     def operation(self, public_id: str, action: str, *, job_id=None) -> str:
         with self.connect() as db:

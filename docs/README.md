@@ -53,3 +53,5 @@ See [dated applicability](phase3-applicability.md) for exact-variant evidence, c
 See [Liquid paper testing](liquid-paper-testing.md) for the selected test route, read-only browser connection and the remaining account/paper verification. Connecting the catalog does not activate trading or implement a paper adapter.
 
 See [authored-paper ledger](phase5-paper-ledger.md) for internal durable reservations, virtual attribution and native currency checks. The production feed/runtime and operational paper gateway remain pending.
+
+See [source reviews](source-reviews.md) for specialist review of retained snapshots, exact quote references and private Reports integration. This does not enable converted execution or testing of extracted rules.

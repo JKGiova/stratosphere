@@ -8,7 +8,7 @@ The user can supply strategy ideas and external sources, inspect recommendations
 
 ## Current implementation
 
-[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. The [first Phase 2 increment](phase2.md) adds local research plans, approved native backtests, job controls and reports from pasted text. The strategy-agent/local-registry foundation and bounded study controls are implemented; hosted registry synchronization, external source adapters and trading connections remain unimplemented. The command vocabulary below describes the wider planned interface; implemented commands are listed in phase1.md and phase2.md.
+[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. The [first Phase 2 increment](phase2.md) adds local research plans, approved native backtests, job controls and reports from pasted text. The strategy-agent/local-registry foundation and bounded study controls are implemented; hosted registry synchronization and trading execution remain unimplemented. Limited [source readers](phase4-sources.md) and a read-only [Liquid connection](liquid-paper-testing.md) are implemented within their stated limits. The command vocabulary below describes the wider planned interface; implemented commands are listed in phase1.md and phase2.md.
 
 ### Workspace layout and navigation
 
@@ -142,3 +142,7 @@ Login implementation is deferred to later pre-release work; preserve it in the f
 ## Dated applicability interaction
 
 `/assess` records applicability for the selected agent’s fixed target; `/assess <market> <symbol> <seconds>` makes the target explicit. `/recommend <market> <symbol> <seconds>` delegates local candidates to their own agents, without a P&L ranking or model call. `/assessment <digest>` opens the retained dated snapshot in Reports. Natural-language routes use the same operations. Missing current context remains explicit; viewing an old snapshot does not make it current. See [scope and verification](phase3-applicability.md).
+
+## Source reviews
+
+`/source-review <source-id> [strategy-id]` delegates a retained snapshot to the selected or named registered strategy specialist. Explicit chat review requests reach the same operation. `/source-reviews` lists attempt states; `/source-review-show <review-id>` opens a verified completed report in Focus. Reports lists completed source reviews alongside research evidence. Page Down/Page Up from the Reports panel enters its scrollable report body; Focus supports the same keys. These controls work in the single-panel small-terminal layout. See [source-review workflow and limits](source-reviews.md).

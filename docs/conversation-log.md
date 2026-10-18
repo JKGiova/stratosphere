@@ -3399,3 +3399,85 @@ I added the paper-ledger foundation: cash reservations, accounting for partial f
 Code, documentation, AGENTS.md and this conversation log are pushed. Liquid feed/order verification remains pending; the separate diagnostic sign-in timed out.
 
 ---
+
+### 353 — Assistant (progress update)
+
+I’m checking the remaining Phase 3–5 requirements against the current code. Next I’ll connect source evidence to the strategy-agent workflow, so agents can use acquired material through the same validated operations as slash commands.
+
+---
+
+### 354 — Assistant (progress update)
+
+Sources are currently inspectable in Focus, but strategy agents cannot yet review them or retain a source report. I’m adding that path with verified snapshot references and exact quote spans. Each review will distinguish source material from the model’s interpretation; it will not approve conversion or testing.
+
+---
+
+### 355 — Assistant (progress update)
+
+The review path is wired into each strategy agent and Reports. The application resolves quote locations, so the model only selects source text. I’m testing ownership isolation, invalid quotes, metadata-only sources, cancellation and natural-language routing.
+
+---
+
+### 356 — Assistant (progress update)
+
+The live Ollama check caught a routing error: it treated “review this source” as an applicability assessment. I’m making explicit source-review requests with a supplied source ID or URL route deterministically. The selected strategy agent will still use the model for the review itself.
+
+---
+
+### 357 — Assistant (progress update)
+
+Routing is corrected. The live model produced a valid questions-only report, which verifies storage and history isolation but not quote grounding. I’m testing a review with at least one actual source finding before calling the full path verified.
+
+---
+
+### 358 — Assistant (progress update)
+
+The model sometimes returned an empty review, which validation correctly rejected. I’ve made the required source finding explicit in the generation schema as well. I’m rerunning the two-strategy check and retaining the failed attempts.
+
+---
+
+### 359 — Assistant (progress update)
+
+The grounded review check passed for two agents. A later provenance helper change used the wrong input type and failed the focused tests. I’ve corrected it and am rerunning verification before publishing.
+
+---
+
+### 360 — Assistant (progress update)
+
+The source-review path is in place. I’m checking the final validation changes with local Ollama, then verifying the package and responsive Reports panel before publishing this increment.
+
+---
+
+### 361 — Assistant (progress update)
+
+The latest Ollama run quoted text that wasn’t in the supplied material. Validation rejected it and left the attempt recorded without publishing a report. I’m checking that response and trying the other installed local model; no conversion or test can start from these reviews.
+
+---
+
+### 362 — Assistant (progress update)
+
+Both models mixed strategy notes into source quotes; one also confused quote occurrence with finding order. Those outputs were rejected. I’ve clarified both points in the prompt. The built-package check passed for chat, slash commands and scrolling at 45×12; I’ll repeat it after this prompt change.
+
+---
+
+### 363 — Assistant (progress update)
+
+The package and small-terminal inspection checks passed. The final live checks still produced invalid quotes with both installed models, so this remains an experimental review workflow; those attempts published no report. I’ll document that limitation alongside the regression results.
+
+---
+
+### 364 — Assistant (progress update)
+
+All 746 local tests passed, and package inspection passed at 180×48 and 45×12. I’m publishing the code, documentation and conversation log with CI skipped. The local-model quoting limitation remains explicit, and Phases 3–5 remain in progress.
+
+---
+
+### 365 — Assistant
+
+Added experimental strategy-owned source reviews through chat and `/source-review`, with exact quote checks and Reports integration.
+
+**746 tests passed**, plus package and responsive UI checks. Both local models produced invalid quotes in final live checks; those attempts were rejected. Reliable model extraction remains unfinished.
+
+Pushed code, docs, AGENTS.md and the conversation log to the private repo. Liquid feed/paper execution and the full Phase 3–5 scope remain pending.
+
+---

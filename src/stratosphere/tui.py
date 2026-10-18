@@ -14,7 +14,7 @@ from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
-from textual.events import DescendantFocus, Resize
+from textual.events import DescendantFocus, Key, Resize
 from textual.message import Message
 from textual.theme import Theme
 from textual.widgets import (
@@ -55,6 +55,7 @@ from stratosphere.research.widgets import ResearchForm, ResearchReview
 from stratosphere.sources.conformance import ConformanceService, conformance_markdown
 from stratosphere.sources.contracts import SourceRequest, SuppliedRequest
 from stratosphere.sources.pine import PineChartContext
+from stratosphere.sources.review import review_markdown
 from stratosphere.sources.service import SourceService, source_markdown
 from stratosphere.sources.store import SourceStore
 from stratosphere.studies.reporting import protocol_markdown
@@ -262,6 +263,17 @@ class WorkspacePane(Vertical):
 
     can_focus = True
 
+    def on_key(self, event: Key):
+        if self.id == "reports-pane" and self.has_focus and event.key in {"pagedown", "pageup"}:
+            body = self.query_one("#report-body", VerticalScroll)
+            body.focus()
+            if event.key == "pagedown":
+                body.action_page_down()
+            else:
+                body.action_page_up()
+            event.stop()
+            event.prevent_default()
+
 
 class StratosphereApp(App[None]):
     TITLE = "stratosphere"
@@ -318,15 +330,16 @@ class StratosphereApp(App[None]):
         self.studies = study_service or StudyService(
             StudyStore(self.research.store.root / "studies"), self.database
         )
-        self.workspace_bridge = Orchestrator(
-            None, self.database, self.research, studies=self.studies
-        )
-        self.assessments = self.workspace_bridge.assessments
         self.sources = source_service or SourceService(
             SourceStore(self.research.store.root / "sources"),
             online_check=self.research.require_online,
         )
-        self.sources.store.session_secret_check = self.liquid.contains_credential
+        self.sources.store.session_secret_check = self.contains_session_credential
+        self.workspace_bridge = Orchestrator(
+            None, self.database, self.research, studies=self.studies, sources=self.sources
+        )
+        self.assessments = self.workspace_bridge.assessments
+        self.source_reviews = self.workspace_bridge.source_reviews
         self.source_conformance = ConformanceService(
             self.sources, ResearchStore(self.research.store.root / "source-conformance")
         )
@@ -652,6 +665,7 @@ class StratosphereApp(App[None]):
                 f"{event.settings.provider}/{event.settings.model}",
                 studies=self.studies,
                 assessments=self.assessments,
+                sources=self.sources,
             )
             self.session.sync_research()
             self.update_status("MODEL SET · NOT YET VERIFIED")
@@ -672,18 +686,28 @@ class StratosphereApp(App[None]):
         view.scroll_end(animate=False)
         return message
 
+    def contains_session_credential(self, content: bytes) -> bool:
+        if self.liquid.contains_credential(content):
+            return True
+        if (
+            self.settings
+            and (key := self.settings.api_key.get_secret_value())
+            and key.encode() in content
+        ):
+            return True
+        return any(
+            key.encode() in content
+            for name in set(KEY_ENVIRONMENTS.values())
+            if (key := os.getenv(name))
+        )
+
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "prompt":
             return
         text = event.value.strip()
         if not text:
             return
-        session_keys = []
-        if self.settings:
-            session_keys.append(self.settings.api_key.get_secret_value())
-        if any(key and key in text for key in session_keys) or self.liquid.contains_credential(
-            text.encode()
-        ):
+        if self.contains_session_credential(text.encode()):
             event.input.value = ""
             await self.add_message(
                 "Credential detected. Keep credentials out of chat and commands."
@@ -723,6 +747,8 @@ class StratosphereApp(App[None]):
                     await self.add_message(str(error))
                 except ValueError:
                     await self.add_message("Use a listed data profile and purpose; inspect /data.")
+            elif command.action in {"source-review", "source-reviews", "source-review-show"}:
+                await self.handle_source_review_command(command.action, command.args)
             elif command.action in {"assess", "recommend", "assessment"}:
                 await self.handle_assessment_command(command.action, command.args)
             elif command.action in {
@@ -854,6 +880,10 @@ class StratosphereApp(App[None]):
                 await self.open_report_panel(action["job_id"])
             elif action and action["action"] == "assessment":
                 await self.open_report_panel("assessment:" + action["id"])
+            elif action and action["action"] == "source_review":
+                await self.open_report_panel("source-review:" + action["id"])
+            elif action and action["action"] == "source":
+                await self.show_source(await self.sources.open(action["id"]), focus=False)
             self.refresh_research_views()
         except asyncio.CancelledError:
             bubble.update_reply(
@@ -933,6 +963,13 @@ class StratosphereApp(App[None]):
                 "Assess " + record["id"][:10],
                 record["assessed_at"][:16],
                 key="assessment:" + record["id"],
+            )
+        for record in self.database.source_reviews():
+            reports.add_row(
+                Text(safe_text(record["name"])),
+                "Source " + record["id"][:10],
+                record["reviewed_at"][:16],
+                key="source-review:" + record["id"],
             )
         self.size_report_list()
         self.select_report_row()
@@ -1057,6 +1094,81 @@ class StratosphereApp(App[None]):
                 "Check the full job ID, approval hash and job state. "
                 "Use /jobs or /show <job-id>; a running operation must be paused or canceled first."
             )
+
+    async def handle_source_review_command(self, action, args):
+        try:
+            await self.sources.require_online()
+            if action == "source-review-show":
+                value = await self.source_reviews.open(args[0])
+                snapshot = self.sources.store.snapshot(value.source_id)
+                view = self.query_one("#focus-body", VerticalScroll)
+                await view.remove_children()
+                await view.mount(
+                    Static(Markdown(safe_text(review_markdown(value, snapshot)), hyperlinks=False))
+                )
+                self.action_select_view("focus")
+            elif action == "source-reviews":
+                lines = ["# Source-review attempts", "Completed reviews are also in Reports."]
+                for identity in self.source_reviews.store.jobs():
+                    try:
+                        state = self.source_reviews.store.state(identity)
+                        if state not in {"analyzing", "completed", "canceled", "failed"}:
+                            state = "damaged"
+                        if state == "completed":
+                            self.database.source_review(identity)
+                    except ResearchError, OSError, ValueError:
+                        state = "incomplete or unpublished"
+                    lines.append(f"- `{identity}` · {state}")
+                await self.add_research_markdown("\n\n".join(lines), "Source reviews:")
+            else:
+                if not self.session:
+                    raise ResearchError(
+                        "Configure a model with /model and select a strategy first."
+                    )
+                if self.research_busy or (
+                    self.response_worker and not self.response_worker.is_finished
+                ):
+                    raise ResearchError(
+                        "Pause or cancel the current operation before a source review."
+                    )
+                target = args[1] if len(args) == 2 else self.session.active_strategy
+                if target is None:
+                    raise ResearchError(
+                        "Select a strategy with /agent or give its full strategy ID."
+                    )
+                self.session.select(target)
+                self.research_worker = self.run_source_review(target, args[0])
+        except ResearchError as error:
+            await self.add_message(str(error))
+        except ValueError, OSError:
+            await self.add_message("The retained source review could not be verified.")
+
+    @work(group="research", exclusive=True)
+    async def run_source_review(self, target, source_id):
+        self.update_status("REVIEWING SOURCE")
+        try:
+            value = await self.session.agent(target).review_source(
+                source_id, f"Review retained source {source_id} for strategy {target}."
+            )
+            self.refresh_research_views()
+            await self.open_report_panel("source-review:" + value.id, focus=False)
+            await self.add_message(
+                f"Source review {value.id} · strategy {target}. "
+                f"Open /source-review-show {value.id} "
+                "for quote references and questions. Interpretations are unverified; no test ran."
+            )
+            self.update_status("READY")
+        except asyncio.CancelledError:
+            self.update_status("CANCELED")
+            raise
+        except (ResearchError, ModelError) as error:
+            await self.add_message(str(error))
+            self.update_status("SOURCE REVIEW FAILED")
+        except ValueError, OSError:
+            await self.add_message(
+                "The source review failed; no complete report or test was created."
+            )
+            self.update_status("SOURCE REVIEW FAILED")
 
     async def handle_source_command(self, action, args):
         try:
@@ -1250,14 +1362,7 @@ class StratosphereApp(App[None]):
         form = self.research_form
         if not isinstance(form, StudyForm):
             return
-        if event.proposal and (
-            (
-                self.settings
-                and (key := self.settings.api_key.get_secret_value())
-                and key in json.dumps(event.proposal)
-            )
-            or self.liquid.contains_credential(json.dumps(event.proposal).encode())
-        ):
+        if event.proposal and self.contains_session_credential(json.dumps(event.proposal).encode()):
             form.query_one("#study-error", Static).update(
                 "Remove credentials from the study proposal."
             )
@@ -1298,10 +1403,7 @@ class StratosphereApp(App[None]):
 
     async def on_research_form_finished(self, event: ResearchForm.Finished) -> None:
         event.stop()
-        if event.source is not None and (
-            ((key := self.settings.api_key.get_secret_value()) and key in event.source)
-            or self.liquid.contains_credential(event.source.encode())
-        ):
+        if event.source is not None and self.contains_session_credential(event.source.encode()):
             self.research_form.query_one("#research-error", Static).update(
                 "API key detected. Remove credentials from the source; they were not saved or sent."
             )
@@ -1502,6 +1604,18 @@ class StratosphereApp(App[None]):
         self.action_select_view("focus")
 
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
+        if job_id.startswith("source-review:"):
+            value = await self.source_reviews.open(job_id.removeprefix("source-review:"))
+            self.selected_report_key = job_id
+            self.select_report_row()
+            snapshot = self.sources.store.snapshot(value.source_id)
+            self.query_one("#report-preview", Static).update(
+                Markdown(safe_text(review_markdown(value, snapshot)), hyperlinks=False)
+            )
+            self.query_one("#reports-empty").display = False
+            if focus:
+                self.action_select_view("reports")
+            return
         if job_id.startswith("assessment:"):
             record = await self.assessments.open(job_id.removeprefix("assessment:"))
             self.selected_report_key = job_id

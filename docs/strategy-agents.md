@@ -27,3 +27,5 @@ The foundation's final local suite passed **403 tests with zero skips**, includi
 ## Source-review operations
 
 A specialist can now review an acquired snapshot through chat or `/source-review <source-id> [strategy-id]`. Exact quotes and immutable snapshot references are validated by the application; completed private reports appear in Reports. Only the owning agent’s latest verified reviews enter later analysis context. Failed/canceled requests retain attempts without partial conversation turns. This compares material against an existing registered strategy and does not register, convert, approve or test extracted rules. See [source-review evidence and limits](source-reviews.md).
+
+Source reviews now use numbered application-owned passages. Agents select evidence references; application code constructs and verifies exact quotes. An accepted citation does not verify the interpretation. Historical reports retain their original spans and hashes; see [passage protocol and verification](source-reviews.md).

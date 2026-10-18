@@ -42,9 +42,7 @@ class ReviewProvider:
                         "category": "rule_candidate",
                         "interpretation": "The source mentions SMA periods; "
                         "entry/exit equivalence is unverified.",
-                        "piece_index": 0,
-                        "quote": "SMA 3/8.",
-                        "occurrence": 1,
+                        "evidence_index": 2,
                     }
                 ],
                 "questions": ["Which entry, exit and position sizing rules apply?"],
@@ -111,12 +109,12 @@ async def test_review_quotes_references_ownership_and_restart(reviews):
     [
         {"quote": "invented text"},
         {"quote": " "},
-        {"piece_index": 99},
-        {"piece_index": True},
-        {"piece_index": -1},
-        {"occurrence": 99},
-        {"occurrence": True},
-        {"occurrence": -1},
+        {"evidence_index": 99},
+        {"evidence_index": True},
+        {"evidence_index": -1},
+        {"evidence_index": "0"},
+        {"evidence_index": 1.5},
+        {"occurrence": 0},
         {"interpretation": ""},
         {"action": "approve"},
         {"execution": "ready"},
@@ -127,9 +125,7 @@ async def test_invalid_model_quotes_and_authority_are_retained_as_failed_attempt
     finding = {
         "category": "rule_candidate",
         "interpretation": "tentative",
-        "piece_index": 0,
-        "quote": "SMA 3/8.",
-        "occurrence": 0,
+        "evidence_index": 0,
     } | patch
     provider = ReviewProvider({"findings": [finding], "questions": []})
     with pytest.raises(ModelError):
@@ -298,8 +294,7 @@ async def test_credential_bearing_model_interpretation_is_not_saved(reviews):
                 {
                     "category": "assumption",
                     "interpretation": "hidden-fixture-key",
-                    "piece_index": 0,
-                    "quote": "SMA 3/8.",
+                    "evidence_index": 0,
                 }
             ],
             "questions": [],
@@ -483,8 +478,7 @@ async def test_a_valid_quote_with_an_empty_question_cannot_publish(reviews):
                 {
                     "category": "rule_candidate",
                     "interpretation": "Tentative observation",
-                    "piece_index": 0,
-                    "quote": "SMA 3/8.",
+                    "evidence_index": 0,
                 }
             ],
             "questions": [""],

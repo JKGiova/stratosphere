@@ -99,8 +99,7 @@ async def test_source_review_requires_selected_agent_and_invalid_evidence_leaves
                 {
                     "category": "rule_candidate",
                     "interpretation": "wrong",
-                    "piece_index": 0,
-                    "quote": "not in source",
+                    "evidence_index": 99,
                 }
             ],
             "questions": [],
@@ -124,6 +123,4 @@ async def test_source_review_requires_selected_agent_and_invalid_evidence_leaves
             and app.query_one("#reports", DataTable).row_count == 0
         )
         assert not app.research.store.jobs() and not app.database.history(identity["public_id"])
-        assert "absent from the selected material" in " ".join(
-            str(x.content) for x in app.query(Static)
-        )
+        assert "unavailable evidence passage" in " ".join(str(x.content) for x in app.query(Static))

@@ -3481,3 +3481,55 @@ Added experimental strategy-owned source reviews through chat and `/source-revie
 Pushed code, docs, AGENTS.md and the conversation log to the private repo. Liquid feed/paper execution and the full Phase 3–5 scope remain pending.
 
 ---
+
+### 366 — Assistant (progress update)
+
+I’m checking the next gaps in the Phase 3–5 workflow. First I’ll address the source-review failure: agents should select references to retained text, while the application constructs the quotes and locations.
+
+---
+
+### 367 — Assistant (progress update)
+
+The change is in progress: the model will choose numbered passages instead of copying quotes or counting repeated text. Every readable source character will remain available. Retained reports will keep their exact quote spans, and the model’s interpretation will still be marked as unverified.
+
+---
+
+### 368 — Assistant (progress update)
+
+The two-strategy check passed with Spark-X2.5: both agents selected rule passages, the quotes matched retained text, and their private contexts stayed separate. I’m checking the same workflow with the other installed model and completing the full regression suite.
+
+---
+
+### 369 — Assistant (progress update)
+
+Both installed models passed the two-strategy passage-selection check. The full suite also passed: **755 tests**, with no skips. Historical reports reopened without changing their bytes or hashes. I’m documenting these results and publishing the fix; source interpretation quality and executable conversion remain separate, unfinished work.
+
+---
+
+### 370 — Assistant (progress update)
+
+Reading the actual responses exposed a gap in that check: the 4B model returned a JSON fragment as a question, and several interpretations were inaccurate. The quote references were valid, but that doesn’t make the reports reliable. I’m adding validation to reject malformed questions and keeping content quality explicitly unverified.
+
+---
+
+### 371 — Assistant (progress update)
+
+I also found that blank lines were omitted from the passage table. I’m preserving them because they can matter inside code and quoted material. Whitespace-only passages will remain visible as context but cannot support a finding.
+
+---
+
+### 372 — Assistant (progress update)
+
+The final suite passed **759 tests**, including blank-line preservation and malformed-question rejection. I’m finishing the package check and publishing the changes. The model responses still show interpretation errors, so the documentation keeps the experimental status explicit.
+
+---
+
+### 373 — Assistant
+
+Source reviews now use application-owned passages, preserve blank lines and validate question formatting. Historical reports retain their hashes.
+
+**759 tests passed**, plus package checks. Local-model reference/isolation checks passed, but their interpretations still contain errors; reports remain experimental.
+
+Pushed code, docs, AGENTS.md and the conversation log to the private repo. Phases 3–5, including Liquid feed/paper execution, remain in progress.
+
+---

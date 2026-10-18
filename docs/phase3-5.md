@@ -50,6 +50,8 @@ The next local increment adds [bounded SMA studies](phase3-studies.md): explicit
 
 The [dated applicability increment](phase3-applicability.md) adds specialist-owned assessments, explicit rule/market/timeframe checks, exact selected-variant holdout attribution and stable-order local candidates. It passed 457 local tests with zero skips and a real two-request Ollama routing check. The private Supabase schema also protects dated snapshots, and its SQL ownership/immutability harness rolled back all fixtures; security advisors returned no findings. Actual current-market data and authenticated community recommendation remain unverified.
 
+The [source intake increment](phase4-sources.md) adds private immutable snapshots, pinned GitHub file integrity checks, limited YouTube/X/TradingView readers, explicit Instagram unavailability and supplied UTF-8 material. The regression run passed 525 tests with zero skips; the final source-only suite passed 69 checks after additional online/symlink checks. Public GitHub file acquisition, YouTube metadata, X fallback text and TradingView page metadata were exercised against actual endpoints. Instagram account access, complete media/Pine acquisition, source-to-plan conversion and strategy-agent intake remain unimplemented; the full Phase 4 items stay unchecked.
+
 ## Next implementation sequence
 
 1. Expand the bounded local study increment as required by the remaining ledger, including variants without a standalone parent research job and verified commercial data rights/provider routing.

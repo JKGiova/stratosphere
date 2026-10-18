@@ -3103,3 +3103,63 @@ Package inspection found another short-terminal issue: the report list could fil
 The packaged Reports view now keeps the selected assessment visible with room for its preview at 45 × 12. The responsive checks passed. I’m publishing the applicability checkpoint with CI skipped, then continuing with the five source adapters and data capability checks.
 
 ---
+
+### 308 — Assistant (progress update)
+
+The applicability checkpoint is verified on GitHub, and the repository remains private. I’m now checking the official source APIs and access limits so each adapter can distinguish acquired material from partial or unavailable content.
+
+---
+
+### 309 — Assistant (progress update)
+
+The APIs expose different material: YouTube’s official caption download needs edit permission, Instagram oEmbed needs a token, and TradingView separates page access from source-code visibility. I’m building snapshot records and explicit access states so metadata cannot be mistaken for a complete transcript or strategy.
+
+---
+
+### 310 — Assistant (progress update)
+
+The Supabase project and private database foundation are now in place. I’m continuing Phase 4 source intake, starting with provenance checks and tests so imported material stays traceable.
+
+---
+
+### 311 — Assistant (progress update)
+
+The snapshot tests caught an invalid YouTube ID in a test fixture; URL validation was behaving correctly. I’ve corrected the fixture and am adding a GitHub reader that pins files to a commit and verifies their blob hashes.
+
+---
+
+### 312 — Assistant (progress update)
+
+GitHub intake now verifies the selected file’s bytes against its commit-pinned blob identity and checks for symlinks and submodules. The other readers retain limited or unavailable states explicitly. I’m testing redirects, provider failures, cancellation and supplied text next.
+
+---
+
+### 313 — Assistant (progress update)
+
+The source checks now cover commit pinning, integrity failures, redirects, credential rejection and canceled attempts. I’m wiring snapshot acquisition and inspection into the TUI; these commands retain material without registering or testing it as a strategy.
+
+---
+
+### 314 — Assistant (progress update)
+
+All **65 source and TUI checks passed**. The commands preserve code as inspectable text, leave strategy and test records untouched, and work across the responsive layouts. I’m now checking real public endpoints, with those results recorded separately from fixture tests.
+
+---
+
+### 315 — Assistant (progress update)
+
+The live checks acquired a current official NautilusTrader file and verified its pinned blob. YouTube returned metadata and X returned fallback post text, both marked partial. An older example path returned 404 and was retained as a failed attempt. Instagram still reports the missing authorized-client requirement; it has not been verified against an account.
+
+---
+
+### 316 — Assistant (progress update)
+
+The full regression run passed **525 tests**, including the native-engine checks. The latest source-only changes also passed their focused suite. I’m checking the packaged source views before publishing this checkpoint, then continuing with evidence-bound conversion.
+
+---
+
+### 317 — Assistant (progress update)
+
+The packaged source view is usable at **45 × 12**, and distribution checks found no configured credentials or private state. I’m publishing the source-intake checkpoint with CI skipped. Complete media/Pine acquisition and behavioral conversion remain pending.
+
+---

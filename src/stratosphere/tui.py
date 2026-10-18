@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+from pathlib import Path
 
 from pydantic import SecretStr, ValidationError
 from rich.console import Group
@@ -48,6 +49,9 @@ from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
 from stratosphere.research.store import ResearchError, ResearchStore, default_research_root
 from stratosphere.research.widgets import ResearchForm, ResearchReview
+from stratosphere.sources.contracts import SourceRequest, SuppliedRequest
+from stratosphere.sources.service import SourceService, source_markdown
+from stratosphere.sources.store import SourceStore
 from stratosphere.studies.reporting import protocol_markdown
 from stratosphere.studies.service import StudyService
 from stratosphere.studies.store import StudyStore
@@ -273,7 +277,12 @@ class StratosphereApp(App[None]):
     ]
 
     def __init__(
-        self, *, provider_factory=create_provider, research_service=None, study_service=None
+        self,
+        *,
+        provider_factory=create_provider,
+        research_service=None,
+        study_service=None,
+        source_service=None,
     ):
         super().__init__()
         self.provider_factory = provider_factory
@@ -289,6 +298,10 @@ class StratosphereApp(App[None]):
             None, self.database, self.research, studies=self.studies
         )
         self.assessments = self.workspace_bridge.assessments
+        self.sources = source_service or SourceService(
+            SourceStore(self.research.store.root / "sources"),
+            online_check=self.research.require_online,
+        )
         self.research_worker: Worker | None = None
         self.research_job_id: str | None = None
         self.research_form: ResearchForm | StudyForm | None = None
@@ -648,6 +661,14 @@ class StratosphereApp(App[None]):
                 await self.handle_research_command(command.action, command.args)
             elif command.action in {"assess", "recommend", "assessment"}:
                 await self.handle_assessment_command(command.action, command.args)
+            elif command.action in {
+                "source",
+                "sources",
+                "source-show",
+                "source-text",
+                "source-file",
+            }:
+                await self.handle_source_command(command.action, command.args)
             elif command.action == "agent":
                 if not self.session:
                     await self.add_message("Configure a model with /model first.")
@@ -947,6 +968,96 @@ class StratosphereApp(App[None]):
                 "Check the full job ID, approval hash and job state. "
                 "Use /jobs or /show <job-id>; a running operation must be paused or canceled first."
             )
+
+    async def handle_source_command(self, action, args):
+        try:
+            if self.research_busy or (
+                self.response_worker and not self.response_worker.is_finished
+            ):
+                raise ResearchError("Pause or cancel the current operation before source intake.")
+            secrets = tuple(
+                value for name in set(KEY_ENVIRONMENTS.values()) if (value := os.getenv(name))
+            )
+            if self.settings and (key := self.settings.api_key.get_secret_value()):
+                secrets += (key,)
+            self.sources.store.known_secrets = tuple(
+                set(self.sources.store.known_secrets + secrets)
+            )
+            if action == "sources":
+                await self.sources.require_online()
+                lines = []
+                for source_id in self.sources.store.jobs():
+                    try:
+                        value = self.sources.store.snapshot(source_id)
+                        lines.append(f"`{source_id}` · {value.provider} · {value.access_state}")
+                    except ResearchError, ValueError, OSError:
+                        lines.append(
+                            f"`{source_id}` · incomplete or damaged; inspect local artifacts"
+                        )
+                await self.add_research_markdown(
+                    "\n\n".join(lines) or "No retained source attempts.", "Sources:"
+                )
+            elif action == "source-show":
+                await self.show_source(await self.sources.open(args[0]))
+            else:
+                # Validate before starting the background task; no model is needed.
+                if action == "source":
+                    SourceRequest(url=args[0], github_ref=args[1] if len(args) > 1 else None)
+                self.research_job_id = None
+                self.research_worker = self.acquire_source(action, args)
+        except ResearchError as error:
+            await self.add_message(str(error))
+        except ValueError, OSError:
+            await self.add_message("Source unavailable. Check the URL, explicit ref or file path.")
+
+    @work(group="research", exclusive=True)
+    async def acquire_source(self, action, args):
+        self.update_status("RESEARCH · Reading source")
+        try:
+            if action == "source":
+                value = await self.sources.acquire(
+                    SourceRequest(url=args[0], github_ref=args[1] if len(args) > 1 else None)
+                )
+            elif action == "source-file":
+                await self.sources.require_online()
+                path = Path(args[0]).expanduser()
+                if path.is_symlink() or not path.is_file():
+                    raise ResearchError(
+                        "Use an explicit regular UTF-8 file, not a link or directory."
+                    )
+                value = await self.sources.supply(
+                    SuppliedRequest(label=path.name),
+                    await asyncio.to_thread(path.read_bytes),
+                    kind="code" if path.suffix in {".py", ".pine"} else "text",
+                )
+            else:
+                value = await self.sources.supply(
+                    SuppliedRequest(label="Pasted source text"), args[0].encode()
+                )
+            await self.add_message(
+                f"Source {value.id} · {value.provider} · {value.access_state}. "
+                "Retained for inspection; conversion conformance is not verified. "
+                "No strategy was registered or test started."
+            )
+            await self.show_source(value, focus=False)
+            self.update_status("READY")
+        except asyncio.CancelledError:
+            await self.add_message("Source intake canceled; any retrieval attempt was retained.")
+            self.update_status("CANCELED")
+            raise
+        except ResearchError as error:
+            await self.add_message(str(error))
+            self.update_status("READY")
+        except ValueError, OSError:
+            await self.add_message("Source intake failed; check the source and retained attempt.")
+            self.update_status("READY")
+
+    async def show_source(self, value, *, focus=True):
+        view = self.query_one("#focus-body", VerticalScroll)
+        await view.remove_children()
+        await view.mount(Static(Markdown(safe_text(source_markdown(value)), hyperlinks=False)))
+        if focus:
+            self.action_select_view("focus")
 
     async def handle_assessment_command(self, action, args):
         try:

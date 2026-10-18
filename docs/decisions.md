@@ -123,3 +123,7 @@ October 17, 2026: the user authorized Phase 1. The first sequential increment im
 | ID | Selection | Verified scope / consequence |
 | --- | --- | --- |
 | I07 | First research profile: January 2025 archive, long-only fixed-quantity SMA template, base/doubled-cost pair, private local evidence and native subprocess | Engineering defaults and limitations are shown in each plan. Execution requires one exact-plan approval; no arbitrary generated-code execution, shared registration, broker/live integration or release is implied. See [Phase 2](phase2.md) |
+
+## Phase 4 source implementation increment
+
+Read-only source snapshots are separate from strategy registration, conversion and execution. Original/canonical URL, raw/request/snapshot digests, acquisition time, access state and precise material scope are retained. Metadata is excluded from behavioral evidence. Public GitHub files are resolved to an immutable commit and checked against Git tree/blob identity; acquired code is never imported or executed. Partial public readers and unimplemented authorized-provider paths remain labeled explicitly. Supplied material does not prove original-source completeness or behavioral conformance. See [source intake](phase4-sources.md) for verified operations, live endpoint results and remaining requirements; this increment does not complete Phase 4.

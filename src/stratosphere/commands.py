@@ -1,5 +1,6 @@
 """Deterministic slash-command routing without a model call."""
 
+import shlex
 from dataclasses import dataclass
 
 PANELS = {
@@ -11,6 +12,11 @@ PANELS = {
     ),
 }
 HELP = """/help — Show commands
+/source <url> [github-ref] — Acquire a read-only source snapshot; inspect access limits
+/sources — List retained source attempts
+/source-show <source-id> — Inspect a retained source snapshot online
+/source-text <text> — Retain supplied text as unverified source material
+/source-file <path> — Retain an explicit UTF-8 file; quote paths containing spaces
 /new [text] — Draft a supported research plan in chat
 /study [parent-job-id] — Review a bounded SMA experiment with a separate final holdout
 /assess [market symbol interval-seconds] — Record dated applicability for the selected agent
@@ -44,6 +50,21 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name == "/source-text":
+        return (
+            Command("source-text", args=(text.strip().split(maxsplit=1)[1],))
+            if len(words) > 1
+            else Command("message", "Usage: /source-text <text>")
+        )
+    if name in {"/source", "/sources", "/source-show", "/source-file"}:
+        try:
+            source_words = shlex.split(text)
+        except ValueError:
+            return Command("message", "Close quoted source arguments and retry.")
+        arity = {"/source": {2, 3}, "/sources": {1}, "/source-show": {2}, "/source-file": {2}}
+        if len(source_words) in arity[name]:
+            return Command(name[1:], args=tuple(source_words[1:]))
+        return Command("message", "Use /help for source command arguments.")
     if name == "/new":
         return Command("new", args=(text.strip().split(maxsplit=1)[1] if len(words) > 1 else "",))
     if name == "/agent" and len(words) <= 2:

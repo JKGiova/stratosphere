@@ -2819,3 +2819,23 @@ Implemented and pushed all 10 requested providers. Select one with `/model`; see
 GitHub CI remains blocked by the account billing restriction.
 
 ---
+
+### 263 — User
+
+why?
+
+---
+
+### 264 — Assistant (progress update)
+
+GitHub blocked the runners because it reports failed account payments or an Actions spending limit. The jobs never reached the code or tests.
+
+---
+
+### 265 — Assistant
+
+GitHub reports **failed account payments or an Actions spending limit**. It blocked the runners before any tests started; this is an account restriction.
+
+Check **GitHub → Settings → Billing & plans** for the repository owner, `JKGiova`. The error doesn’t identify which of those two causes applies. Locally, all **380 tests passed**.
+
+---

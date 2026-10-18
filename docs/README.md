@@ -2,7 +2,7 @@
 
 This directory contains the initial plan for **stratosphere**, the component of the **tradingsphere** suite dedicated to agent-driven quantitative strategies.
 
-**Status:** Phase 0 complete, October 14, 2026. [Compatibility and contract proofs](phase0.md) are verified within their stated limits; [Phase 1](phase1.md) is in progress with its first terminal/model-chat increment; [Phase 2](phase2.md) has begun with the reviewed BTC/USDT hourly SMA research workflow; Phases 3–7 remain unimplemented. The [decision log](decisions.md) separates product requirements, selected implementation decisions and open proposals. Detailed physical schema, production components and operational criteria remain implementation work.
+**Status:** Phase 0 complete, October 14, 2026. [Compatibility and contract proofs](phase0.md) are verified within their stated limits; [Phase 1](phase1.md) is in progress with its first terminal/model-chat increment; [Phase 2](phase2.md) has begun with the reviewed BTC/USDT hourly SMA research workflow; Phases 3–5 are in progress with strategy agents, the private database foundation and bounded local SMA studies; Phases 6–7 remain unimplemented. The [decision log](decisions.md) separates product requirements, selected implementation decisions and open proposals. Detailed physical schema, production components and operational criteria remain implementation work.
 
 ## Reading order
 
@@ -45,3 +45,5 @@ See [Phase 2 research progress](phase2.md) for implemented source/specification 
 See [model providers](model-providers.md) for all 12 adapters, credential environment variables, official/local API addresses and verification limits.
 
 See [strategy agents](strategy-agents.md) for orchestration/Reports and the [Phase 3–5 acceptance ledger](phase3-5.md) for the full authorized scope and remaining work.
+
+See [bounded studies](phase3-studies.md) for reviewed experiments, validation-only selection and holdout/exposure controls, and [data-source rights](data-source-rights.md) for the commercial dataset dependency.

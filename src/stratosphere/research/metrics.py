@@ -164,6 +164,10 @@ def build_report(
 
 
 def report_markdown(report: dict) -> str:
+    if report.get("schema_version") == "study-report/1":
+        from stratosphere.studies.reporting import study_markdown
+
+        return study_markdown(report)
     metric = report["metrics"]
     lines = [
         f"# {report['name']}",

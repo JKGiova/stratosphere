@@ -8,7 +8,7 @@ The user can supply strategy ideas and external sources, inspect recommendations
 
 ## Current implementation
 
-[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. The [first Phase 2 increment](phase2.md) adds local research plans, approved native backtests, job controls and reports from pasted text. Broad agent tools, registry/external source adapters and trading connections remain unimplemented. The command vocabulary below describes the wider planned interface; implemented commands are listed in phase1.md and phase2.md.
+[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. The [first Phase 2 increment](phase2.md) adds local research plans, approved native backtests, job controls and reports from pasted text. The strategy-agent/local-registry foundation and bounded study controls are implemented; hosted registry synchronization, external source adapters and trading connections remain unimplemented. The command vocabulary below describes the wider planned interface; implemented commands are listed in phase1.md and phase2.md.
 
 ### Workspace layout and navigation
 
@@ -50,7 +50,7 @@ Automatic maximization has been removed at the user’s request, superseding the
 
 Research form fields use ordinary Tab navigation, source Enter inserts a line, and Escape cancels. Model keys detected in source text are neither persisted nor sent. Source/code is analyzed as data, not executed. The native worker receives no model/service credentials. New simulations and resume always verify the pinned dataset online. Inspecting retained plans/reports through the app also checks online connectivity; retained audit files are not an offline application mode. Pausing/canceling remains available to stop local work.
 
-Real local drafts populate Library with their behavioral hash; they are not public registrations. Tests displays local job progress/results. Positions stays explicitly unknown without a verified account connection. Completed native results are retained separately from conversational model interpretation. Closing the TUI pauses an approved active research job and retains completed checkpoints; no trading exit policy is operational yet.
+Local complete drafts populate Library with stable strategy IDs and dedicated agents; they are not public registrations. Tests displays local job progress/results. Positions stays explicitly unknown without a verified account connection. Completed native results are retained separately from conversational model interpretation. Closing the TUI pauses an approved active research job and retains completed checkpoints; no trading exit policy is operational yet.
 
 ## Login and optional account setup
 
@@ -134,3 +134,7 @@ Login implementation is deferred to later pre-release work; preserve it in the f
 ## Strategy-agent and Reports increment
 
 [Strategy agents](strategy-agents.md) now route registered-strategy conversations to separate persistent specialist contexts, with `/agent` selection and the same exact-plan approval gates for tests. Reports replaces Session and lists actual completed reports; selecting a report reverifies retained artifact integrity and online availability. Model/request metadata moved to the status tooltip. Supabase is provisioned with a private tested schema, while the current TUI uses the local development registry until authenticated application-service synchronization exists. Broader Phase 3–5 work remains in progress.
+
+## Bounded study interaction
+
+`/study [parent-job-id]` opens an inline hypothesis/candidate/month/budget form. A natural-language experiment request can produce an editable specialist proposal first. Review freezes the protocol; approval and job controls use the same commands as research. Tests retains studies and Reports displays actual comparisons, all attempt states and final holdout status. See [study protocol and verification](phase3-studies.md). Source commercial rights and empirical performance remain separate from software test results.

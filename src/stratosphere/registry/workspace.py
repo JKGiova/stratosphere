@@ -87,6 +87,11 @@ CREATE TABLE IF NOT EXISTS assessments (
  id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
  payload TEXT NOT NULL, assessed_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS dataset_exposures (
+ url TEXT NOT NULL, study_id TEXT NOT NULL, role TEXT NOT NULL,
+ archive_sha256 TEXT NOT NULL, claimed_at TEXT NOT NULL,
+ PRIMARY KEY(url,study_id,role), CHECK(role IN ('development','holdout'))
+);
 """
 
 
@@ -385,7 +390,9 @@ class WorkspaceDatabase:
             )
             return operation_id
 
-    def finish_operation(self, operation_id: str, state: str, detail="") -> None:
+    def finish_operation(
+        self, operation_id: str, state: str, detail="", *, allow_recovery=False
+    ) -> None:
         if state not in {"completed", "failed", "canceled", "awaiting_approval"}:
             raise RegistryError("Unsupported operation outcome.")
         with self.connect() as db:
@@ -395,4 +402,35 @@ class WorkspaceDatabase:
                 (state, detail, now(), operation_id),
             )
             if cursor.rowcount != 1:
+                if allow_recovery:
+                    row = db.execute(
+                        "SELECT status FROM operations WHERE id=?", (operation_id,)
+                    ).fetchone()
+                    if row and row["status"] == state:
+                        return
                 raise RegistryError("Operation already finished or unavailable.")
+
+    def claim_dataset(self, url: str, digest: str, study_id: str, role: str) -> None:
+        """Claim before download; failed/canceled acquisition conservatively consumes exposure."""
+        if role not in {"development", "holdout"}:
+            raise RegistryError("Unsupported dataset exposure role.")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute("SELECT * FROM dataset_exposures WHERE url=?", (url,)).fetchall()
+            for row in rows:
+                if (row["study_id"], row["role"], row["archive_sha256"]) == (
+                    study_id,
+                    role,
+                    digest,
+                ):
+                    continue
+                if role == "holdout" or row["role"] == "holdout":
+                    raise RegistryError(
+                        "This monthly archive has prior local exposure. It cannot be reused "
+                        "as a final holdout or optimized after holdout consumption. "
+                        "Review a protocol with fresh chronological windows."
+                    )
+            db.execute(
+                "INSERT OR IGNORE INTO dataset_exposures VALUES (?,?,?,?,?)",
+                (url, study_id, role, digest, now()),
+            )

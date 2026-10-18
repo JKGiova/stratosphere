@@ -19,7 +19,7 @@ def native_plan(research_plan):
     return research_plan
 
 
-def oracle(plan, bars, multiplier=1):
+def oracle(plan, bars, multiplier=1, *, trade_start_ns=None):
     """Independent batch SMA and cash ledger; does not reuse production signal or quote code."""
     closes = [Fraction(bar.close) for bar in bars]
     fast, slow = plan.draft.fast_period, plan.draft.slow_period
@@ -60,7 +60,8 @@ def oracle(plan, bars, multiplier=1):
                 }
             )
             pending = None
-        if i - 1 in differences:
+        measured = trade_start_ns is None or bar.open_ns >= trade_start_ns
+        if i - 1 in differences and measured:
             previous, current = differences[i - 1], differences[i]
             if not base and previous <= 0 < current:
                 pending = "BUY", bar.close_ns
@@ -68,7 +69,8 @@ def oracle(plan, bars, multiplier=1):
                 pending = "SELL", bar.close_ns
             if pending:
                 signals.append({"side": pending[0], "signal_ns": pending[1]})
-        curve.append(cash + base * Decimal(bar.close))
+        if measured:
+            curve.append(cash + base * Decimal(bar.close))
     return signals, fills, curve, base, pending
 
 

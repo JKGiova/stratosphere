@@ -5,12 +5,17 @@ from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
 from importlib.metadata import version
 
 from stratosphere.phase0.signals import SmaCross
-from stratosphere.research.contracts import ENGINE_VERSION, MarketBar, ResearchPlan
+from stratosphere.research.contracts import (
+    ENGINE_VERSION,
+    MarketBar,
+    ResearchPlan,
+    SimulationPlan,
+)
 
 TICK = Decimal("0.00000001")
 
 
-def execution_quote(reference: str, plan: ResearchPlan, multiplier: int = 1):
+def execution_quote(reference: str, plan: ResearchPlan | SimulationPlan, multiplier: int = 1):
     half_spread = Decimal(plan.config.spread_bps) / 2
     impact = (half_spread + Decimal(plan.config.slippage_bps)) * multiplier / 10000
     price = Decimal(reference)
@@ -20,7 +25,13 @@ def execution_quote(reference: str, plan: ResearchPlan, multiplier: int = 1):
     )
 
 
-def run_simulation(plan: ResearchPlan, bars: tuple[MarketBar, ...], *, multiplier: int = 1) -> dict:
+def run_simulation(
+    plan: ResearchPlan | SimulationPlan,
+    bars: tuple[MarketBar, ...],
+    *,
+    multiplier: int = 1,
+    trade_start_ns: int | None = None,
+) -> dict:
     """No arbitrary user/model Python, broker credentials or live venue exists here."""
     if multiplier not in (1, 2):
         raise ValueError("Only approved base and doubled-cost runs are supported")
@@ -31,6 +42,9 @@ def run_simulation(plan: ResearchPlan, bars: tuple[MarketBar, ...], *, multiplie
     for previous, current in zip(bars, bars[1:], strict=False):
         if current.open_ns - previous.open_ns != 3600 * 10**9:
             raise ValueError("Missing, duplicate or unordered bars")
+    if trade_start_ns is not None and trade_start_ns not in {bar.open_ns for bar in bars}:
+        raise ValueError("Trading must start at an observed opening boundary")
+    measured_count = sum(trade_start_ns is None or bar.open_ns >= trade_start_ns for bar in bars)
     from nautilus_trader.backtest.engine import BacktestEngine
     from nautilus_trader.config import BacktestEngineConfig, LoggingConfig
     from nautilus_trader.model.currencies import BTC, USDT
@@ -98,6 +112,10 @@ def run_simulation(plan: ResearchPlan, bars: tuple[MarketBar, ...], *, multiplie
 
         def on_bar(self, bar):
             signal = self.cross.push(str(bar.close))
+            # Prior observations warm indicators only. Each measured window starts flat;
+            # a pre-window crossing cannot create an order at the first measured open.
+            if trade_start_ns is not None and bar.ts_event < trade_start_ns:
+                return
             if (signal == "BUY" and not self.held) or (signal == "SELL" and self.held):
                 self.signals.append({"side": signal, "signal_ns": bar.ts_event})
                 self.pending = signal, bar.ts_event
@@ -187,7 +205,7 @@ def run_simulation(plan: ResearchPlan, bars: tuple[MarketBar, ...], *, multiplie
         engine.run()
         if engine.cache.orders_open():
             raise RuntimeError("Unfilled native orders invalidate this full-fill simulation")
-        if len(strategy.curve) != len(bars):
+        if len(strategy.curve) != measured_count:
             raise RuntimeError("Native engine did not process every observation")
         balances = engine.cache.accounts()[0].balances_total()
         return {

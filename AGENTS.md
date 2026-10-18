@@ -35,3 +35,9 @@ The orchestrator bridges the user to strategy specialists. Each exact registered
 Strategy agents own analysis, evidence lookup, approved testing and measured reports through the same validated application operations as slash commands. Keep plan approval and deterministic runtime/risk gates outside model authority. Model output must not execute arbitrary SQL, imported code or live orders. Database service credentials must never reach the TUI, model prompts or native workers.
 
 Reports replaces the Session panel. Preserve responsive layout/navigation and inspectable, verified report artifacts. Use docs/phase3-5.md as the full acceptance ledger for the current goal; do not mark a phase complete around a narrower foundation. Local test results, real provider checks, hosted ownership checks and unverified integrations must remain distinguishable.
+
+## Reviewed experiments and market data
+
+Freeze each study's explicit hypothesis, candidates, costs, windows, selection rule, implementation and native-start budget before approval. Retain invalid, failed, interrupted and nonselected attempts. Select on development/validation evidence only; acquire final holdout prices after immutable selection. Do not silently retry consumed native slots or reuse a consumed holdout for optimization. Preserve local exposure claims across failure and restart; do not claim they prove data was unseen elsewhere.
+
+Keep market-data rights separate from technical access and code licensing. Binance Vision commercial rights are unverified and its published dataset terms require a separate commercial agreement; see docs/data-source-rights.md. Use authored fixtures for further software/native validation while commercial data entitlement is unresolved. Do not infer market performance from fixtures or transfer a selected variant's metrics to its parent or another strategy. Do not purchase data or enable paid capacity without user authorization.

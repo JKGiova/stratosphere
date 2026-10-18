@@ -93,3 +93,7 @@ Implementation commit `d7bf9932ea6c472e7cae57473603aa242febd6a7` is published in
 - Phase 1's shared registry, ownership/service integration and all five content-source adapters still require implementation and verification. Pasted source text does not fulfill those adapters.
 
 No release, source-adapter completion, profitability, paper/live integration or monetization readiness is claimed.
+
+## Subsequent study and data-rights increment
+
+The [bounded study workflow](phase3-studies.md) now compares explicit SMA period variants using reviewed windows, retained native attempts and a separate final holdout protocol. Single-plan research remains available. Changes to trusted native/worker/report code invalidate pending approvals and require a new plan review; previously completed sealed reports remain historical evidence. The [current Binance Vision dataset terms](data-source-rights.md) do not establish commercial data rights for stratosphere. Further software/native validation uses authored fixtures while that provider entitlement is unresolved.

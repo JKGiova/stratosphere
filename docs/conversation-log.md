@@ -2995,3 +2995,63 @@ The checkpoint passed **402 local tests**, including the native engine checks. S
 Final verification passed **403 local tests**, rebuilt-package checks and another live two-agent Ollama check. Strategy agents now own their test and report operations; the orchestrator routes requests to them. I’m publishing this checkpoint now, with the broader Phase 3–5 goal still active.
 
 ---
+
+### 290 — Assistant (progress update)
+
+The checkpoint is now on GitHub. The new Frankfurt Supabase project and private schema are verified; the TUI still uses local storage until the authenticated service is built. I’m continuing with bounded experiments: retained variants, validation-based selection, and a separate final holdout.
+
+---
+
+### 291 — Assistant (progress update)
+
+January’s existing 70/30 split cannot serve as an independent final holdout. The study plan will freeze candidates and selection rules before testing, acquire the separate holdout only after selection, and record local reuse so it cannot silently be treated as fresh evidence.
+
+---
+
+### 292 — Assistant (progress update)
+
+The protocol now fixes candidate periods, costs, run budget, selection criteria and monthly windows. I’m adding checkpoints for every attempt. Invalid variants will stay visible, interrupted runs will not be silently retried, and validation and holdout will each start flat with indicators warmed only on earlier bars.
+
+---
+
+### 293 — Assistant (progress update)
+
+The first study checks are running. They cover approval and budget enforcement, retained failed attempts, holdout reuse blocking, and pause/resume without duplicate execution. Next I’ll check the window resets against an independent SMA calculation and the pinned native engine.
+
+---
+
+### 294 — Assistant (progress update)
+
+The native window check matches the independent SMA/cash calculation. A full ten-run study also completed through the credential-free subprocesses. I’m connecting study review, execution and reports to the strategy agents and existing TUI controls.
+
+---
+
+### 295 — Assistant (progress update)
+
+I found a material data dependency: Binance’s current dataset terms restrict commercial integration and require a separate written license for commercial use. That matters for stratosphere’s monetization plan. I’ll keep further validation on authored fixtures; this archive cannot be treated as a commercial-ready data source. [Published terms](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md)
+
+---
+
+### 296 — Assistant (progress update)
+
+The TUI now supports `/study` review and study reports, and a strategy agent can draft an editable experiment proposal. I’m checking that workflow with local Ollama and fixing the integration regressions found by the tests.
+
+---
+
+### 297 — Assistant (progress update)
+
+The full local suite passed **430 tests**, including the ten-run native study and TUI integration. Ollama also produced a three-candidate draft without starting tests or downloading prices. I’m checking malformed proposals, packaged files and the documentation before publishing this increment.
+
+---
+
+### 298 — Assistant (progress update)
+
+Visual inspection caught a small-terminal issue: a focused study field could remain outside the visible chat area. I’m fixing the form’s scrolling and checking the packaged view again.
+
+---
+
+### 299 — Assistant (progress update)
+
+The suite passed **436 tests**. The small-terminal focus check now passes too, and I verified the rebuilt package’s study form and Reports panel visually. I’m publishing this bounded-study checkpoint with CI skipped, then continuing with dated applicability assessments.
+
+---

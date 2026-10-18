@@ -287,3 +287,28 @@ class MarketBar(Contract):
         if self.close_ns - self.open_ns != 3600 * 10**9 - 1000:
             raise ValueError("Expected inclusive microsecond hourly close timestamp")
         return self
+
+
+class SmaParameters(Contract):
+    """Trusted parameter-only execution input; not a source extraction or approval."""
+
+    fast_period: int = Field(strict=True, gt=0)
+    slow_period: int = Field(strict=True, gt=0)
+    quantity: str
+
+    @model_validator(mode="after")
+    def supported(self) -> Self:
+        if not self.fast_period < self.slow_period < 744:
+            raise ValueError("Require 0 < fast < slow < 744")
+        quantity = decimal_text(self.quantity)
+        if Decimal(quantity) <= 0 or Decimal(quantity) % Decimal("0.00000001"):
+            raise ValueError("Quantity must be positive BTC with at most eight decimals")
+        object.__setattr__(self, "quantity", quantity)
+        return self
+
+
+class SimulationPlan(Contract):
+    """Packaged implementation parameters; the enclosing study supplies authorization."""
+
+    draft: SmaParameters
+    config: ResearchConfig

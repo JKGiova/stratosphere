@@ -319,28 +319,28 @@ DataTable > .datatable--header {
     color: #ff6666;
 }
 
-#research-form {
+#research-form, #study-form {
     height: auto;
     margin: 1;
     padding: 1;
     border-left: solid #cccccc;
 }
 
-#research-source {
+#research-source, #study-hypothesis {
     height: 8;
     min-height: 3;
     border: solid #555555;
     background: #111111;
 }
 
-#research-form Input {
+#research-form Input, #study-form Input {
     height: 1;
     padding: 0 1;
     border: none;
     background: #111111;
 }
 
-#research-form Input:focus {
+#research-form Input:focus, #study-form Input:focus {
     background: #333333;
 }
 

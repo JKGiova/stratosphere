@@ -46,6 +46,10 @@ from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
 from stratosphere.research.store import ResearchError, ResearchStore, default_research_root
 from stratosphere.research.widgets import ResearchForm, ResearchReview
+from stratosphere.studies.reporting import protocol_markdown
+from stratosphere.studies.service import StudyService
+from stratosphere.studies.store import StudyStore
+from stratosphere.studies.widgets import StudyForm
 from stratosphere.workspace import CHROME_HEIGHT, choose_layout
 
 VIEWS = (
@@ -266,7 +270,9 @@ class StratosphereApp(App[None]):
         Binding("slash", "command", "Commands", key_display="/"),
     ]
 
-    def __init__(self, *, provider_factory=create_provider, research_service=None):
+    def __init__(
+        self, *, provider_factory=create_provider, research_service=None, study_service=None
+    ):
         super().__init__()
         self.provider_factory = provider_factory
         self.settings: ModelSettings | None = None
@@ -274,10 +280,15 @@ class StratosphereApp(App[None]):
         self.response_worker: Worker | None = None
         self.research = research_service or ResearchService(ResearchStore(default_research_root()))
         self.database = WorkspaceDatabase(self.research.store.root / "workspace.sqlite3")
-        self.workspace_bridge = Orchestrator(None, self.database, self.research)
+        self.studies = study_service or StudyService(
+            StudyStore(self.research.store.root / "studies"), self.database
+        )
+        self.workspace_bridge = Orchestrator(
+            None, self.database, self.research, studies=self.studies
+        )
         self.research_worker: Worker | None = None
         self.research_job_id: str | None = None
-        self.research_form: ResearchForm | None = None
+        self.research_form: ResearchForm | StudyForm | None = None
         self.active_pane = "chat"
         self.viewport = (80, 24)
         self.layout_mode = choose_layout(*self.viewport)
@@ -390,6 +401,7 @@ class StratosphereApp(App[None]):
         self.query_one("#reports", DataTable).add_columns("Strategy", "Report", "Created")
         self.query_one("#positions", DataTable).add_columns("Symbol", "Quantity", "P/L")
         self.research.recover()
+        self.studies.recover()
         self.refresh_research_views()
         self.update_status(self.request_state)
         self.update_layout()
@@ -491,7 +503,16 @@ class StratosphereApp(App[None]):
             form = self.setup or self.research_form
             if form:
                 if not form.has_focus_within:
-                    form.query_one("#model-id" if self.setup else "#research-source").focus()
+                    target = (
+                        "#model-id"
+                        if self.setup
+                        else (
+                            "#study-hypothesis"
+                            if isinstance(form, StudyForm)
+                            else "#research-source"
+                        )
+                    )
+                    form.query_one(target).focus()
             else:
                 self.query_one("#prompt", Input).focus()
         else:
@@ -581,6 +602,7 @@ class StratosphereApp(App[None]):
                 self.database,
                 self.research,
                 f"{event.settings.provider}/{event.settings.model}",
+                studies=self.studies,
             )
             self.session.sync_research()
             self.update_status("MODEL SET · NOT YET VERIFIED")
@@ -616,7 +638,7 @@ class StratosphereApp(App[None]):
             command = route_command(text)
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
-            if command.action in {"new", "approve", "pause", "resume", "show", "report"}:
+            if command.action in {"new", "study", "approve", "pause", "resume", "show", "report"}:
                 await self.handle_research_command(command.action, command.args)
             elif command.action == "agent":
                 if not self.session:
@@ -699,7 +721,14 @@ class StratosphereApp(App[None]):
                 self.call_after_refresh(self.handle_research_command, "new", (action["source"],))
             elif action and action["action"] == "review":
                 await self.query_one("#conversation", VerticalScroll).mount(
-                    ResearchReview(action["job_id"], action["digest"])
+                    ResearchReview(action["job_id"], action["digest"], action.get("simulations", 2))
+                )
+            elif action and action["action"] == "study":
+                self.call_after_refresh(
+                    self.handle_research_command,
+                    "study",
+                    (action["job_id"],),
+                    action.get("suggestion"),
                 )
             elif action and action["action"] == "resume":
                 self.call_after_refresh(self.handle_research_command, "resume", (action["job_id"],))
@@ -752,6 +781,15 @@ class StratosphereApp(App[None]):
             except ValueError, KeyError, ResearchError, OSError:
                 continue
         (self.session or self.workspace_bridge).sync_research()
+        for job_id in self.studies.store.jobs():
+            try:
+                protocol = self.studies.store.protocol(job_id)
+                name = protocol.parent_plan.draft.name + " · study"
+                jobs.add_row(
+                    job_id[:12], Text(safe_text(name)), self.studies.store.state(job_id), key=job_id
+                )
+            except ValueError, ResearchError, OSError:
+                continue
         library.clear()
         for record in self.database.catalog():
             library.add_row(
@@ -788,9 +826,41 @@ class StratosphereApp(App[None]):
         self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
         return bubble
 
-    async def handle_research_command(self, action: str, args: tuple[str, ...]) -> None:
+    async def handle_research_command(
+        self, action: str, args: tuple[str, ...], suggestion=None
+    ) -> None:
         try:
-            if action == "new":
+            if action == "study":
+                if not self.session:
+                    raise ResearchError("Configure a model with /model first.")
+                if self.research_busy or (
+                    self.response_worker and not self.response_worker.is_finished
+                ):
+                    raise ResearchError("Pause or cancel the current operation first.")
+                if self.research_form or self.setup:
+                    raise ResearchError("Complete or cancel the current form first.")
+                job_id = args[0] if args else None
+                if job_id is None and self.session.active_strategy:
+                    candidates = [
+                        j
+                        for j in self.database.jobs(self.session.active_strategy)
+                        if self.service_for(j["job_id"]) is self.research
+                    ]
+                    job_id = candidates[-1]["job_id"] if candidates else None
+                if job_id is None:
+                    raise ResearchError(
+                        "Select a strategy with a supported /new plan, "
+                        "or use /study <parent-job-id>."
+                    )
+                plan = self.research.store.plan(job_id)
+                await self.research.require_online()
+                self.research_form = StudyForm(job_id, plan, suggestion)
+                self.action_select_view("chat")
+                self.query_one("#prompt", Input).disabled = True
+                self.query_one("#composer").display = False
+                await self.query_one("#conversation", VerticalScroll).mount(self.research_form)
+                self.call_after_refresh(self.focus_active_pane)
+            elif action == "new":
                 if not self.session:
                     raise ResearchError("Configure your online model with /model first.")
                 if self.research_busy or (
@@ -811,19 +881,20 @@ class StratosphereApp(App[None]):
             elif action == "resume":
                 await self.start_research(args[0])
             elif action == "pause":
-                if not self.research_busy or args[0] != self.research.active_job:
+                if not self.research_busy or args[0] != self.active_research_service.active_job:
                     raise ResearchError("Only the active approved backtest can be paused here.")
-                self.research.stop_state = "paused"
+                self.active_research_service.stop_state = "paused"
                 self.research_worker.cancel()
             elif action == "show":
                 await self.show_research_job(args[0])
             elif action == "report":
-                report = await self.research.open_report(args[0])
+                service = self.service_for(args[0])
+                report = await service.open_report(args[0])
                 self.set_research_context(args[0], report)
                 await self.open_report_panel(args[0], report)
                 await self.add_research_markdown(report_markdown(report), "Research report:")
                 await self.add_message(
-                    f"Full evidence: {self.research.store.directory(args[0]) / 'report.json'}"
+                    f"Full evidence: {service.store.directory(args[0]) / 'report.json'}"
                 )
         except ResearchError as error:
             await self.add_message(str(error))
@@ -833,6 +904,62 @@ class StratosphereApp(App[None]):
                 "Check the full job ID, approval hash and job state. "
                 "Use /jobs or /show <job-id>; a running operation must be paused or canceled first."
             )
+
+    def service_for(self, job_id):
+        return self.studies if self.studies.store.directory(job_id).is_dir() else self.research
+
+    @property
+    def active_research_service(self):
+        return self.studies if self.studies.active_job else self.research
+
+    async def on_study_form_finished(self, event: StudyForm.Finished):
+        event.stop()
+        form = self.research_form
+        if not isinstance(form, StudyForm):
+            return
+        if (
+            event.proposal
+            and self.settings
+            and (key := self.settings.api_key.get_secret_value())
+            and key in json.dumps(event.proposal)
+        ):
+            form.query_one("#study-error", Static).update(
+                "Remove credentials from the study proposal."
+            )
+            return
+        self.research_form = None
+        await form.remove()
+        self.query_one("#prompt", Input).disabled = False
+        self.query_one("#composer").display = True
+        if event.proposal:
+            self.research_worker = self.prepare_study(form.parent_job, event.proposal)
+        self.action_focus_pane("chat")
+
+    @work(group="research", exclusive=True)
+    async def prepare_study(self, parent_job, proposal):
+        self.update_status("RESEARCH · Pinning study protocol")
+        try:
+            owner = self.database.strategy_for_job(parent_job)
+            job_id, protocol = await self.studies.prepare(
+                owner["public_id"], self.research.store.plan(parent_job), **proposal
+            )
+            self.research_job_id = job_id
+            await self.add_research_markdown(protocol_markdown(job_id, protocol), "Study plan:")
+            await self.query_one("#conversation", VerticalScroll).mount(
+                ResearchReview(job_id, protocol.digest, protocol.max_simulations)
+            )
+            self.update_status("READY")
+        except asyncio.CancelledError:
+            self.update_status("CANCELED")
+            raise
+        except ResearchError, ValueError, OSError:
+            await self.add_message(
+                "Study proposal failed; input retained. Check supported months, distinct integer "
+                "candidate pairs, hypothesis, budget and online archive availability."
+            )
+            self.update_status("READY")
+        finally:
+            self.refresh_research_views()
 
     async def on_research_form_finished(self, event: ResearchForm.Finished) -> None:
         event.stop()
@@ -906,16 +1033,19 @@ class StratosphereApp(App[None]):
             raise ResearchError("Another operation is active.")
         if self.setup or self.research_form:
             raise ResearchError("Complete or cancel the current form first.")
+        if not self.session:
+            raise ResearchError("Configure a model with /model first.")
+        service = self.service_for(job_id)
         try:
             self.database.strategy_for_job(job_id)
         except ResearchError:
             self.session.register_job(job_id)
         if digest is not None:
-            self.research.approve(job_id, digest)
-        elif self.research.store.state(job_id) != "paused":
+            service.approve(job_id, digest)
+        elif service.store.state(job_id) != "paused":
             raise ResearchError("Only an approved paused job can resume.")
         self.research_job_id = job_id
-        self.research.stop_state = "canceled"
+        service.stop_state = "canceled"
         for review in self.query(ResearchReview):
             if review.job_id == job_id:
                 await review.remove()
@@ -937,15 +1067,16 @@ class StratosphereApp(App[None]):
             await self.add_research_markdown(report_markdown(report), "Research report:")
             await self.add_message(
                 f"Job {job_id} completed. Full evidence: "
-                f"{self.research.store.directory(job_id) / 'report.json'}"
+                f"{self.service_for(job_id).store.directory(job_id) / 'report.json'}"
             )
             self.update_status("READY")
         except asyncio.CancelledError:
             await self.add_message(
-                f"Research {self.research.stop_state}. Completed checkpoints were retained. "
+                f"Research {self.service_for(job_id).stop_state}. "
+                "Completed checkpoints were retained. "
                 + (
                     f"Resume the same plan with /resume {job_id}."
-                    if self.research.stop_state == "paused"
+                    if self.service_for(job_id).stop_state == "paused"
                     else ""
                 )
             )
@@ -968,10 +1099,11 @@ class StratosphereApp(App[None]):
             if self.research_busy and self.research_job_id == job_id:
                 self.action_cancel_response()
             else:
-                with self.research.store.lock(job_id):
-                    if self.research.store.state(job_id) not in {"awaiting_approval", "paused"}:
+                service = self.service_for(job_id)
+                with service.store.lock(job_id):
+                    if service.store.state(job_id) not in {"awaiting_approval", "paused"}:
                         raise ResearchError("Only pending or paused jobs can be canceled here.")
-                    self.research.store.event(job_id, "canceled", "Canceled by user")
+                    service.store.event(job_id, "canceled", "Canceled by user")
                 for review in self.query(ResearchReview):
                     if review.job_id == job_id:
                         await review.remove()
@@ -993,12 +1125,15 @@ class StratosphereApp(App[None]):
             await self.cancel_research_job(parent.job_id)
 
     async def show_research_job(self, job_id: str) -> None:
-        await self.research.require_online()
-        state = self.research.store.state(job_id)
+        service = self.service_for(job_id)
+        await service.require_online()
+        state = service.store.state(job_id)
         if state == "completed":
-            report = self.research.report(job_id)
+            report = service.report(job_id)
             text = report_markdown(report)
             self.set_research_context(job_id, report)
+        elif service is self.studies:
+            text = protocol_markdown(job_id, service.store.protocol(job_id))
         elif (self.research.store.directory(job_id) / "plan.json").exists():
             text = plan_markdown(job_id, self.research.store.plan(job_id))
         else:
@@ -1033,7 +1168,7 @@ class StratosphereApp(App[None]):
         self.action_select_view("focus")
 
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
-        report = report or await self.research.open_report(job_id)
+        report = report or await self.service_for(job_id).open_report(job_id)
         (self.session or self.workspace_bridge).sync_research()
         self.query_one("#report-preview", Static).update(
             Markdown(safe_text(report_markdown(report)), hyperlinks=False)
@@ -1073,8 +1208,8 @@ class StratosphereApp(App[None]):
     async def action_quit(self) -> None:
         from textual.worker import WorkerCancelled, WorkerFailed
 
-        if self.research.active_job:
-            self.research.stop_state = "paused"
+        if self.active_research_service.active_job:
+            self.active_research_service.stop_state = "paused"
         for worker in (self.response_worker, self.research_worker):
             if worker and not worker.is_finished:
                 worker.cancel()
@@ -1095,7 +1230,7 @@ class StratosphereApp(App[None]):
 
     def action_cancel_response(self) -> None:
         if self.research_busy:
-            self.research.stop_state = "canceled"
+            self.active_research_service.stop_state = "canceled"
             self.research_worker.cancel()
         if self.response_worker and not self.response_worker.is_finished:
             self.response_worker.cancel()

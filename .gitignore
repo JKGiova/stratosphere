@@ -12,3 +12,4 @@ reports/
 .env.*
 
 .DS_Store
+/supabase/.temp/

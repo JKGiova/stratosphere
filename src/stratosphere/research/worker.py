@@ -35,7 +35,13 @@ def main() -> None:
     parser.add_argument("--multiplier", type=int, choices=[1, 2], required=True)
     args = parser.parse_args()
     try:
-        payload = execute(json.loads(args.request.read_text()), args.multiplier)
+        request = json.loads(args.request.read_text())
+        if request.get("kind") == "bounded-study-cell/1":
+            from stratosphere.studies.worker import execute_cell
+
+            payload = execute_cell(request, args.multiplier, args.request.parent)
+        else:
+            payload = execute(request, args.multiplier)
         status = 0
     except PackageNotFoundError, ModuleNotFoundError:
         payload, status = {"error": "engine_unavailable"}, 1

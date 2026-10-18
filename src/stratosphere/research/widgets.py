@@ -83,10 +83,15 @@ class ResearchForm(Vertical):
 
 
 class ResearchReview(Horizontal):
-    def __init__(self, job_id: str, plan_sha256: str):
+    def __init__(self, job_id: str, plan_sha256: str, simulations: int = 2):
         super().__init__(id=f"review-{job_id}", classes="research-review")
         self.job_id, self.plan_sha256 = job_id, plan_sha256
+        self.simulations = simulations
 
     def compose(self):
-        yield Button("Approve 2 simulations", id=f"approve-{self.job_id}", variant="primary")
+        yield Button(
+            f"Approve {self.simulations} simulations",
+            id=f"approve-{self.job_id}",
+            variant="primary",
+        )
         yield Button("Cancel plan", id=f"reject-{self.job_id}")

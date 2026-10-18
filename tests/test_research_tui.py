@@ -229,7 +229,7 @@ async def test_running_research_can_pause_resume_without_focus_theft_or_extra_in
         await pilot.pause()
         assert ui_service.store.state(job) == "completed"
         assert app.query_one("#reports", DataTable).row_count == 1
-        assert app.active_view == "focus" and app.focused.id == "focus-pane"
+        assert app.active_view == "focus" and app.focused.id == "focus-body"
         assert len(research_provider.requests) == 1
 
 

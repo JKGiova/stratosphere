@@ -131,3 +131,62 @@ async def test_tui_file_rejects_configured_key_before_source_storage(
             for path in sources.store.directory(source_id).iterdir()
         )
         assert app.query_one("#prompt", Input).value == ""
+
+
+async def test_tui_conformance_gaps_are_inspectable_and_cannot_create_executable_plan(
+    ui_service,
+    research_provider,
+    tmp_path,
+):
+    from test_source_conversion import PINE
+
+    sources = SourceService(SourceStore(tmp_path / "sources"), online_check=online)
+    app = StratosphereApp(
+        provider_factory=lambda settings: research_provider,
+        research_service=ui_service,
+        source_service=sources,
+    )
+    async with app.run_test(size=(144, 40)) as pilot:
+        await connect(app, pilot)
+        await send(app, pilot, "/source-text " + PINE)
+        await app.research_worker.wait()
+        await pilot.pause()
+        (source_id,) = sources.store.jobs()
+        await send(app, pilot, "/conformance " + source_id)
+        await app.research_worker.wait()
+        await pilot.pause()
+        (first,) = app.source_conformance.store.jobs()
+        assert (await app.source_conformance.open(first)).classification == "missing_context"
+        await send(
+            app,
+            pilot,
+            "/conformance " + source_id + " crypto_spot BTCUSDT 3600 regular_ohlcv source_defaults",
+        )
+        await app.research_worker.wait()
+        await pilot.pause()
+        latest = app.source_conformance.store.jobs()[-1]
+        value = await app.source_conformance.open(latest)
+        assert (
+            value.classification == "rules_mapped_conformance_blocked"
+            and value.execution == "blocked"
+        )
+        assert not app.research.store.jobs() and not app.database.catalog()
+        assert not research_provider.requests and not ui_service.calls
+        await send(app, pilot, "/conformance-show " + latest)
+        assert app.active_view == "focus"
+        assert "Execution blocked" in app.query_one("#focus-body").children[0].content.markup
+        await pilot.resize_terminal(45, 12)
+        await pilot.pause()
+        assert app.query_one("#focus-body").size.height >= 2
+        await pilot.press("pagedown")
+        await pilot.pause()
+        assert app.query_one("#focus-body").scroll_y > 0
+        await send(
+            app,
+            pilot,
+            "/conformance " + source_id + " equity AAPL 3600 regular_ohlcv source_defaults",
+        )
+        await app.research_worker.wait()
+        await pilot.pause()
+        assert len(app.source_conformance.store.jobs()) == 2
+        assert not app.research.store.jobs() and not app.database.catalog()

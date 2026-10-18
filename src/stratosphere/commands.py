@@ -17,6 +17,8 @@ HELP = """/help — Show commands
 /source-show <source-id> — Inspect a retained source snapshot online
 /source-text <text> — Retain supplied text as unverified source material
 /source-file <path> — Retain an explicit UTF-8 file; quote paths containing spaces
+/conformance <source-id> [market symbol seconds chart-type properties] — Check conversion gaps
+/conformance-show <assessment-id> — Inspect a retained conversion assessment
 /new [text] — Draft a supported research plan in chat
 /study [parent-job-id] — Review a bounded SMA experiment with a separate final holdout
 /assess [market symbol interval-seconds] — Record dated applicability for the selected agent
@@ -56,12 +58,26 @@ def route_command(text: str) -> Command:
             if len(words) > 1
             else Command("message", "Usage: /source-text <text>")
         )
-    if name in {"/source", "/sources", "/source-show", "/source-file"}:
+    if name in {
+        "/source",
+        "/sources",
+        "/source-show",
+        "/source-file",
+        "/conformance",
+        "/conformance-show",
+    }:
         try:
             source_words = shlex.split(text)
         except ValueError:
             return Command("message", "Close quoted source arguments and retry.")
-        arity = {"/source": {2, 3}, "/sources": {1}, "/source-show": {2}, "/source-file": {2}}
+        arity = {
+            "/source": {2, 3},
+            "/sources": {1},
+            "/source-show": {2},
+            "/source-file": {2},
+            "/conformance": {2, 7},
+            "/conformance-show": {2},
+        }
         if len(source_words) in arity[name]:
             return Command(name[1:], args=tuple(source_words[1:]))
         return Command("message", "Use /help for source command arguments.")

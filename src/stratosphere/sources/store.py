@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import re
 import uuid
 from pathlib import Path
 
@@ -31,6 +32,8 @@ class SourceStore(ResearchStore):
         self.known_secrets = tuple(s for s in known_secrets if s)
 
     def directory(self, source_id):
+        if not re.fullmatch(r"[a-f0-9]{32}", source_id):
+            raise ResearchError("Use a complete source ID shown by /sources.")
         path = super().directory(source_id)
         if path.is_symlink():
             raise ResearchError("Source attempt directories cannot be symbolic links")

@@ -1,6 +1,7 @@
 """One hosted model call proposes rules; validation and user approval gate execution."""
 
 import json
+import re
 from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -63,6 +64,27 @@ class ExtractionState(TypedDict):
 
 
 async def extract_strategy(provider, source: str) -> Extraction:
+    if re.search(r"(?m)^\s*//@version\s*=|\b(?:strategy|indicator)\s*\(", source):
+        # A model cannot prove that Pine's arithmetic, properties and complete rule
+        # set match our kernel. Keep this gate outside model authority.
+        return Extraction(
+            status="unsupported",
+            name="Pine source requires conformance",
+            symbol=None,
+            timeframe_seconds=None,
+            fast_period=None,
+            slow_period=None,
+            quantity=None,
+            entry=None,
+            exit=None,
+            evidence=(),
+            questions=(
+                "Retain the source with /source-text or /source-file, then inspect /conformance.",
+                "Pine numerical/runtime conformance is not verified. No model-generated "
+                "ready response can authorize this conversion or omit unsupported rules.",
+            ),
+        )
+
     async def request_model(state: ExtractionState):
         reply = ""
         messages = [

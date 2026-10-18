@@ -49,7 +49,9 @@ from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
 from stratosphere.research.store import ResearchError, ResearchStore, default_research_root
 from stratosphere.research.widgets import ResearchForm, ResearchReview
+from stratosphere.sources.conformance import ConformanceService, conformance_markdown
 from stratosphere.sources.contracts import SourceRequest, SuppliedRequest
+from stratosphere.sources.pine import PineChartContext
 from stratosphere.sources.service import SourceService, source_markdown
 from stratosphere.sources.store import SourceStore
 from stratosphere.studies.reporting import protocol_markdown
@@ -302,6 +304,9 @@ class StratosphereApp(App[None]):
             SourceStore(self.research.store.root / "sources"),
             online_check=self.research.require_online,
         )
+        self.source_conformance = ConformanceService(
+            self.sources, ResearchStore(self.research.store.root / "source-conformance")
+        )
         self.research_worker: Worker | None = None
         self.research_job_id: str | None = None
         self.research_form: ResearchForm | StudyForm | None = None
@@ -533,6 +538,8 @@ class StratosphereApp(App[None]):
                     form.query_one(target).focus()
             else:
                 self.query_one("#prompt", Input).focus()
+        elif self.active_pane == "focus":
+            self.query_one("#focus-body", VerticalScroll).focus()
         else:
             self.query_one(f"#{self.active_pane}-pane").focus()
 
@@ -667,6 +674,8 @@ class StratosphereApp(App[None]):
                 "source-show",
                 "source-text",
                 "source-file",
+                "conformance",
+                "conformance-show",
             }:
                 await self.handle_source_command(command.action, command.args)
             elif command.action == "agent":
@@ -999,6 +1008,8 @@ class StratosphereApp(App[None]):
                 )
             elif action == "source-show":
                 await self.show_source(await self.sources.open(args[0]))
+            elif action == "conformance-show":
+                await self.show_source_conformance(await self.source_conformance.open(args[0]))
             else:
                 # Validate before starting the background task; no model is needed.
                 if action == "source":
@@ -1014,6 +1025,26 @@ class StratosphereApp(App[None]):
     async def acquire_source(self, action, args):
         self.update_status("RESEARCH · Reading source")
         try:
+            if action == "conformance":
+                context = (
+                    PineChartContext(
+                        asset_class=args[1],
+                        symbol=args[2],
+                        timeframe_seconds=int(args[3]),
+                        chart_type=args[4],
+                        properties=args[5],
+                    )
+                    if len(args) > 1
+                    else None
+                )
+                value = await self.source_conformance.assess(args[0], context)
+                await self.add_message(
+                    f"Conformance {value.id} · {value.classification}. Execution blocked; "
+                    "no plan, registration or simulation was created."
+                )
+                await self.show_source_conformance(value, focus=False)
+                self.update_status("READY")
+                return
             if action == "source":
                 value = await self.sources.acquire(
                     SourceRequest(url=args[0], github_ref=args[1] if len(args) > 1 else None)
@@ -1049,13 +1080,25 @@ class StratosphereApp(App[None]):
             await self.add_message(str(error))
             self.update_status("READY")
         except ValueError, OSError:
-            await self.add_message("Source intake failed; check the source and retained attempt.")
+            await self.add_message(
+                "Conversion context must declare the original crypto_spot BTCUSDT 3600 "
+                "regular_ohlcv source_defaults settings; unsupported settings stay blocked."
+                if action == "conformance"
+                else "Source intake failed; check the source and retained attempt."
+            )
             self.update_status("READY")
 
     async def show_source(self, value, *, focus=True):
         view = self.query_one("#focus-body", VerticalScroll)
         await view.remove_children()
         await view.mount(Static(Markdown(safe_text(source_markdown(value)), hyperlinks=False)))
+        if focus:
+            self.action_select_view("focus")
+
+    async def show_source_conformance(self, value, *, focus=True):
+        view = self.query_one("#focus-body", VerticalScroll)
+        await view.remove_children()
+        await view.mount(Static(Markdown(safe_text(conformance_markdown(value)), hyperlinks=False)))
         if focus:
             self.action_select_view("focus")
 

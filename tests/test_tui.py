@@ -252,7 +252,9 @@ async def test_responsive_panels_fit_without_overlap_and_keep_truthful_states(si
             await pilot.pause()
             assert app.active_view == pane
             assert app.query_one(f"#{pane}-pane").display
-            assert app.focused.id == ("prompt" if pane == "chat" else f"{pane}-pane")
+            assert app.focused.id == (
+                "prompt" if pane == "chat" else "focus-body" if pane == "focus" else f"{pane}-pane"
+            )
             assert len(shown(app)) == count
         await send(app, pilot, "/portfolio")
         heading = app.query_one("#portfolio-pane .empty-heading", Static)

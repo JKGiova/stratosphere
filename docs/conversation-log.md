@@ -3163,3 +3163,39 @@ The full regression run passed **525 tests**, including the native-engine checks
 The packaged source view is usable at **45 × 12**, and distribution checks found no configured credentials or private state. I’m publishing the source-intake checkpoint with CI skipped. Complete media/Pine acquisition and behavioral conversion remain pending.
 
 ---
+
+### 318 — Assistant (progress update)
+
+The checkpoint is verified on GitHub; the repository is private and no CI run started. For conversion, I’m adding a deterministic check for a small, explicit Pine subset. Unsupported stops, filters, sizing, repainting or timing rules will produce questions instead of being silently dropped.
+
+---
+
+### 319 — Assistant (progress update)
+
+I found a numerical mismatch to resolve: Pine rounds float comparisons to nine fractional digits, while our SMA kernel uses exact rational arithmetic. I’m adding a regression case and keeping conversion blocked until conformance is verified. [Pine’s numeric rules](https://www.tradingview.com/pine-script-docs/language/type-system/#float)
+
+---
+
+### 320 — Assistant (progress update)
+
+The conformance check now retains missing chart context, unsupported statements and numerical gaps as dated records. Pasting Pine through `/new` also stops before a model call, so a model cannot bypass the gate. I’m testing both paths through the TUI.
+
+---
+
+### 321 — Assistant (progress update)
+
+The focused conversion, research and TUI suite passed **98 tests**. The packaged view also scrolls by keyboard at **45 × 12**. Recognized Pine rules remain explicitly blocked; next I’m checking data routing so reference rates and restricted or unverified feeds cannot be treated as execution data.
+
+---
+
+### 322 — Assistant (progress update)
+
+The full suite passed **575 tests**, then a stricter keyboard check caught a Focus issue: normal navigation focused the outer panel, so Page Down did not reach its contents. I’m fixing that focus target and rerunning the UI checks before publishing.
+
+---
+
+### 323 — Assistant (progress update)
+
+The focus fix passed **201 source, agent, research and TUI checks**, and Page Down now works through normal navigation in the built package. I’m publishing the conformance checkpoint with CI skipped, then continuing with data capabilities and the paper runtime.
+
+---

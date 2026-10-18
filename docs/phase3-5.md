@@ -52,6 +52,8 @@ The [dated applicability increment](phase3-applicability.md) adds specialist-own
 
 The [source intake increment](phase4-sources.md) adds private immutable snapshots, pinned GitHub file integrity checks, limited YouTube/X/TradingView readers, explicit Instagram unavailability and supplied UTF-8 material. The regression run passed 525 tests with zero skips; the final source-only suite passed 69 checks after additional online/symlink checks. Public GitHub file acquisition, YouTube metadata, X fallback text and TradingView page metadata were exercised against actual endpoints. Instagram account access, complete media/Pine acquisition, source-to-plan conversion and strategy-agent intake remain unimplemented; the full Phase 4 items stay unchecked.
 
+The [source-conformance diagnostic](source-conformance.md) adds whole-source Pine rule-shape checks, exact source/context references and retained execution blockers. Pine pasted through `/new` stops before model interpretation. Numerical/runtime equivalence remains unverified, so no converted plan or simulation is enabled. The full suite passed 575 tests with zero skips; a subsequent Focus keyboard correction passed 201 source/agent/research/TUI checks and rebuilt-package inspection. This is a tested blocking foundation, not completion of the conversion requirement.
+
 ## Next implementation sequence
 
 1. Expand the bounded local study increment as required by the remaining ledger, including variants without a standalone parent research job and verified commercial data rights/provider routing.

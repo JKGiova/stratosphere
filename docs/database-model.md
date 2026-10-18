@@ -1,5 +1,7 @@
 # Supabase PostgreSQL database model
 
+Current implementation: the [private Supabase foundation](../supabase/README.md) is provisioned and ownership-tested. The TUI currently uses a private local development registry for agent identities/histories and research references; authenticated hosted synchronization remains pending. Tables and relationships beyond that foundation below remain planned until their corresponding implementation is verified.
+
 ## Scope and status
 
 **Confirmed:** Supabase provides the managed PostgreSQL database that stores the shared strategy registry, exact strategy identity, accumulated provenance, and records needed to reuse prior research. This is a proposed logical schema with field meanings, not executable SQL or an applied migration.

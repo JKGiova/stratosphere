@@ -89,8 +89,19 @@ class ChatCompletions:
             else:
                 yield (*self._parse(data), False)
 
-    async def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
+    async def stream_json(self, messages: list[dict[str, str]], schema: dict) -> AsyncIterator[str]:
+        async for part in self.stream(messages, schema=schema):
+            yield part
+
+    async def stream(
+        self, messages: list[dict[str, str]], *, schema: dict | None = None
+    ) -> AsyncIterator[str]:
         body = self.request_body(messages)
+        if schema is not None and self.provider == "ollama":
+            body["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "stratosphere_workflow", "schema": schema, "strict": True},
+            }
         headers = self.request_headers()
         redactor = SecretFilter(self.settings.api_key.get_secret_value())
         try:

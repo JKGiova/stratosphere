@@ -1,0 +1,57 @@
+# Phases 3–5 implementation and acceptance ledger
+
+Status: **in progress**. The user authorized the full Phase 3, 4 and 5 scope, local Ollama testing, an orchestrator bridging the user to one agent per strategy, and replacement of Session with Reports. This ledger preserves the complete objective across sequential implementation work. Unchecked items are not implemented/verified completion claims. Phase 6 live execution and billing remain outside this authorization.
+
+## Agent workflow and interface
+
+- [x] The orchestrator routes user requests to a stable agent for each exact strategy identity; it does not replace specialist analysis with a single shared chat context.
+- [ ] Strategy agents can analyze their own rules/evidence, query applicable database records, propose bounded experiments, invoke approved test operations and return measured reports.
+- [ ] Separate strategy histories, operations, failures and evidence survive restart without crossing strategy boundaries. Credentials remain outside stored prompts, reports and worker environments.
+- [ ] Natural-language requests and slash commands use the same validated operations. The model cannot manufacture approval, execute arbitrary SQL/code or bypass runtime controls.
+- [x] The Reports panel contains actual retained reports, supports selection/inspection and remains usable in all responsive layouts. Existing research job controls remain available.
+
+## Phase 3 — iteration and recommendations
+
+- [ ] Immutable strategy identities, parent/variant lineage, exact duplicate reuse and accumulated source/submission records support retrieval and comparisons.
+- [ ] A reviewed protocol fixes hypothesis, candidate bounds, costs, metrics, benchmark and chronological development/validation/final holdout windows before execution.
+- [ ] All attempts, including invalid, failed, canceled and rejected variants, are retained; execution respects the approved budget.
+- [ ] Candidate selection uses development/validation only. Final holdout is evaluated once for the frozen selection, cannot be reused for optimization, and exposes contamination/reuse when relevant.
+- [ ] Native NautilusTrader results, sensitivity/doubled-cost checks, baselines, distributions, equity/trades, limitations and immutable references are retained and inspectable.
+- [ ] Recommendations separate instrument/data compatibility, empirical evidence, dated current context and missing verification; no profitability-only promotion or transferred performance.
+- [ ] Findings and applicability assessments retain their timestamp, context, attempted variant count and evidence references.
+
+## Phase 4 — source maturity and market coverage
+
+- [ ] YouTube, Instagram, X, TradingView and GitHub acquisition retain snapshots, retrieval/access state, provenance and rule references. Accessible official/provider examples and blocked/private/changed cases are verified.
+- [ ] Available text/transcripts/code are acquired without inventing closed material. Partial/inaccessible content produces actionable outcomes and supports supplied material.
+- [ ] Format/provider failure handling, source injection isolation and content/source integrity checks are tested. Repository code is never imported or run merely because it was acquired.
+- [ ] Non-Nautilus inputs are converted only with explicit behavioral conformance: parameter values, exits, timing, repainting and unsupported conditions are preserved or block execution.
+- [ ] Data adapters expose actual capabilities for crypto, equities/ETFs and forex progressively, preserving instrument semantics, availability timestamps, sessions/corporate actions/funding where applicable. Unverified capability combinations are blocked rather than advertised as tradable.
+- [ ] Dataset provenance, missing/duplicate/unordered/incomplete observations, provider/auth/outage failures and routing are verified; tests distinguish reference-rate proof from tradable data.
+
+## Phase 5 — live data and paper
+
+- [ ] A real-time feed and persistent runtime process closed observations with explicit freshness, gap, reconnect and catch-up policies.
+- [ ] Personal instances pin strategy identity/implementation, market/account, capital and mandate; global definitions cannot silently change them.
+- [ ] Budget and risk agents produce attributable proposals/assessments, with deterministic capital/reservation/exposure/concentration/loss/freshness gates that work without a model.
+- [ ] A verified paper adapter uses a single idempotent order gateway with explicit simulation assumptions, partial fills, rejects, canceled/expired/ambiguous states and reconciliation.
+- [ ] Optional account linking validates actual provider identity/environment/scopes and never activates trading merely by linking. Unsupported Liquid/provider capabilities remain explicit.
+- [ ] Concurrent strategies on one instrument have explicit netting, priority and per-strategy attribution; cash and pending reservations cannot be double-spent.
+- [ ] Feed/runtime/account restart and reconciliation tests prevent duplicates and detect damaged/stale/ambiguous state. Sustained operation is measured and reported.
+- [ ] Overnight/multi-day holdings remain allowed under their mandate; session boundaries do not force liquidation.
+- [ ] On TUI exit the user can keep positions or request closure of all; closure/cancel/entry-block are distinct, residual exposure and failed closures remain visible.
+- [ ] Positions, orders, health, limits, blocks and reports display actual retained runtime state; paper mode cannot submit live orders.
+
+## Verification record
+
+The first strategy-agent/Reports/private-registry foundation is verified in [strategy agents](strategy-agents.md). The final local foundation suite passed 403 tests, real two-agent Ollama routing/analysis and restart checks passed, and Supabase ownership/conformance tests passed with all fixtures rolled back. Remaining unchecked items below are still required for the full goal. Completion requires inspection of each item above at the relevant scope, including local integration and live Ollama/feed checks where available. A green unit suite alone does not verify hosted account access, shared-user ownership or sustained paper behavior. Supabase login and commercial fee collection remain deferred; database development must preserve the selected service boundary and private/shared projections.
+
+## Next implementation sequence
+
+1. Add reviewed bounded study protocols, retained candidate attempts, strict development/validation selection and a separately acquired final holdout; run the pinned native engine with explicit warm-up and reset conventions.
+2. Add dated evidence-aware recommendations and record attempt counts, compatibility and current-context uncertainty.
+3. Mature source acquisition/conversion and data capability routing without inventing restricted material or transferring performance between instrument types.
+4. Add the persistent feed/paper runtime, personal instances, budget/risk proposals, deterministic controls, order ledger, reconciliation and the confirmed keep/close exit choice.
+5. Complete authenticated service-mediated registry synchronization before exposing shared-user records; the current private schema and local workspace are foundations, not that deployed service.
+
+The original Phase 3–5 objective remains active until every explicit requirement is verified. This sequence does not redefine completion around the already implemented foundation.

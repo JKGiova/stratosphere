@@ -305,13 +305,13 @@ async def test_response_does_not_steal_focus_and_session_state_updates():
         await pilot.press("ctrl+k")
         await pilot.pause()
         assert app.active_view == "focus" and app.request_state == "CANCELED"
-        assert "Completed turns    0" in str(app.query_one("#session-details", Static).content)
+        assert "Completed turns    0" in str(app.query_one("#status", Static).tooltip)
         app.session.provider.wait = False
         await send(app, pilot, "a complete turn")
         assert app.request_state == "READY"
-        assert "Completed turns    1" in str(app.query_one("#session-details", Static).content)
+        assert "Completed turns    1" in str(app.query_one("#status", Static).tooltip)
         await send(app, pilot, "/clear")
-        assert "Completed turns    0" in str(app.query_one("#session-details", Static).content)
+        assert "Completed turns    0" in str(app.query_one("#status", Static).tooltip)
 
 
 @pytest.mark.asyncio
@@ -322,19 +322,19 @@ async def test_stream_resize_and_completion_preserve_other_panel_focus():
         app.session.provider.wait = True
         await send(app, pilot, "finish in the background")
         await pilot.press("tab", "tab", "tab")
-        assert app.active_view == "session"
+        assert app.active_view == "reports"
         await pilot.resize_terminal(45, 12)
         await pilot.pause()
         app.session.provider.release.set()
         await app.response_worker.wait()
         await pilot.pause()
         assert app.request_state == "READY" and len(app.session.history) == 2
-        assert app.active_view == "session" and app.focused.id == "session-pane"
-        assert app.query_one("#session-pane").display
+        assert app.active_view == "reports" and app.focused.id == "reports-pane"
+        assert app.query_one("#reports-pane").display
         assert not app.query_one("#chat-pane").display
         await pilot.resize_terminal(180, 48)
         await pilot.pause()
-        assert len(shown(app)) == 6 and app.active_view == "session"
+        assert len(shown(app)) == 6 and app.active_view == "reports"
 
 
 @pytest.mark.asyncio
@@ -347,8 +347,8 @@ async def test_tab_cycles_all_views_both_directions_without_losing_draft(size):
         field.value = "draft [keep literally]"
         field.cursor_position = 5
         for key, views in [
-            ("tab", ["jobs", "portfolio", "session", "library", "focus", "chat"]),
-            ("shift+tab", ["focus", "library", "session", "portfolio", "jobs", "chat"]),
+            ("tab", ["jobs", "portfolio", "reports", "library", "focus", "chat"]),
+            ("shift+tab", ["focus", "library", "reports", "portfolio", "jobs", "chat"]),
         ]:
             for view in views:
                 await pilot.press(key)

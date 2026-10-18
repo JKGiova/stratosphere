@@ -27,3 +27,11 @@ The user explicitly requested the full planning chat in docs/conversation-log.md
 - Commit log updates to GitHub using the current branch head and verify the published content. Combine log updates with task changes when appropriate.
 - If publishing fails or a later user instruction prohibits a repository write, explain the gap instead of claiming synchronization.
 - This workflow does not provide an autonomous background trigger for ChatGPT messages. Do not create unrelated scheduled polling or imply that such a trigger exists.
+
+## Product agent workflow
+
+The orchestrator bridges the user to strategy specialists. Each exact registered strategy has one stable agent identity; private conversation contexts remain separated by strategy and, for shared service records, by verified owner. Exact duplicate registration reuses the strategy/agent and accumulates provenance; behavioral variants have distinct identities and recorded lineage.
+
+Strategy agents own analysis, evidence lookup, approved testing and measured reports through the same validated application operations as slash commands. Keep plan approval and deterministic runtime/risk gates outside model authority. Model output must not execute arbitrary SQL, imported code or live orders. Database service credentials must never reach the TUI, model prompts or native workers.
+
+Reports replaces the Session panel. Preserve responsive layout/navigation and inspectable, verified report artifacts. Use docs/phase3-5.md as the full acceptance ledger for the current goal; do not mark a phase complete around a narrower foundation. Local test results, real provider checks, hosted ownership checks and unverified integrations must remain distinguishable.

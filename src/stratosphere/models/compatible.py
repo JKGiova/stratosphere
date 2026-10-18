@@ -13,6 +13,8 @@ class CompatibleChat(ChatCompletions):
         body = super().request_body(messages)
         if self.provider in {"openai", "groq"}:
             body["max_completion_tokens"] = body.pop("max_tokens")
+        if self.provider == "ollama":
+            body["reasoning_effort"] = "none"
         if self.provider == "openai":
             body["store"] = False
         if self.provider == "kimi" and self.settings.model.startswith("kimi-k3"):

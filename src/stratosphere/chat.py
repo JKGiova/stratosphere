@@ -28,8 +28,9 @@ class ChatState(TypedDict):
 
 
 class ChatSession:
-    def __init__(self, provider: ChatCompletions):
+    def __init__(self, provider: ChatCompletions, *, system_prompt: str = SYSTEM_PROMPT):
         self.provider = provider
+        self.system_prompt = system_prompt
         self.history: list[dict[str, str]] = []
         self.busy = False
         self.research_context = ""
@@ -60,7 +61,10 @@ class ChatSession:
                 async for mode, value in self.graph.astream(
                     {
                         "messages": [
-                            {"role": "system", "content": SYSTEM_PROMPT + self.research_context},
+                            {
+                                "role": "system",
+                                "content": self.system_prompt + self.research_context,
+                            },
                             *request,
                         ]
                     },

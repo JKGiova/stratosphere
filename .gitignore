@@ -10,3 +10,5 @@ dist/
 reports/
 .env
 .env.*
+
+.DS_Store

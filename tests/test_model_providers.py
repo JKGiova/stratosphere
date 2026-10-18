@@ -127,6 +127,8 @@ async def test_direct_provider_stream_and_exact_request(provider):
         assert body["store"] is False and "max_tokens" not in body
     if provider == "kimi":
         assert body["reasoning_effort"] == "low"
+    if provider == "ollama":
+        assert body["reasoning_effort"] == "none"
 
 
 @pytest.mark.parametrize("provider", list(DEFAULT_MODELS))

@@ -211,3 +211,7 @@ The requested Claude, OpenAI, Grok, Groq, DeepSeek, Gemini, Kimi, Qwen, GLM and 
 The final local suite passed **380 tests with zero skips**, including the native engine checks; lint, formatting, credential scans, built-wheel onboarding and asset checks passed. Real chat checks passed through the existing free OpenRouter model and an already installed local Ollama model. New hosted-provider authentication and model quality remain unverified. This does not implement source adapters, shared registration or unrestricted model tools; Phase 1 remains in progress.
 
 GitHub verification for this provider increment is recorded in [model providers](model-providers.md#github-verification): implementation `98235d0` is published, but the platform and Intel jobs were blocked before execution by the existing account billing restriction.
+
+## Strategy-agent foundation — October 18, 2026
+
+The user subsequently authorized Phases 3–5 and a per-strategy agent architecture. The first foundation adds stable local identities, exact duplicate/source/submission handling, separate specialist histories, validated natural-language routing, and Reports in place of Session. The new Supabase project has a private schema with tested ownership and immutable identity/report controls. This is a controlled development foundation: hosted application-service synchronization, registry publication/authentication and external source integrations remain incomplete. See [strategy agents](strategy-agents.md) and the [full acceptance ledger](phase3-5.md).

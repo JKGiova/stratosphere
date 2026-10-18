@@ -138,3 +138,9 @@ class ResearchProvider:
 @pytest.fixture
 def research_provider(research_draft):
     return ResearchProvider(research_draft)
+
+
+@pytest.fixture(autouse=True)
+def isolate_workspace_database(tmp_path, monkeypatch):
+    """Product startup now persists strategy records; tests must never touch user state."""
+    monkeypatch.setenv("STRATOSPHERE_RESEARCH_DIR", str(tmp_path / "research"))

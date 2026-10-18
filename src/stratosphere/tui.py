@@ -28,7 +28,7 @@ from textual.widgets import (
 )
 from textual.worker import Worker
 
-from stratosphere.chat import ChatSession
+from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.commands import PANELS, route_command
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
@@ -40,6 +40,7 @@ from stratosphere.models.settings import (
     ModelSettings,
 )
 from stratosphere.models.streaming import ModelError, safe_text
+from stratosphere.registry.workspace import WorkspaceDatabase
 from stratosphere.research.contracts import ResearchConfig
 from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
@@ -53,7 +54,7 @@ VIEWS = (
     ("chat", "Chat"),
     ("jobs", "Tests"),
     ("portfolio", "Positions"),
-    ("session", "Session"),
+    ("reports", "Reports"),
 )
 
 
@@ -130,7 +131,8 @@ class ModelSetup(Vertical):
         return (
             f"Chat is sent to {destination} at the API address below. "
             + cost
-            + "The app keeps your key and chat only for this session. "
+            + "Keys stay in memory. General chat is session-only; strategy-agent conversations "
+            "and evidence are retained privately on this computer. "
             "Research sources/results are saved privately on this computer. "
             "Future registered strategies will be shared automatically; chat is "
             "separate. Login and trading setup come later."
@@ -268,9 +270,11 @@ class StratosphereApp(App[None]):
         super().__init__()
         self.provider_factory = provider_factory
         self.settings: ModelSettings | None = None
-        self.session: ChatSession | None = None
+        self.session: Orchestrator | None = None
         self.response_worker: Worker | None = None
         self.research = research_service or ResearchService(ResearchStore(default_research_root()))
+        self.database = WorkspaceDatabase(self.research.store.root / "workspace.sqlite3")
+        self.workspace_bridge = Orchestrator(None, self.database, self.research)
         self.research_worker: Worker | None = None
         self.research_job_id: str | None = None
         self.research_form: ResearchForm | None = None
@@ -321,8 +325,8 @@ class StratosphereApp(App[None]):
                     yield Static("Selection / none", classes="eyebrow")
                     yield Static("Strategy details", classes="empty-heading")
                     yield Static(
-                        "Rules, sources and versions will appear here when the strategy "
-                        "library is available.",
+                        "Select a strategy in Library to inspect its definition, "
+                        "agent, jobs and reports.",
                         classes="muted",
                         markup=False,
                     )
@@ -362,14 +366,18 @@ class StratosphereApp(App[None]):
                 with VerticalScroll(classes="pane-body"):
                     yield Static("Positions unknown", classes="empty-heading")
                     yield Static(PANELS["portfolio"], classes="muted", markup=False)
-            with WorkspacePane(id="session-pane", classes="pane"):
-                yield Static("SESSION", classes="pane-title")
-                with VerticalScroll(classes="pane-body"):
-                    yield Static("MODEL CONNECTION", classes="eyebrow")
-                    yield Static("", id="session-details", markup=False)
+            with WorkspacePane(id="reports-pane", classes="pane"):
+                yield Static("REPORTS", classes="pane-title")
+                yield Static("Retained evidence · verified again when opened", classes="eyebrow")
+                yield DataTable(id="reports", zebra_stripes=True, cursor_type="row")
+                with VerticalScroll(classes="pane-body", id="report-body"):
                     yield Static(
-                        "Research requires plan approval. Live trading is not connected.",
-                        classes="session-note muted",
+                        "No completed reports", id="reports-empty", classes="empty-heading"
+                    )
+                    yield Static(
+                        "Select a report to inspect its measured results and limitations.",
+                        id="report-preview",
+                        markup=False,
                     )
         yield Footer()
 
@@ -377,8 +385,9 @@ class StratosphereApp(App[None]):
         self.viewport = (self.size.width, self.size.height)
         self.panes = self.query_one("#panes", Container)
         self.workspace_screen = self.screen
-        self.query_one("#strategies", DataTable).add_columns("Strategy", "Version", "State")
+        self.query_one("#strategies", DataTable).add_columns("Strategy", "Public ID", "State")
         self.query_one("#tests", DataTable).add_columns("Run", "Strategy", "State")
+        self.query_one("#reports", DataTable).add_columns("Strategy", "Report", "Created")
         self.query_one("#positions", DataTable).add_columns("Symbol", "Quantity", "P/L")
         self.research.recover()
         self.refresh_research_views()
@@ -443,7 +452,7 @@ class StratosphereApp(App[None]):
         if view not in dict(VIEWS):
             return
         self.active_pane = view
-        if view in {"jobs", "portfolio", "session"}:
+        if view in {"jobs", "portfolio", "reports"}:
             self.activity_view = view
         if view != "chat":
             self.companion_view = view
@@ -468,7 +477,7 @@ class StratosphereApp(App[None]):
                     self.active_pane = view
                     if view != "chat":
                         self.companion_view = view
-                    if view in {"jobs", "portfolio", "session"}:
+                    if view in {"jobs", "portfolio", "reports"}:
                         self.activity_view = view
                     self.update_layout()
                 break
@@ -542,10 +551,10 @@ class StratosphereApp(App[None]):
         )
         self.refresh_bindings()
         turns = len(self.session.history) // 2 if self.session else 0
-        self.query_one("#session-details", Static).update(
-            f"{model}\n\nRequest    {state.lower()}\nCompleted turns    {turns}\n\n"
-            "Key and conversation stay in this app session. Model requests go to the "
-            "selected provider."
+        agent = self.session.active_strategy if self.session else None
+        self.query_one("#status", Static).tooltip = (
+            f"{model}\nRequest {state.lower()}\nCompleted turns    {turns}\n"
+            + (f"Strategy agent {agent}" if agent else "Orchestrator · no strategy selected")
         )
 
     async def open_model_setup(self) -> None:
@@ -567,7 +576,13 @@ class StratosphereApp(App[None]):
         self.query_one("#composer").display = True
         if event.settings:
             self.settings = event.settings
-            self.session = ChatSession(self.provider_factory(event.settings))
+            self.session = Orchestrator(
+                self.provider_factory(event.settings),
+                self.database,
+                self.research,
+                f"{event.settings.provider}/{event.settings.model}",
+            )
+            self.session.sync_research()
             self.update_status("MODEL SET · NOT YET VERIFIED")
             await self.add_message("Model connected for this session. Send a message to test it.")
         self.action_focus_pane("chat")
@@ -603,6 +618,20 @@ class StratosphereApp(App[None]):
                 self.action_focus_pane("chat")
             if command.action in {"new", "approve", "pause", "resume", "show", "report"}:
                 await self.handle_research_command(command.action, command.args)
+            elif command.action == "agent":
+                if not self.session:
+                    await self.add_message("Configure a model with /model first.")
+                elif not command.args:
+                    await self.add_message(
+                        "Strategy agents: "
+                        + ", ".join(s["public_id"] for s in self.database.catalog())
+                        + ". Select one with /agent <strategy-id>."
+                    )
+                else:
+                    try:
+                        await self.show_strategy_agent(command.args[0])
+                    except ResearchError as error:
+                        await self.add_message(str(error))
             elif command.action == "message":
                 await self.add_message(command.message)
             elif command.action in PANELS:
@@ -624,8 +653,7 @@ class StratosphereApp(App[None]):
                 await self.open_model_setup()
             elif command.action == "clear":
                 if self.session:
-                    self.session.history.clear()
-                    self.session.research_context = ""
+                    self.session.clear()
                 await self.query_one("#conversation", VerticalScroll).remove_children()
                 await self.add_message("Conversation cleared from this session.")
                 self.update_status(self.request_state)
@@ -654,23 +682,41 @@ class StratosphereApp(App[None]):
         bubble = AssistantMessage()
         await self.query_one("#conversation", VerticalScroll).mount(bubble)
         reply = ""
+        agent_label = "Assistant"
         self.update_status("CONNECTING")
         try:
             async for delta in self.session.respond(text):
                 if not reply:
                     self.update_status("RESPONDING")
+                    if self.session.responding_strategy:
+                        agent_label = f"Agent {self.session.responding_strategy}"
                 reply += delta
-                bubble.update_reply(reply)
+                bubble.update_reply(reply, label=f"{agent_label}:")
                 self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
             self.update_status("READY")
+            action = self.session.last_action
+            if action and action["action"] == "new":
+                self.call_after_refresh(self.handle_research_command, "new", (action["source"],))
+            elif action and action["action"] == "review":
+                await self.query_one("#conversation", VerticalScroll).mount(
+                    ResearchReview(action["job_id"], action["digest"])
+                )
+            elif action and action["action"] == "resume":
+                self.call_after_refresh(self.handle_research_command, "resume", (action["job_id"],))
+            elif action and action["action"] == "report":
+                await self.open_report_panel(action["job_id"])
+            self.refresh_research_views()
         except asyncio.CancelledError:
-            bubble.update_reply(reply, label="Assistant (canceled; not kept in model history):")
+            bubble.update_reply(
+                reply, label=f"{agent_label} (canceled; not kept in model history):"
+            )
             bubble.add_class("interrupted-message")
             self.update_status("CANCELED")
             raise
-        except ModelError as error:
+        except (ModelError, ResearchError) as error:
             bubble.update_reply(
-                f"{reply}\n\n{error}", label="Assistant (incomplete; not kept in model history):"
+                f"{reply}\n\n{error}",
+                label=f"{agent_label} (incomplete; not kept in model history):",
             )
             bubble.add_class("interrupted-message")
             self.update_status("MODEL UNAVAILABLE · /model or retry")
@@ -705,12 +751,32 @@ class StratosphereApp(App[None]):
                         seen.add(identity)
             except ValueError, KeyError, ResearchError, OSError:
                 continue
+        (self.session or self.workspace_bridge).sync_research()
+        library.clear()
+        for record in self.database.catalog():
+            library.add_row(
+                Text(safe_text(record["name"])),
+                record["public_id"],
+                "Agent ready",
+                key=record["public_id"],
+            )
+        reports = self.query_one("#reports", DataTable)
+        reports.clear()
+        for record in self.database.reports():
+            reports.add_row(
+                Text(safe_text(record["name"])),
+                record["job_id"][:12],
+                record["created_at"][:16],
+                key=record["job_id"],
+            )
+        reports.styles.height = 1 if not reports.row_count else min(reports.row_count + 2, 8)
+        self.query_one("#reports-empty").display = reports.row_count == 0
         for table in (library, jobs):
             table.styles.height = 1 if not table.row_count else min(table.row_count + 2, 8)
         self.query_one("#library-empty").display = library.row_count == 0
         self.query_one("#tests-empty").display = jobs.row_count == 0
         self.query_one("#library-state", Static).update(
-            "Local research · shared catalog not connected"
+            "Strategy agents · private development registry"
             if library.row_count
             else "Catalog / not connected"
         )
@@ -754,6 +820,7 @@ class StratosphereApp(App[None]):
             elif action == "report":
                 report = await self.research.open_report(args[0])
                 self.set_research_context(args[0], report)
+                await self.open_report_panel(args[0], report)
                 await self.add_research_markdown(report_markdown(report), "Research report:")
                 await self.add_message(
                     f"Full evidence: {self.research.store.directory(args[0]) / 'report.json'}"
@@ -796,6 +863,12 @@ class StratosphereApp(App[None]):
             job_id, draft, plan = await self.research.prepare(source, config, self.session.provider)
             self.research_job_id = job_id
             if plan:
+                record = self.session.register_job(job_id)
+                self.session.select(record["public_id"])
+                await self.add_message(
+                    f"Strategy {record['public_id']} · dedicated agent {record['agent_id']}. "
+                    "Its analysis and reports stay scoped to this strategy."
+                )
                 await self.add_research_markdown(plan_markdown(job_id, plan), "Research plan:")
                 await self.query_one("#conversation", VerticalScroll).mount(
                     ResearchReview(job_id, plan.digest)
@@ -833,6 +906,10 @@ class StratosphereApp(App[None]):
             raise ResearchError("Another operation is active.")
         if self.setup or self.research_form:
             raise ResearchError("Complete or cancel the current form first.")
+        try:
+            self.database.strategy_for_job(job_id)
+        except ResearchError:
+            self.session.register_job(job_id)
         if digest is not None:
             self.research.approve(job_id, digest)
         elif self.research.store.state(job_id) != "paused":
@@ -851,8 +928,12 @@ class StratosphereApp(App[None]):
             self.refresh_research_views()
 
         try:
-            report = await self.research.run(job_id, progress=progress)
+            owner = self.database.strategy_for_job(job_id)
+            specialist = self.session.agent(owner["public_id"])
+            report = await specialist.run_job(job_id, progress=progress)
             self.set_research_context(job_id, report)
+            self.session.sync_research()
+            await self.open_report_panel(job_id, report, focus=False)
             await self.add_research_markdown(report_markdown(report), "Research report:")
             await self.add_message(
                 f"Job {job_id} completed. Full evidence: "
@@ -930,9 +1011,50 @@ class StratosphereApp(App[None]):
         )
         self.action_select_view("focus")
 
+    async def show_strategy_agent(self, public_id: str) -> None:
+        await self.research.require_online()
+        record = (
+            self.session.select(public_id) if self.session else self.database.strategy(public_id)
+        )
+        jobs = self.database.jobs(public_id)
+        text = (
+            f"# {record['name']}\n\nStrategy `{public_id}`\n\n"
+            f"Dedicated agent `{record['agent_id']}`\n\n"
+            f"Behavior `{record['spec_sha256']}`\n\n"
+            "Registration does not imply validation. Shared service is not deployed.\n\n"
+            + "## Research jobs\n\n"
+            + "\n".join(f"- `{j['job_id']}` · {j['state']}" for j in jobs)
+            + "\n\nAsk in chat to analyze this strategy or inspect its tests and reports."
+        )
+        view = self.query_one("#focus-body", VerticalScroll)
+        await view.remove_children()
+        await view.mount(Static(Markdown(safe_text(text), hyperlinks=False)))
+        self.update_status(self.request_state)
+        self.action_select_view("focus")
+
+    async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
+        report = report or await self.research.open_report(job_id)
+        (self.session or self.workspace_bridge).sync_research()
+        self.query_one("#report-preview", Static).update(
+            Markdown(safe_text(report_markdown(report)), hyperlinks=False)
+        )
+        self.query_one("#reports-empty").display = False
+        if focus:
+            self.action_select_view("reports")
+
     async def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        if event.data_table.id in {"strategies", "tests"}:
-            await self.handle_research_command("show", (str(event.row_key.value),))
+        try:
+            key = str(event.row_key.value)
+            if event.data_table.id == "strategies":
+                await self.show_strategy_agent(key)
+            elif event.data_table.id == "tests":
+                await self.handle_research_command("show", (key,))
+            elif event.data_table.id == "reports":
+                await self.open_report_panel(key)
+        except ResearchError, ValueError, OSError:
+            await self.add_message(
+                "That retained record cannot be verified or opened. Evidence was kept."
+            )
 
     def set_research_context(self, job_id: str, report: dict) -> None:
         if self.session:

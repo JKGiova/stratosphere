@@ -43,3 +43,5 @@ See [Phase 1 implementation progress](phase1.md) for current client capabilities
 See [Phase 2 research progress](phase2.md) for implemented source/specification review, approval, native worker, reports, test evidence and remaining work.
 
 See [model providers](model-providers.md) for all 12 adapters, credential environment variables, official/local API addresses and verification limits.
+
+See [strategy agents](strategy-agents.md) for orchestration/Reports and the [Phase 3–5 acceptance ledger](phase3-5.md) for the full authorized scope and remaining work.

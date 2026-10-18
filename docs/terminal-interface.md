@@ -14,19 +14,19 @@ The user can supply strategy ideas and external sources, inspect recommendations
 
 The client uses black/charcoal surfaces, white focus accents, square dividers, full-width panel title bars, a shared navigation strip, request status and a keyboard footer. The brand is plain text: clicking it opens no menu. The terminal window stays at the size chosen by the user; startup sends no resize/maximize request and runs no desktop automation.
 
-There are six independent panels: Library, Focus, Chat, Tests, Positions and Session. The client selects the first layout that fits the following minimum terminal dimensions, measured in **columns × rows**. Each panel is allocated at least 48 columns and 14 rows in multi-panel layouts; four rows are reserved for interface controls.
+There are six independent panels: Library, Focus, Chat, Tests, Positions and Reports. The client selects the first layout that fits the following minimum terminal dimensions, measured in **columns × rows**. Each panel is allocated at least 48 columns and 14 rows in multi-panel layouts; four rows are reserved for interface controls.
 
 | Layout | Minimum terminal size | Visible panels |
 | --- | --- | --- |
 | Six, 3 columns × 2 rows | 144 × 32 | All six panels |
-| Four, 2 columns × 2 rows | 96 × 32 | Library, Focus, Chat and the selected Tests/Positions/Session panel |
+| Four, 2 columns × 2 rows | 96 × 32 | Library, Focus, Chat and the selected Tests/Positions/Reports panel |
 | Two horizontal, side by side | 96 × 18 | Chat and the most recently selected other panel |
 | Two vertical, stacked | 48 × 32 | Chat and the most recently selected other panel |
 | One | Smaller sizes | The selected panel |
 
 Side-by-side takes priority when both two-panel arrangements fit. Selecting a hidden panel reveals it in the appropriate slot. The initial secondary choices are Library in two-panel mode and Tests in four-panel mode. Panels remain mounted across layout changes, preserving input drafts/cursor positions, entered setup values, messages and the active view. The brand is hidden in one-panel mode to preserve reading space. Scrollable content remains accessible in small panels.
 
-**Tab** cycles Library → Focus → Chat → Tests → Positions → Session and wraps; **Shift+Tab** reverses that order. Clicking the navigation strip selects the same panels. F1–F4 select Library, Focus, Chat and Tests respectively. All navigation is local UI routing and makes no model request. Streaming completion and cancellation preserve focus when another panel is selected.
+**Tab** cycles Library → Focus → Chat → Tests → Positions → Reports and wraps; **Shift+Tab** reverses that order. Clicking the navigation strip selects the same panels. F1–F4 select Library, Focus, Chat and Tests respectively. All navigation is local UI routing and makes no model request. Streaming completion and cancellation preserve focus when another panel is selected.
 
 `/strategies` selects Library; `/jobs` selects Tests; `/portfolio` selects Positions. `/` from a non-input panel returns to chat and begins a command if the draft is empty; an existing draft is preserved. The `›` composer shows the send/command hint or the active response’s stop shortcut. Submitting a draft while busy or unconfigured preserves it for retry. Ctrl+K cancels a response; Ctrl+Q exits, including during setup.
 
@@ -38,7 +38,7 @@ First-run model setup appears as an inline form in the agent conversation. There
 
 Assistant replies render Markdown while streaming: headings, emphasis, lists, fenced code blocks with syntax coloring, inline code and tables. Unfinished Markdown is rerendered as text arrives. User messages and command/status text remain literal. Terminal controls are stripped, Rich markup is not interpreted in model text, and rendering neither fetches images nor automatically opens links. Formatting does not execute code or change the stored model conversation. Failed/canceled replies remain marked incomplete and excluded from model history.
 
-The interface lists actual local research drafts/jobs as they are created; the shared catalog remains disconnected. It does not populate synthetic strategies, tests, balances or trading positions. Unavailable account data is explicitly unknown. Session displays the configured model, actual request state and completed conversation turns; configuration alone is not a verified online request. Local research execution is documented in [Phase 2](phase2.md); trading integrations remain unavailable.
+The interface lists actual local research drafts/jobs as they are created; the shared catalog remains disconnected. It does not populate synthetic strategies, tests, balances or trading positions. Unavailable account data is explicitly unknown. Reports lists and opens retained research evidence; the status bar/tooltip shows the configured model, actual request state and completed conversation turns; configuration alone is not a verified online request. Local research execution is documented in [Phase 2](phase2.md); trading integrations remain unavailable.
 
 ### Terminal window size at launch
 
@@ -130,3 +130,7 @@ First-run onboarding configures the user's selected model/provider, hosted brows
 Users provide their own model API keys. Google and GitHub are selected for browser login; no hosted-login domain exists yet. Research executes an approved plan and asks clarifying questions when needed. Execution uses separate configured permissions. On TUI exit, users choose keeping positions or requesting closure of all positions. The keep/close choice is settled and must not be reopened. Internal lifecycle and pending-order handling must honor that choice.
 
 Login implementation is deferred to later pre-release work; preserve it in the final onboarding design while focusing current development on model setup, chat, commands, panels and research.
+
+## Strategy-agent and Reports increment
+
+[Strategy agents](strategy-agents.md) now route registered-strategy conversations to separate persistent specialist contexts, with `/agent` selection and the same exact-plan approval gates for tests. Reports replaces Session and lists actual completed reports; selecting a report reverifies retained artifact integrity and online availability. Model/request metadata moved to the status tooltip. Supabase is provisioned with a private tested schema, while the current TUI uses the local development registry until authenticated application-service synchronization exists. Broader Phase 3–5 work remains in progress.

@@ -1,6 +1,6 @@
 # Roadmap and open implementation decisions
 
-Last updated: October 17, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. [Phase 1](phase1.md) is **in progress**, beginning with terminal/model chat; [Phase 2](phase2.md) is **in progress** with its first reviewed text-to-native-backtest workflow; Phases 3–7 remain **not implemented**. An internal proof is not a release.
+Last updated: October 18, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. [Phase 1](phase1.md) is **in progress**, beginning with terminal/model chat; [Phase 2](phase2.md) is **in progress** with its first reviewed text-to-native-backtest workflow; The user has authorized **Phases 3–5**, now in progress under the [full acceptance ledger](phase3-5.md). Their first agent/database foundation is implemented; experiment iteration, source/data maturation and paper runtime remain pending. Phases 6–7 remain not implemented. An internal proof is not a release.
 
 ## Selected foundation
 
@@ -78,7 +78,7 @@ Quiver remains a possible optional alternative-data integration. VectorBT remain
 
 ## Roadmap refinement
 
-The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; Phase 1 has started; Phase 2 has begun within the verified scope in its increment record; Phases 3–7 remain unimplemented. AGENTS.md rules remain in force.
+The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; Phase 1 has started; Phase 2 has begun within the verified scope in its increment record; Phases 3–5 are authorized and in progress; their full completion requires the acceptance ledger. Phases 6–7 remain unimplemented. AGENTS.md rules remain in force.
 
 ## Release policy and confirmed experience
 

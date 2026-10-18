@@ -113,6 +113,16 @@ async def test_source_review_approval_real_records_report_and_context(
         await pilot.pause()
         assert ui_service.calls == ["fetch", 1, 2]
         assert ui_service.store.state(job) == "completed"
+        assert app.query_one("#reports", DataTable).row_count == 1
+        assert not app.query("#session-pane")
+        await send(app, pilot, "/reports")
+        assert app.active_view == "reports"
+        await app.open_report_panel(job)
+        assert "Net P&L" in app.query_one("#report-preview").content.markup
+        for width, height in [(45, 12), (110, 36), (144, 40)]:
+            await pilot.resize_terminal(width, height)
+            await pilot.pause()
+            assert app.active_view == "reports" and app.query_one("#reports-pane").display
         assert app.query_one("#composer").border_subtitle == "Enter send · / commands"
         assert "measured report context" in app.session.research_context
         await send(app, pilot, f"/report {job}")
@@ -218,6 +228,7 @@ async def test_running_research_can_pause_resume_without_focus_theft_or_extra_in
         await app.research_worker.wait()
         await pilot.pause()
         assert ui_service.store.state(job) == "completed"
+        assert app.query_one("#reports", DataTable).row_count == 1
         assert app.active_view == "focus" and app.focused.id == "focus-pane"
         assert len(research_provider.requests) == 1
 
@@ -250,3 +261,58 @@ async def test_quit_pauses_an_approved_job_for_restart(
         await pilot.press("ctrl+q")
     assert not app.is_running
     assert ui_service.store.state(job) == "paused" and ui_service.active_job is None
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_natural_test_request_uses_existing_approval_gate(
+    ui_service,
+    research_source,
+    research_draft,
+):
+    from stratosphere.agents.orchestrator import ROUTER_PROMPT
+    from stratosphere.research.contracts import ResearchConfig
+
+    class RoutedProvider:
+        def __init__(self):
+            self.route = {"action": "tests"}
+
+        async def stream(self, messages):
+            if messages[0]["content"] == ROUTER_PROMPT:
+                yield json.dumps(self.route)
+            else:
+                yield research_draft.model_dump_json()
+
+    provider = RoutedProvider()
+    app = StratosphereApp(provider_factory=lambda settings: provider, research_service=ui_service)
+    async with app.run_test(size=(144, 40)) as pilot:
+        await connect(app, pilot)
+        job, _, plan = await ui_service.prepare(research_source, ResearchConfig(), provider)
+        record = app.session.register_job(job)
+        app.session.select(record["public_id"])
+        await send(app, pilot, "Run tests for the selected strategy")
+        await app.response_worker.wait()
+        await pilot.pause()
+        assert app.query(ResearchReview) and ui_service.calls == []
+        assert ui_service.store.state(job) == "awaiting_approval"
+        ui_service.approve(job, plan.digest)
+        app.session.sync_research()
+        await send(app, pilot, "Run the already approved tests")
+        await app.response_worker.wait()
+        await pilot.pause()
+        assert app.research_worker is not None
+        await app.research_worker.wait()
+        await pilot.pause()
+        assert ui_service.store.state(job) == "completed"
+        assert ui_service.calls == ["fetch", 1, 2]
+        assert app.query_one("#reports", DataTable).row_count == 1
+        provider.route = {"action": "report"}
+        await send(app, pilot, "Show this strategy's measured report")
+        await app.response_worker.wait()
+        await pilot.pause()
+        assert app.active_view == "reports"
+        provider.route = {"action": "new", "source": research_source}
+        await send(app, pilot, research_source)
+        await app.response_worker.wait()
+        await pilot.pause()
+        assert app.research_form is not None
+        assert app.query_one("#research-source", TextArea).text == research_source

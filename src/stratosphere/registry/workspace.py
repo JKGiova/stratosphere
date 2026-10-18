@@ -1,0 +1,398 @@
+"""Transactional local development registry; never an unauthenticated shared service."""
+
+import hashlib
+import json
+import os
+import secrets
+import sqlite3
+import uuid
+from contextlib import contextmanager
+from datetime import UTC, datetime
+from pathlib import Path
+
+from stratosphere.phase0.contracts import StrategySpec, canonical_bytes, fingerprint
+from stratosphere.research.store import ResearchError
+
+
+class RegistryError(ResearchError):
+    """A safe, deterministic registry failure."""
+
+
+def now() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def encoded(value) -> str:
+    return json.dumps(
+        value, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+    )
+
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS strategies (
+ id TEXT PRIMARY KEY, public_id TEXT NOT NULL UNIQUE CHECK(length(public_id)=24),
+ spec_sha256 TEXT NOT NULL UNIQUE, spec_json TEXT NOT NULL, name TEXT NOT NULL,
+ parent_id TEXT REFERENCES strategies(id), created_at TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS immutable_strategy BEFORE UPDATE ON strategies
+BEGIN SELECT RAISE(ABORT, 'Strategy identities are immutable'); END;
+CREATE TABLE IF NOT EXISTS strategy_lineage (
+ parent_id TEXT NOT NULL REFERENCES strategies(id),
+ child_id TEXT NOT NULL REFERENCES strategies(id),
+ created_at TEXT NOT NULL, PRIMARY KEY(parent_id,child_id), CHECK(parent_id<>child_id)
+);
+CREATE INDEX IF NOT EXISTS lineage_child ON strategy_lineage(child_id);
+CREATE TABLE IF NOT EXISTS sources (
+ id TEXT PRIMARY KEY, source_sha256 TEXT NOT NULL UNIQUE, payload TEXT NOT NULL,
+ created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS strategy_sources (
+ strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ source_id TEXT NOT NULL REFERENCES sources(id),
+ evidence_json TEXT NOT NULL, created_at TEXT NOT NULL,
+ PRIMARY KEY(strategy_id,source_id)
+);
+CREATE TABLE IF NOT EXISTS submissions (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ source_id TEXT NOT NULL REFERENCES sources(id), resolution TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS agents (
+ strategy_id TEXT PRIMARY KEY REFERENCES strategies(id), agent_id TEXT NOT NULL UNIQUE,
+ created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS agent_turns (
+ id INTEGER PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES agents(strategy_id),
+ user_text TEXT NOT NULL, assistant_text TEXT NOT NULL, model_ref TEXT NOT NULL,
+ created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS agent_turns_strategy ON agent_turns(strategy_id,id);
+CREATE TABLE IF NOT EXISTS operations (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ action TEXT NOT NULL, job_id TEXT, status TEXT NOT NULL, detail TEXT NOT NULL,
+ created_at TEXT NOT NULL,
+ finished_at TEXT
+);
+CREATE INDEX IF NOT EXISTS operations_strategy ON operations(strategy_id,created_at);
+CREATE TABLE IF NOT EXISTS research_jobs (
+ job_id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ plan_sha256 TEXT NOT NULL, state TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS jobs_strategy ON research_jobs(strategy_id);
+CREATE TABLE IF NOT EXISTS reports (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id), kind TEXT NOT NULL,
+ job_id TEXT NOT NULL UNIQUE, report_json TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS reports_strategy ON reports(strategy_id,created_at);
+CREATE TABLE IF NOT EXISTS assessments (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ payload TEXT NOT NULL, assessed_at TEXT NOT NULL
+);
+"""
+
+
+class WorkspaceDatabase:
+    def __init__(self, path: Path):
+        self.path = path
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if path.is_symlink():
+            raise RegistryError("The workspace database cannot be a symbolic link.")
+        fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
+        os.close(fd)
+        path.chmod(0o600)
+        with self.connect() as db:
+            db.executescript(SCHEMA)
+            db.execute("PRAGMA user_version=1")
+
+    @contextmanager
+    def connect(self):
+        db = sqlite3.connect(self.path, timeout=10)
+        db.row_factory = sqlite3.Row
+        db.execute("PRAGMA foreign_keys=ON")
+        try:
+            with db:
+                yield db
+        except sqlite3.Error:
+            raise RegistryError(
+                "Workspace transaction failed; no partial record was committed."
+            ) from None
+        finally:
+            db.close()
+
+    def register(
+        self, spec: StrategySpec, name: str, source: dict, evidence=(), parent=None
+    ) -> dict:
+        """Exact identity reuse, atomic public-ID retry, source accumulation and one agent."""
+        digest, canonical = fingerprint(spec), canonical_bytes(spec).decode()
+        if not name.strip():
+            raise RegistryError("A descriptive strategy name is required.")
+        source_json = encoded(source)
+        source_hash = hashlib.sha256(source_json.encode()).hexdigest()
+        at = now()
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT * FROM strategies WHERE spec_sha256=?", (digest,)).fetchone()
+            if row and row["spec_json"] != canonical:
+                raise RegistryError(
+                    "Behavior digest collision; automatic identity merging was blocked."
+                )
+            parent_row = self._strategy(db, parent) if parent else None
+            if row and parent_row and row["id"] == parent_row["id"]:
+                raise RegistryError("A variant must change behavior, not only its name or source.")
+            resolution = "exact_duplicate" if row else "variant" if parent else "new_strategy"
+            if not row:
+                internal = uuid.uuid7().hex
+                for _ in range(100):
+                    public = "".join(str(secrets.randbelow(10)) for _ in range(24))
+                    try:
+                        db.execute(
+                            "INSERT INTO strategies VALUES (?,?,?,?,?,?,?)",
+                            (
+                                internal,
+                                public,
+                                digest,
+                                canonical,
+                                name,
+                                parent_row["id"] if parent_row else None,
+                                at,
+                            ),
+                        )
+                        break
+                    except sqlite3.IntegrityError:
+                        if not db.execute(
+                            "SELECT 1 FROM strategies WHERE public_id=?", (public,)
+                        ).fetchone():
+                            raise
+                else:
+                    raise RegistryError(
+                        "Public identity allocation could not complete; retry later."
+                    )
+                row = self._strategy(db, public)
+                db.execute("INSERT INTO agents VALUES (?,?,?)", (internal, uuid.uuid7().hex, at))
+            if parent_row:
+                db.execute(
+                    "INSERT OR IGNORE INTO strategy_lineage VALUES (?,?,?)",
+                    (parent_row["id"], row["id"], at),
+                )
+            source_row = db.execute(
+                "SELECT * FROM sources WHERE source_sha256=?", (source_hash,)
+            ).fetchone()
+            if source_row and source_row["payload"] != source_json:
+                raise RegistryError("Source digest collision; the snapshot was not overwritten.")
+            source_id = source_row["id"] if source_row else uuid.uuid7().hex
+            if not source_row:
+                db.execute(
+                    "INSERT INTO sources VALUES (?,?,?,?)",
+                    (source_id, source_hash, source_json, at),
+                )
+            db.execute(
+                "INSERT OR IGNORE INTO strategy_sources VALUES (?,?,?,?)",
+                (row["id"], source_id, encoded(list(evidence)), at),
+            )
+            db.execute(
+                "INSERT INTO submissions VALUES (?,?,?,?,?)",
+                (uuid.uuid7().hex, row["id"], source_id, resolution, at),
+            )
+            return self._public(db, row) | {"resolution": resolution}
+
+    @staticmethod
+    def _strategy(db, public_id):
+        row = db.execute("SELECT * FROM strategies WHERE public_id=?", (public_id,)).fetchone()
+        if not row:
+            raise RegistryError("Select an existing full strategy public ID from Library.")
+        return row
+
+    @staticmethod
+    def _public(db, row):
+        specification = StrategySpec.model_validate_json(row["spec_json"])
+        if fingerprint(specification) != row["spec_sha256"]:
+            raise RegistryError("Stored strategy identity failed its integrity check.")
+        agent = db.execute(
+            "SELECT agent_id FROM agents WHERE strategy_id=?", (row["id"],)
+        ).fetchone()
+        parent = db.execute(
+            "SELECT public_id FROM strategies WHERE id=?", (row["parent_id"],)
+        ).fetchone()
+        return {
+            "public_id": row["public_id"],
+            "name": row["name"],
+            "spec_sha256": row["spec_sha256"],
+            "specification": specification.model_dump(mode="json"),
+            "parent_public_ids": [
+                p["public_id"]
+                for p in db.execute(
+                    "SELECT s.public_id FROM strategies s JOIN strategy_lineage l "
+                    "ON l.parent_id=s.id "
+                    "WHERE l.child_id=? ORDER BY s.public_id",
+                    (row["id"],),
+                )
+            ],
+            "parent_public_id": parent["public_id"] if parent else None,
+            "agent_id": agent["agent_id"],
+            "created_at": row["created_at"],
+            "validation": "registration_does_not_imply_validation",
+        }
+
+    def strategy(self, public_id: str) -> dict:
+        with self.connect() as db:
+            return self._public(db, self._strategy(db, public_id))
+
+    def catalog(self) -> list[dict]:
+        with self.connect() as db:
+            return [
+                self._public(db, row)
+                for row in db.execute(
+                    "SELECT * FROM strategies ORDER BY created_at,public_id"
+                ).fetchall()
+            ]
+
+    def attach_job(self, public_id: str, job_id: str, plan_sha256: str, state: str) -> None:
+        with self.connect() as db:
+            row = self._strategy(db, public_id)
+            old = db.execute("SELECT * FROM research_jobs WHERE job_id=?", (job_id,)).fetchone()
+            if old and (old["strategy_id"] != row["id"] or old["plan_sha256"] != plan_sha256):
+                raise RegistryError(
+                    "A research job cannot be reassigned to another strategy or plan."
+                )
+            db.execute(
+                "INSERT INTO research_jobs VALUES (?,?,?,?,?) ON CONFLICT(job_id) DO UPDATE SET "
+                "state=excluded.state,updated_at=excluded.updated_at",
+                (job_id, row["id"], plan_sha256, state, now()),
+            )
+
+    def strategy_for_job(self, job_id: str) -> dict:
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT s.* FROM strategies s JOIN research_jobs j "
+                "ON j.strategy_id=s.id WHERE job_id=?",
+                (job_id,),
+            ).fetchone()
+            if not row:
+                raise RegistryError("That job has no registered strategy agent.")
+            return self._public(db, row)
+
+    def jobs(self, public_id: str) -> list[dict]:
+        with self.connect() as db:
+            row = self._strategy(db, public_id)
+            return [
+                dict(j)
+                for j in db.execute(
+                    "SELECT job_id,plan_sha256,state,updated_at FROM research_jobs "
+                    "WHERE strategy_id=? ORDER BY updated_at",
+                    (row["id"],),
+                )
+            ]
+
+    def record_report(self, job_id: str, report: dict, *, kind="research") -> str:
+        """Call only after the research service verifies its immutable evidence seal."""
+        with self.connect() as db:
+            job = db.execute("SELECT * FROM research_jobs WHERE job_id=?", (job_id,)).fetchone()
+            if not job or report["plan_sha256"] != job["plan_sha256"]:
+                raise RegistryError(
+                    "Report plan identity does not match the attached strategy job."
+                )
+            strategy = db.execute(
+                "SELECT * FROM strategies WHERE id=?", (job["strategy_id"],)
+            ).fetchone()
+            if report["strategy_sha256"] != strategy["spec_sha256"]:
+                raise RegistryError("Report behavior differs from its strategy agent.")
+            payload = encoded(report)
+            digest = hashlib.sha256(payload.encode()).hexdigest()
+            old = db.execute("SELECT * FROM reports WHERE job_id=?", (job_id,)).fetchone()
+            if old and (old["id"] != digest or old["report_json"] != payload):
+                raise RegistryError("A retained report cannot be replaced.")
+            db.execute(
+                "INSERT OR IGNORE INTO reports VALUES (?,?,?,?,?,?)",
+                (digest, job["strategy_id"], kind, job_id, payload, now()),
+            )
+            return digest
+
+    def reports(self, public_id: str | None = None) -> list[dict]:
+        with self.connect() as db:
+            params = ()
+            clause = ""
+            if public_id is not None:
+                clause, params = " WHERE s.id=?", (self._strategy(db, public_id)["id"],)
+            rows = db.execute(
+                "SELECT r.id,r.job_id,r.kind,r.report_json,r.created_at,s.public_id,s.name "
+                "FROM reports r JOIN strategies s ON s.id=r.strategy_id"
+                + clause
+                + " ORDER BY r.created_at",
+                params,
+            ).fetchall()
+            result = []
+            for row in rows:
+                if hashlib.sha256(row["report_json"].encode()).hexdigest() != row["id"]:
+                    raise RegistryError("Retained report metadata failed its integrity check.")
+                result.append({**dict(row), "report": json.loads(row["report_json"])})
+            return result
+
+    def sources(self, public_id: str) -> list[dict]:
+        with self.connect() as db:
+            strategy = self._strategy(db, public_id)
+            rows = db.execute(
+                "SELECT s.payload,s.source_sha256,l.evidence_json FROM sources s "
+                "JOIN strategy_sources l ON l.source_id=s.id WHERE l.strategy_id=?",
+                (strategy["id"],),
+            ).fetchall()
+            result = []
+            for row in rows:
+                if hashlib.sha256(row["payload"].encode()).hexdigest() != row["source_sha256"]:
+                    raise RegistryError("Retained source failed its integrity check.")
+                result.append(
+                    {
+                        "source": json.loads(row["payload"]),
+                        "evidence": json.loads(row["evidence_json"]),
+                        "source_sha256": row["source_sha256"],
+                    }
+                )
+            return result
+
+    def history(self, public_id: str) -> list[dict[str, str]]:
+        with self.connect() as db:
+            row = self._strategy(db, public_id)
+            result = []
+            for turn in db.execute(
+                "SELECT user_text,assistant_text FROM agent_turns WHERE strategy_id=? ORDER BY id",
+                (row["id"],),
+            ):
+                result += [
+                    {"role": "user", "content": turn["user_text"]},
+                    {"role": "assistant", "content": turn["assistant_text"]},
+                ]
+            return result
+
+    def append_turn(self, public_id: str, user: str, reply: str, model: str) -> None:
+        with self.connect() as db:
+            row = self._strategy(db, public_id)
+            db.execute(
+                "INSERT INTO agent_turns "
+                "(strategy_id,user_text,assistant_text,model_ref,created_at) VALUES (?,?,?,?,?)",
+                (row["id"], user, reply, model, now()),
+            )
+
+    def clear_history(self, public_id: str) -> None:
+        with self.connect() as db:
+            row = self._strategy(db, public_id)
+            db.execute("DELETE FROM agent_turns WHERE strategy_id=?", (row["id"],))
+
+    def operation(self, public_id: str, action: str, *, job_id=None) -> str:
+        with self.connect() as db:
+            row = self._strategy(db, public_id)
+            operation_id = uuid.uuid7().hex
+            db.execute(
+                "INSERT INTO operations VALUES (?,?,?,?,?,?,?,?)",
+                (operation_id, row["id"], action, job_id, "running", "", now(), None),
+            )
+            return operation_id
+
+    def finish_operation(self, operation_id: str, state: str, detail="") -> None:
+        if state not in {"completed", "failed", "canceled", "awaiting_approval"}:
+            raise RegistryError("Unsupported operation outcome.")
+        with self.connect() as db:
+            cursor = db.execute(
+                "UPDATE operations SET status=?,detail=?,finished_at=? "
+                "WHERE id=? AND status='running'",
+                (state, detail, now(), operation_id),
+            )
+            if cursor.rowcount != 1:
+                raise RegistryError("Operation already finished or unavailable.")

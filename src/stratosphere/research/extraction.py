@@ -65,12 +65,16 @@ class ExtractionState(TypedDict):
 async def extract_strategy(provider, source: str) -> Extraction:
     async def request_model(state: ExtractionState):
         reply = ""
-        async for delta in provider.stream(
-            [
-                {"role": "system", "content": EXTRACTION_PROMPT},
-                {"role": "user", "content": state["source"]},
-            ]
-        ):
+        messages = [
+            {"role": "system", "content": EXTRACTION_PROMPT},
+            {"role": "user", "content": state["source"]},
+        ]
+        stream = (
+            provider.stream_json(messages, Extraction.model_json_schema())
+            if hasattr(provider, "stream_json")
+            else provider.stream(messages)
+        )
+        async for delta in stream:
             reply += delta
         return {"reply": reply}
 

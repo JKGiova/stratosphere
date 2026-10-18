@@ -5,6 +5,7 @@ from dataclasses import dataclass
 PANELS = {
     "strategies": "The shared library is not connected yet. No strategies loaded.",
     "jobs": "No local research runs loaded. Use /new to prepare a supported plan for approval.",
+    "reports": "No completed research reports. Approve and complete a test plan first.",
     "portfolio": (
         "No trading account connected. Position data is unavailable; trading is not available yet."
     ),
@@ -16,6 +17,8 @@ HELP = """/help — Show commands
 /resume <job-id> — Resume the same approved plan online
 /show <job-id> — Inspect a local research job
 /report <job-id> — Display a completed research report
+/agent [strategy-id] — List or select a dedicated strategy agent
+/reports — Open retained reports panel
 /model — Choose a model provider, API address and session key
 /strategies — Open strategies panel
 /jobs — Open ongoing/completed tests panel
@@ -39,6 +42,8 @@ def route_command(text: str) -> Command:
     name = words[0] if words else ""
     if name == "/new":
         return Command("new", args=(text.strip().split(maxsplit=1)[1] if len(words) > 1 else "",))
+    if name == "/agent" and len(words) <= 2:
+        return Command("agent", args=tuple(words[1:]))
     arities = {"/approve": 2, "/pause": 1, "/resume": 1, "/show": 1, "/report": 1}
     if name in arities:
         if len(words) != arities[name] + 1:

@@ -65,3 +65,7 @@ New hosted APIs have protocol/workflow coverage only. Live checks passed for the
 - [Qwen OpenAI compatibility and workspace addresses](https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope).
 - [Z.ai quickstart](https://docs.z.ai/guides/overview/quick-start).
 - [Ollama OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility).
+
+## GitHub verification
+
+Implementation commit `98235d0c22ed4e36f32e78286bc73fed3686fcab` is published to the private repository. [Platform run 39111042797](https://github.com/JKGiova/stratosphere/actions/runs/39111042797) and [Intel run 39111042821](https://github.com/JKGiova/stratosphere/actions/runs/39111042821) failed before execution. GitHub reports that recent account payments failed or the spending limit must be increased. No new cross-platform CI pass is claimed, and no billing setting was changed. The 380-test local suite, package checks and live OpenRouter/Ollama checks passed independently.

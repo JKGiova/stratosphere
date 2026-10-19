@@ -28,6 +28,10 @@ Outputs are **raw crossings**, including crosses that an execution strategy woul
 
 Preparation, approval, ingestion, duplicate delivery and stream halts do not create orders, reserve or release capital, cancel anything, alter positions or liquidate at a day boundary. Existing reservations/fills remain governed by the [paper ledger](phase5-paper-ledger.md). A stream halt is not a completed account shutdown or reconciliation. Different personal instances retain distinct stream state, crossing identities and fault conditions under the shared account transaction.
 
+## Decision-processing follow-up
+
+The [reviewed authored decision gateway](phase5-signal-decisions.md) can now consume these retained signals once and reserve position-aware intents under explicit account gates. Its plan and approval are separate from this stream-only approval. It adds no real feed, native production adapter, provider permissions or automatic activation; raw stream outputs remain crossing evidence only.
+
 ## Verification and remaining work
 
 The deterministic tests cover exact approval, full identity/allocation pins, changed source files, rejected profiles/policies/times, warmup, freshness, gaps, late revisions, ID aliases/conflicts, concurrent delivery, transaction rollback, damaged journals, versioning and separate strategies. Four authored days are compared against an independent batch rational oracle, with repeated reopenings and continuation in a fresh interpreter. This is accelerated fixture coverage, not a four-day wall-clock soak.

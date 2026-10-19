@@ -61,3 +61,5 @@ Liquid’s [catalog inspection and private export](liquid-paper-testing.md#catal
 See [registry-anchored studies](phase3-registry-studies.md) for direct studies of registered definitions/variants, editable simulation costs, versioned anchors and native verification without a dummy parent research job.
 
 See [reviewed closed-bar processing](phase5-closed-bars.md) for the internal authored stream journal, exact review, gap/freshness gates and fresh-process continuation. It adds no real feed or order delivery.
+
+See [reviewed authored signal decisions](phase5-signal-decisions.md) for position-aware reservations, shared exposure/loss gates and one-time delivery claims. Provider transport and budget/risk model agents remain unimplemented.

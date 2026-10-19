@@ -3695,3 +3695,67 @@ Added the internal authored-data closed-bar journal with approval, gap/freshness
 Real feeds and paper order delivery remain pending; Phases 3–5 stay in progress.
 
 ---
+
+### 399 — Assistant (progress update)
+
+I’m continuing from the published closed-bar journal. Next I’ll connect retained signals to position-aware paper decisions, with reviewed limits and deterministic risk checks before any reservation. Liquid feed access and order delivery remain pending.
+
+---
+
+### 400 — Assistant (progress update)
+
+I’ll bind the decision plan to the account and approved strategy streams. It will consume each signal once, derive quantity from the strategy or attributed position, and retain every block reason. Shared exposure, loss and drawdown checks will run inside the same account transaction as reservations.
+
+---
+
+### 401 — Assistant (progress update)
+
+The first integration checks passed: partial fills produce exits for the actual attributed quantity, repeated signals don’t reserve twice, and reviewed accounts reject the legacy reservation and delivery paths. I’m now testing shared limits across strategies, quote conflicts and risk changes between reservation and delivery.
+
+---
+
+### 402 — Assistant (progress update)
+
+The shared-account tests caught a needed prospective check: an entry must be blocked when its worst-case spread, slippage and fees would exceed the reviewed loss budget. I added that check and retained loss/drawdown stops after observed breaches. A native fixture also passed from retained signal through reservation and one delivery claim to matching Nautilus balances.
+
+---
+
+### 403 — Assistant (progress update)
+
+The final 43 decision checks passed, including preservation of previously denied intent IDs and a projected exit-cost floor that matches a fill at the reviewed worst price and fee. I’m running the full regression suite and an installed-package restart check before publishing.
+
+---
+
+### 404 — Assistant (progress update)
+
+The full suite is nearing completion. The package check will verify a three-process sequence: reserve an entry, restart for a partial fill and cancellation, then restart for an attributed reduction. This will test retained decisions and balances outside the editable checkout.
+
+---
+
+### 405 — Assistant (progress update)
+
+All **891 tests passed**, including the OAuth loopback and native accounting checks. The installed wheel also passed the three-process partial-fill/cancel/reduction sequence. I’m publishing this increment; model budget/risk agents and the Liquid feed/transport remain unimplemented.
+
+---
+
+### 406 — Assistant (progress update)
+
+Final review found a journal-version edge case: preparing another raw stream could downgrade a reviewed account’s version marker. I’m fixing it to preserve the newer version and adding a regression test before publishing.
+
+---
+
+### 407 — Assistant (progress update)
+
+The version fix passed: all **892 tests** are green, and the rebuilt package passed the three-process check again. I’m publishing the corrected code and verification record now. Phases 3–5 remain in progress.
+
+---
+
+### 408 — Assistant
+
+Added internal paper decisions with shared risk limits, persistent loss/drawdown stops and checks before delivery claims.
+
+**892 tests passed**, including native accounting; the three-process installed-package check also passed. Code, docs, AGENTS.md and the conversation log are pushed.
+
+Budget/risk model agents, Liquid feeds and order transport remain pending; Phases 3–5 stay in progress.
+
+---

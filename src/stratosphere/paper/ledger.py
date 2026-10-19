@@ -112,6 +112,50 @@ def text(value):
     return result.rstrip("0").rstrip(".") if "." in result else result
 
 
+def reservation_reason(state, intent, now_ns):
+    """Shared cash/position gates; the reviewed decision pipeline adds its risk policy."""
+    instance = state["instances"].get(intent.instance_id)
+    if instance is None:
+        raise PaperError("Select an existing personal paper instance")
+    pending = [o for o in state["orders"].values() if o["status"] not in TERMINAL]
+    own = [o for o in pending if o["intent"]["instance_id"] == intent.instance_id]
+    quantity, price = Decimal(intent.quantity), Decimal(intent.price_bound)
+    cost = (quantity * price).quantize(QUOTE_QUANTUM, rounding=ROUND_CEILING) + Decimal(
+        intent.fee_allowance
+    )
+    reason = None
+    if state["blocks"] or any(o["status"] in {"dispatching", "ambiguous"} for o in pending):
+        reason = "reconciliation_required"
+    elif (
+        not intent.created_ns <= now_ns < intent.expires_ns
+        or now_ns - intent.quote_ns > instance["mandate"]["max_quote_age_ns"]
+    ):
+        reason = "stale_or_expired"
+    elif own:
+        reason = "instance_has_pending_order"
+    elif quantity > Decimal(instance["mandate"]["max_base_quantity"]) or quantity * price > Decimal(
+        instance["mandate"]["max_order_notional"]
+    ):
+        reason = "instance_size_limit"
+    elif intent.side == "BUY":
+        if state["entries_blocked"]:
+            reason = "entries_blocked"
+        elif instance["base"] != 0:
+            reason = "reinforcement_not_supported"
+        elif (
+            cost + sum(PaperLedger._reserved(o) for o in pending) > state["cash"]
+            or cost > instance["cash"]
+        ):
+            reason = "insufficient_unreserved_cash"
+    elif quantity > instance["base"]:
+        reason = "insufficient_attributed_position"
+    elif Decimal(intent.fee_allowance) > (quantity * price).quantize(
+        QUOTE_QUANTUM, rounding=ROUND_FLOOR
+    ):
+        reason = "sell_fee_exceeds_minimum_proceeds"
+    return reason
+
+
 class PaperLedger:
     """One journal per authored cash account; transactions serialize all reservations.
 
@@ -131,7 +175,7 @@ class PaperLedger:
         path.chmod(0o600)
         with self._transaction() as db:
             version = db.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (0, 1, 2):
+            if version not in (0, 1, 2, 3):
                 raise PaperError("Unsupported paper journal version")
             db.execute(
                 "CREATE TABLE IF NOT EXISTS events "
@@ -183,6 +227,7 @@ class PaperLedger:
             "blocks": [],
             "entries_blocked": False,
             "runtimes": {},
+            "signal_plan": None,
         }
         chain = ""
         try:
@@ -257,7 +302,15 @@ class PaperLedger:
                     else "partially_filled"
                 )
             state["fills"][fill.event_id] = fill.model_dump()
-        elif kind.startswith("runtime_"):
+            if state["signal_plan"] is not None:
+                from stratosphere.paper.decisions import mark_after_fill
+
+                mark_after_fill(state, fill.event_id)
+        elif isinstance(kind, str) and kind.startswith("signal_"):
+            from stratosphere.paper.decisions import reduce_event
+
+            reduce_event(state, event)
+        elif isinstance(kind, str) and kind.startswith("runtime_"):
             from stratosphere.paper.runtime import reduce_event
 
             reduce_event(state, event)
@@ -308,45 +361,11 @@ class PaperLedger:
                 return old[
                     "reason"
                 ]  # None means retained reservation, never permission to resubmit.
-            instance = state["instances"].get(intent.instance_id)
-            if instance is None:
-                raise PaperError("Select an existing personal paper instance")
-            pending = [o for o in state["orders"].values() if o["status"] not in TERMINAL]
-            own = [o for o in pending if o["intent"]["instance_id"] == intent.instance_id]
-            quantity, price = Decimal(intent.quantity), Decimal(intent.price_bound)
-            cost = (quantity * price).quantize(QUOTE_QUANTUM, rounding=ROUND_CEILING) + Decimal(
-                intent.fee_allowance
+            reason = (
+                "reviewed_signal_required"
+                if state["signal_plan"] is not None
+                else reservation_reason(state, intent, now_ns)
             )
-            reason = None
-            if state["blocks"] or any(o["status"] in {"dispatching", "ambiguous"} for o in pending):
-                reason = "reconciliation_required"
-            elif (
-                not intent.created_ns <= now_ns < intent.expires_ns
-                or now_ns - intent.quote_ns > instance["mandate"]["max_quote_age_ns"]
-            ):
-                reason = "stale_or_expired"
-            elif own:
-                reason = "instance_has_pending_order"
-            elif quantity > Decimal(
-                instance["mandate"]["max_base_quantity"]
-            ) or quantity * price > Decimal(instance["mandate"]["max_order_notional"]):
-                reason = "instance_size_limit"
-            elif intent.side == "BUY":
-                if state["entries_blocked"]:
-                    reason = "entries_blocked"
-                elif instance["base"] != 0:
-                    reason = "reinforcement_not_supported"
-                elif (
-                    cost + sum(self._reserved(o) for o in pending) > state["cash"]
-                    or cost > instance["cash"]
-                ):
-                    reason = "insufficient_unreserved_cash"
-            elif quantity > instance["base"]:
-                reason = "insufficient_attributed_position"
-            elif Decimal(intent.fee_allowance) > (quantity * price).quantize(
-                QUOTE_QUANTUM, rounding=ROUND_FLOOR
-            ):
-                reason = "sell_fee_exceeds_minimum_proceeds"
             self._append(
                 db,
                 chain,
@@ -360,37 +379,43 @@ class PaperLedger:
             return reason
 
     def begin_delivery(self, intent_id, *, now_ns: int):
-        """Claim once before a trusted native fixture delivery. No transport is invoked."""
+        """Claim legacy authored delivery once. Reviewed accounts use SignalDecisions."""
         with self._transaction() as db:
             state, chain = self._load(db)
-            order = self._order(state, intent_id)
-            intent = order["intent"]
-            instance = state["instances"][intent["instance_id"]]
-            if (
-                type(now_ns) is not int
-                or not intent["created_ns"] <= now_ns < intent["expires_ns"]
-                or now_ns - intent["quote_ns"] > instance["mandate"]["max_quote_age_ns"]
-                or order["status"] != "reserved"
-                or state["blocks"]
-                or order.get("cancellation_requested")
-                or (state["entries_blocked"] and intent["side"] == "BUY")
-                or any(
-                    o["status"] in {"ambiguous", "dispatching"} for o in state["orders"].values()
-                )
-            ):
-                raise PaperError(
-                    "Delivery is blocked or already claimed; reconcile before retrying"
-                )
-            self._append(
-                db,
-                chain,
-                {
-                    "kind": "status",
-                    "intent_id": intent_id,
-                    "status": "dispatching",
-                    "observed_ns": now_ns,
-                },
-            )
+            if state["signal_plan"] is not None:
+                raise PaperError("Use the reviewed signal gateway to claim delivery")
+            self._claim_delivery(db, state, chain, intent_id, now_ns)
+
+    def _claim_delivery(self, db, state, chain, intent_id, now_ns):
+        order = self._order(state, intent_id)
+        intent = order["intent"]
+        instance = state["instances"][intent["instance_id"]]
+        if (
+            type(now_ns) is not int
+            or not intent["created_ns"] <= now_ns < intent["expires_ns"]
+            or now_ns - intent["quote_ns"] > instance["mandate"]["max_quote_age_ns"]
+            or order["status"] != "reserved"
+            or state["blocks"]
+            or order.get("cancellation_requested")
+            or (state["entries_blocked"] and intent["side"] == "BUY")
+            or any(o["status"] in {"ambiguous", "dispatching"} for o in state["orders"].values())
+        ):
+            raise PaperError("Delivery is blocked or already claimed; reconcile before retrying")
+        if state["signal_plan"] is not None:
+            from stratosphere.paper.decisions import delivery_reason
+
+            if delivery_reason(state, intent, now_ns) is not None:
+                raise PaperError("Reviewed signal delivery is blocked; no claim was recorded")
+        self._append(
+            db,
+            chain,
+            {
+                "kind": "status",
+                "intent_id": intent_id,
+                "status": "dispatching",
+                "observed_ns": now_ns,
+            },
+        )
 
     @staticmethod
     def _order(state, intent_id):

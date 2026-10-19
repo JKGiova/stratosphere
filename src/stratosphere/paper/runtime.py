@@ -234,7 +234,8 @@ class ClosedBarRuntime:
                 "mandate": mandate.model_dump(mode="json"),
             }
             reduce_event(state, event)
-            db.execute("PRAGMA user_version=2")
+            version = db.execute("PRAGMA user_version").fetchone()[0]
+            db.execute(f"PRAGMA user_version={max(2, version)}")
             self.ledger._append(db, chain, event)
         return mandate.digest
 

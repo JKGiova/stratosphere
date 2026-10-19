@@ -14,6 +14,8 @@ The terminal follows [Gloomberb](https://github.com/gloom-sh/gloomberb)'s monoch
 
 The app uses the terminal’s existing window size; automatic maximization and the clickable brand menu are removed.
 
+[Authored account reviews](docs/phase5-paper-reviews.md) add explicit budget/risk advice over an existing internal journal and retain the report in Reports. They cannot create accounts, change allocations or approve orders. The two-role protocol is fixture-tested; final live Ollama attempts were rejected, so model reliability remains unverified. The [actual Liquid read catalog](docs/liquid-paper-testing.md#actual-exported-schema-observations--19-october-2026) has been inspected without invoking a provider tool; actual account identity, feed and paper isolation remain unverified.
+
 Use `/new` in chat to review the first research profile: BTC/USDT spot, hourly SMA crossover, a pinned January 2025 dataset, editable simulated costs and one approval for base/stress backtests. `/jobs`, `/show` and `/report` expose actual local evidence; `/pause` and `/resume` retain completed checkpoints. This is an internal increment, not a completed phase or release. See [Phase 2 run instructions and limits](docs/phase2.md).
 
 ## Confirmed direction
@@ -68,6 +70,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Paper ledger foundation](docs/phase5-paper-ledger.md) | Internal authored-paper reservations, fill attribution and native accounting checks |
 | [Closed-bar journal](docs/phase5-closed-bars.md) | Internal reviewed authored streams, persistent crossings and freshness/gap controls |
 | [Authored signal decisions](docs/phase5-signal-decisions.md) | Internal position-aware reservations and deterministic account risk gates |
+| [Authored account reviews](docs/phase5-paper-reviews.md) | Explicit private budget/risk advice and retained Reports without account changes |
 | [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
 | [Registry-anchored studies](docs/phase3-registry-studies.md) | Approved studies of existing definitions and variants without a standalone parent job |
 | [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |

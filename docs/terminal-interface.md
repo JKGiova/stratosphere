@@ -52,6 +52,10 @@ Research form fields use ordinary Tab navigation, source Enter inserts a line, a
 
 Local complete drafts populate Library with stable strategy IDs and dedicated agents; they are not public registrations. Tests displays local job progress/results. Positions stays explicitly unknown without a verified account connection. Completed native results are retained separately from conversational model interpretation. Closing the TUI pauses an approved active research job and retains completed checkpoints; no trading exit policy is operational yet.
 
+## Advisory authored account reviews
+
+`/paper-review` or an explicit request such as `Review the authored paper account budget and risk` invokes the same [private two-role advisory operation](phase5-paper-reviews.md). It requires a configured model, online access and an existing internal authored account journal. It does not create or connect an account. The selected provider receives a fixed authored financial snapshot; onboarding discloses this. `/paper-reviews` lists attempts, and `/paper-review-show <complete-review-id>` opens an integrity-checked report in Reports. Interpretations remain unverified; pending/held allocations are locked, and proposals cannot approve or modify anything. Cancellation, busy guards, restart and responsive report scrolling use the existing UI controls. Positions remains unknown without a verified provider account; authored fixture balances are not substituted there.
+
 ## Login and optional account setup
 
 Application login uses Supabase Auth OAuth, independent of broker accounts. A browser may be used for the external sign-in/consent step; research, chat, and portfolio interaction remain in the permanent TUI. The exact PKCE/callback flow and local token storage must be verified before implementation.

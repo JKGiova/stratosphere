@@ -3759,3 +3759,98 @@ Added internal paper decisions with shared risk limits, persistent loss/drawdown
 Budget/risk model agents, Liquid feeds and order transport remain pending; Phases 3–5 stay in progress.
 
 ---
+## October 19, 2026
+
+### 409 — Assistant (progress update)
+
+I’m continuing with the budget and risk agent workflow. I’ll give those specialists a fixed account snapshot and retain their proposals in Reports, while keeping allocation changes, approval and order authority in application code.
+
+---
+
+### 410 — Assistant (progress update)
+
+The review will read the journal without modifying it. The budget agent can propose capital within retained caps; allocations with positions or reservations will stay fixed in this advisory step. The risk agent will review that proposal against the same snapshot, and both outputs will be labeled as unverified advice.
+
+---
+
+### 411 — User
+
+/Users/giovanni/Library/Application Support/stratosphere/research/liquid-catalogs/01a154aafdf6766095b5946dбeс47148/catalog.json
+
+---
+
+### 412 — Assistant (progress update)
+
+I’ll inspect the exported Liquid schemas now. I’m also finishing the advisory-agent work. Catalog inspection remains read-only; it won’t invoke account or trading tools.
+
+---
+
+### 413 — Assistant (progress update)
+
+The export’s digest checks out and it contains 38 tool definitions. `get_account` has a structured identity response; paper status is text-only and described as wallet-wide. That leaves per-order paper isolation unverified. I’ll record these findings separately from account access, feed access and execution verification.
+
+---
+
+### 414 — Assistant (progress update)
+
+The catalog confirms a useful next step for account identification, but it doesn’t yet provide a verified candle feed or safe paper-order contract. I’m finishing the advisory review tests and will document exactly what the export proves.
+
+---
+
+### 415 — Assistant (progress update)
+
+The review now works through both an explicit chat request and slash commands, with reports retained across restart. I’m checking cancellation, small-terminal navigation and account privacy, then testing the two specialist calls with the installed local Ollama model.
+
+---
+
+### 416 — Assistant (progress update)
+
+The focused checks passed for privacy, cancellation, report integrity and restart. Full regression and Ollama tests are running. I also recorded that the captured Liquid read catalog has no order-submission schema, and its chart/book tools return widget status text rather than structured feed data.
+
+---
+
+### 417 — Assistant (progress update)
+
+The first Ollama attempt timed out before producing a budget proposal; the failed attempt was retained and the account stayed unchanged. I’ll retry once after regression testing finishes to check whether it was resource contention. I won’t treat schema-valid output as verified financial judgment.
+
+---
+
+### 418 — Assistant (progress update)
+
+All 926 tests in the first full regression run passed, including native accounting and the OAuth callback. Three additional checks passed for the final reader safeguards. The installed package also preserved the journal and reopened Reports across two fresh processes; I’m inspecting its wide and narrow layouts now.
+
+---
+
+### 419 — Assistant (progress update)
+
+The retry returned an invalid proposal: it omitted an instance and supplied an empty rationale. The application rejected it before calling the risk agent. Fixture tests pass, but reliable budget/risk reviews with the installed Ollama model remain unverified; I’m preserving both failed live attempts in the verification record.
+
+---
+
+### 420 — Assistant (progress update)
+
+Final review caught a timestamp edge case: a snapshot taken before a quote’s retained receipt time could label it recent. I’ve tightened that check and added a regression test. I’m rerunning the final code before publishing.
+
+---
+
+### 421 — Assistant (progress update)
+
+The receipt-time regression passed. I also corrected the review’s status display so running, canceled and failed model requests remain distinct. The Liquid findings and agent limitations are documented; I’m finishing the last checks and GitHub sync.
+
+---
+
+### 422 — Assistant (progress update)
+
+The full regression run passed all 930 tests; the final status changes also passed 38 focused checks. Package, privacy, restart and responsive-layout checks passed. I’m publishing the code and documentation, with both Ollama failures clearly recorded as unverified model support.
+
+---
+
+### 423 — Assistant
+
+Validated your Liquid export: **38 tools** in the captured read scope. Account identity, usable feeds and per-request paper isolation remain unverified; no provider tools were called.
+
+Added advisory budget/risk reviews for internal journals and Reports. **930 tests passed**, plus package checks. Ollama’s invalid proposal was rejected; reliable model reviews remain unverified.
+
+Code, docs, AGENTS.md and the transcript are pushed. Phases 3–5 remain in progress.
+
+---

@@ -110,6 +110,7 @@ class Route(Contract):
         "catalog",
         "source",
         "source_review",
+        "paper_review",
     ]
     strategy_id: str | None = Field(default=None, pattern=r"^[0-9]{24}$")
     source: str | None = None
@@ -664,6 +665,14 @@ class Orchestrator:
 
     async def route(self, text: str) -> Route:
         active_strategy = self.active_strategy
+        if re.fullmatch(
+            r"\s*(?:(?:please|can you|could you)\s+)?(?:review|assess)\s+(?:the\s+)?"
+            r"(?:authored\s+)?paper\s+(?:(?:account|portfolio)\s+)?"
+            r"(?:budget\s+and\s+risk|risk\s+and\s+budget)\s*[?.!]*\s*",
+            text,
+            re.IGNORECASE,
+        ):
+            return Route(action="paper_review")
         try:
             request = SourceRequest(url=text.strip())
         except ValueError:
@@ -741,6 +750,8 @@ class Orchestrator:
                 ],
                 Route,
             )
+            if route.action == "paper_review":
+                raise ValueError  # Only explicit deterministic requests may disclose account data.
             if route.strategy_id and route.strategy_id not in {s["public_id"] for s in catalog}:
                 raise ValueError
             if route.action == "new" and route.source != text:
@@ -778,6 +789,14 @@ class Orchestrator:
         try:
             original_strategy = self.active_strategy
             route = await self.route(text)
+            if route.action == "paper_review":
+                await self.research.require_online()
+                self.last_action = {"action": "paper_review"}
+                yield (
+                    "I’ll ask the budget and risk specialists to review the authored paper "
+                    "snapshot. Their proposals cannot approve or change the account."
+                )
+                return
             identity = route.strategy_id or original_strategy
             if route.strategy_id and (
                 route.action == "select" or self.active_strategy == original_strategy

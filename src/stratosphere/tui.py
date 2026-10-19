@@ -47,6 +47,8 @@ from stratosphere.models.settings import (
     ModelSettings,
 )
 from stratosphere.models.streaming import ModelError, safe_text
+from stratosphere.paper.reviews import PaperReviewService
+from stratosphere.paper.reviews import review_markdown as paper_review_markdown
 from stratosphere.registry.workspace import WorkspaceDatabase
 from stratosphere.research.contracts import ResearchConfig
 from stratosphere.research.metrics import report_markdown
@@ -150,6 +152,8 @@ class ModelSetup(Vertical):
             + cost
             + "Keys stay in memory. General chat is session-only; strategy-agent conversations "
             "and evidence are retained privately on this computer. "
+            "An explicit paper budget/risk review sends the authored account snapshot "
+            "to this model provider and retains its advisory report locally. "
             "Research sources/results are saved privately on this computer. "
             "Future registered strategies will be shared automatically; chat is "
             "separate. Login and trading setup come later."
@@ -302,6 +306,7 @@ class StratosphereApp(App[None]):
         study_service=None,
         source_service=None,
         liquid_connection=None,
+        paper_review_service=None,
     ):
         super().__init__()
         self.console.push_theme(
@@ -329,6 +334,15 @@ class StratosphereApp(App[None]):
         self.response_worker: Worker | None = None
         self.research = research_service or ResearchService(ResearchStore(default_research_root()))
         self.database = WorkspaceDatabase(self.research.store.root / "workspace.sqlite3")
+        self.paper_reviews = paper_review_service or PaperReviewService(
+            self.research.store.root / "paper" / "account.sqlite3",
+            ResearchStore(self.research.store.root / "paper-reviews"),
+            online_check=self.research.require_online,
+        )
+        previous_secret_check = self.paper_reviews.secret_check
+        self.paper_reviews.secret_check = lambda data: (
+            previous_secret_check(data) or self.contains_session_credential(data)
+        )
         self.studies = study_service or StudyService(
             StudyStore(self.research.store.root / "studies"), self.database
         )
@@ -754,6 +768,8 @@ class StratosphereApp(App[None]):
                     await self.add_message(str(error))
                 except ValueError:
                     await self.add_message("Use a listed data profile and purpose; inspect /data.")
+            elif command.action in {"paper-review", "paper-reviews", "paper-review-show"}:
+                await self.handle_paper_review_command(command.action, command.args)
             elif command.action in {"source-review", "source-reviews", "source-review-show"}:
                 await self.handle_source_review_command(command.action, command.args)
             elif command.action in {"assess", "recommend", "assessment"}:
@@ -902,6 +918,12 @@ class StratosphereApp(App[None]):
                 )
             elif action and action["action"] == "resume":
                 self.call_after_refresh(self.handle_research_command, "resume", (action["job_id"],))
+            elif action and action["action"] == "paper_review":
+                if self.research_busy:
+                    raise ResearchError(
+                        "Pause or cancel the current operation before a paper review."
+                    )
+                self.research_worker = self.run_paper_review()
             elif action and action["action"] == "report":
                 await self.open_report_panel(action["job_id"])
             elif action and action["action"] == "assessment":
@@ -996,6 +1018,13 @@ class StratosphereApp(App[None]):
                 "Source " + record["id"][:10],
                 record["reviewed_at"][:16],
                 key="source-review:" + record["id"],
+            )
+        for value in self.paper_reviews.records():
+            reports.add_row(
+                "Authored paper",
+                "Budget/risk " + value.id[:8],
+                value.reviewed_at.isoformat()[:16],
+                key="paper-review:" + value.id,
             )
         self.size_report_list()
         self.select_report_row()
@@ -1129,6 +1158,59 @@ class StratosphereApp(App[None]):
                 "Check the full job ID, approval hash and job state. "
                 "Use /jobs or /show <job-id>; a running operation must be paused or canceled first."
             )
+
+    async def handle_paper_review_command(self, action, args):
+        try:
+            await self.research.require_online()
+            if action == "paper-review-show":
+                await self.open_report_panel("paper-review:" + args[0])
+            elif action == "paper-reviews":
+                lines = ["# Authored paper review attempts", "Advisory only; no account actions."]
+                lines.extend(f"- `{r['id']}` · {r['state']}" for r in self.paper_reviews.attempts())
+                await self.add_research_markdown("\n\n".join(lines), "Paper reviews:")
+            else:
+                if self.session is None:
+                    raise ResearchError("Configure a model with /model first.")
+                if self.research_busy or (
+                    self.response_worker and not self.response_worker.is_finished
+                ):
+                    raise ResearchError(
+                        "Pause or cancel the current operation before a paper review."
+                    )
+                self.research_worker = self.run_paper_review()
+        except ResearchError as error:
+            await self.add_message(str(error))
+        except ValueError, OSError:
+            await self.add_message("The authored paper review could not be verified.")
+
+    @work(group="research", exclusive=True)
+    async def run_paper_review(self):
+        finished_state = self.request_state
+        self.update_status("RESEARCH · Reviewing authored paper")
+        try:
+            # Freeze provider/settings at request start; model changes are blocked while busy.
+            session = self.session
+            value = await self.paper_reviews.review(session.provider, session.model_ref)
+            self.refresh_research_views()
+            await self.open_report_panel("paper-review:" + value.id, focus=False)
+            await self.add_message(
+                f"Paper review {value.id} retained. Budget and risk output is advisory; "
+                "no allocation, approval, reservation or account action occurred."
+            )
+            finished_state = "READY"
+        except asyncio.CancelledError:
+            finished_state = "CANCELED"
+            raise
+        except ModelError as error:
+            finished_state = "MODEL UNAVAILABLE · /model or retry"
+            await self.add_message(str(error))
+        except ResearchError as error:
+            await self.add_message(str(error))
+        except ValueError, OSError:
+            await self.add_message("Paper review failed; no account action occurred.")
+        finally:
+            self.refresh_research_views()
+            self.update_status(finished_state)
 
     async def handle_source_review_command(self, action, args):
         try:
@@ -1649,6 +1731,17 @@ class StratosphereApp(App[None]):
         self.action_select_view("focus")
 
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
+        if job_id.startswith("paper-review:"):
+            value = await self.paper_reviews.open(job_id.removeprefix("paper-review:"))
+            self.selected_report_key = job_id
+            self.select_report_row()
+            self.query_one("#report-preview", Static).update(
+                Markdown(safe_text(paper_review_markdown(value)), hyperlinks=False)
+            )
+            self.query_one("#reports-empty").display = False
+            if focus:
+                self.action_select_view("reports")
+            return
         if job_id.startswith("source-review:"):
             value = await self.source_reviews.open(job_id.removeprefix("source-review:"))
             self.selected_report_key = job_id

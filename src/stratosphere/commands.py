@@ -20,6 +20,9 @@ HELP = """/help — Show commands
 /liquid-tools — Inspect the connected tool catalog; no tool calls
 /liquid-tool <name> — Inspect one exact tool definition
 /liquid-catalog-save — Save a private catalog snapshot; no credentials
+/paper-review — Ask budget/risk agents for an advisory authored-account review
+/paper-reviews — List paper-review attempts
+/paper-review-show <review-id> — Open a retained advisory report
 /source <url> [github-ref] — Acquire a read-only source snapshot; inspect access limits
 /sources — List retained source attempts
 /source-show <source-id> — Inspect a retained source snapshot online
@@ -79,6 +82,12 @@ def route_command(text: str) -> Command:
         if len(words) == 2 and re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", words[1]):
             return Command("liquid-tool", args=(words[1],))
         return Command("message", "Usage: /liquid-tool <exact-name-from-/liquid-tools>")
+    if name in {"/paper-review", "/paper-reviews"}:
+        return Command(name[1:]) if len(words) == 1 else Command("message", f"Usage: {name}")
+    if name == "/paper-review-show":
+        if len(words) == 2 and re.fullmatch(r"[a-f0-9]{32}", words[1]):
+            return Command("paper-review-show", args=(words[1],))
+        return Command("message", "Usage: /paper-review-show <complete-review-id>")
     if name == "/data":
         return (
             Command("data", args=tuple(words[1:]))

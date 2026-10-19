@@ -36,6 +36,7 @@ from stratosphere.catalog.contracts import AssessmentTarget
 from stratosphere.catalog.service import assessment_markdown, recommendations_markdown
 from stratosphere.commands import PANELS, route_command
 from stratosphere.connectors.liquid import LiquidConnection
+from stratosphere.connectors.liquid_account import LiquidAccountReader, account_markdown
 from stratosphere.market_data.routing import capabilities_markdown
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
@@ -334,6 +335,12 @@ class StratosphereApp(App[None]):
         self.response_worker: Worker | None = None
         self.research = research_service or ResearchService(ResearchStore(default_research_root()))
         self.database = WorkspaceDatabase(self.research.store.root / "workspace.sqlite3")
+        self.liquid_accounts = LiquidAccountReader(
+            self.liquid,
+            ResearchStore(self.research.store.root / "liquid-accounts"),
+            online_check=self.research.require_online,
+        )
+        self.liquid_accounts.secret_check = self.contains_session_credential
         self.paper_reviews = paper_review_service or PaperReviewService(
             self.research.store.root / "paper" / "account.sqlite3",
             ResearchStore(self.research.store.root / "paper-reviews"),
@@ -741,6 +748,9 @@ class StratosphereApp(App[None]):
                 "liquid-tools",
                 "liquid-tool",
                 "liquid-catalog-save",
+                "liquid-account",
+                "liquid-account-reads",
+                "liquid-account-show",
             }:
                 if command.action == "liquid-disconnect":
                     if self.liquid_worker and not self.liquid_worker.is_finished:
@@ -852,6 +862,32 @@ class StratosphereApp(App[None]):
                     "Use /liquid-disconnect to cancel; sign-in expires after four minutes."
                 )
                 text = await self.liquid.connect()
+            elif action == "liquid-account":
+                await self.add_message(
+                    "Requesting only Liquid get_account with read access. "
+                    "The result stays in private diagnostics; it cannot link or activate trading."
+                )
+                value = await self.liquid_accounts.read()
+                text = account_markdown(value) + (
+                    "\n\nPrivate observation: `"
+                    + str(self.liquid_accounts.store.directory(value.id) / "observation.json")
+                    + "`. Use `/liquid-account-show "
+                    + value.id
+                    + "` to inspect it later."
+                )
+            elif action == "liquid-account-show":
+                text = account_markdown(await self.liquid_accounts.open(args[0]))
+            elif action == "liquid-account-reads":
+                await self.research.require_online()
+                text = "# Liquid account diagnostic attempts\n\n" + (
+                    "\n\n".join(
+                        f"- `{r['id']}` · {r['state']}" for r in self.liquid_accounts.attempts()
+                    )
+                    or "No retained attempts."
+                )
+                text += (
+                    "\n\nHistorical diagnostics do not restore a connection or authorize trading."
+                )
             elif action in {"liquid-tools", "liquid-tool", "liquid-catalog-save"}:
                 await self.research.require_online()
                 catalog = self.liquid.catalog_snapshot()
@@ -883,6 +919,12 @@ class StratosphereApp(App[None]):
             raise
         except ResearchError as error:
             await self.add_message(str(error))
+
+        except OSError:
+            await self.add_message(
+                "The Liquid diagnostic could not be stored or opened. "
+                "No account was linked; an in-flight read may have reached the provider."
+            )
 
     @work(group="chat", exclusive=True)
     async def generate_response(self, text: str) -> None:

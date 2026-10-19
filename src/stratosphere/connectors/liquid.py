@@ -60,6 +60,11 @@ class ReadSession:
     token: SecretStr
     expires_at: float
     catalog: LiquidCatalog | None = None
+    mcp_session_id: SecretStr | None = None
+    rpc_id: int = 0
+    initialized: bool = False
+    account_read_busy: bool = False
+    redactions: tuple[SecretStr, ...] = ()
 
     @property
     def tools(self):
@@ -180,8 +185,15 @@ class LiquidConnection:
     def contains_credential(self, content: bytes) -> bool:
         if self.session is None:
             return False
-        token = self.session.token.get_secret_value()
-        return token.encode() in content or canonical(token)[1:-1].encode() in content
+        session = self.session
+        values = (session.token, *session.redactions)
+        if session.mcp_session_id is not None:
+            values += (session.mcp_session_id,)
+        return any(
+            value.get_secret_value().encode() in content
+            or canonical(value.get_secret_value())[1:-1].encode() in content
+            for value in values
+        )
 
     def client(self):
         return httpx.AsyncClient(
@@ -370,7 +382,7 @@ class LiquidConnection:
                 session = ReadSession(
                     SecretStr(tokens["access_token"]), requested_at + tokens["expires_in"]
                 )
-                # No refresh token, authorization response or client registration is saved.
+                # Grant values are memory-only redaction guards, never refresh credentials in use.
                 session.catalog = await self._catalog(
                     client,
                     session,
@@ -475,6 +487,14 @@ class LiquidConnection:
                         or not catalog.contains_secret(self.catalog_secret_check),
                         "Credential-bearing Liquid catalog was rejected.",
                     )
+                    session.mcp_session_id = (
+                        SecretStr(headers["Mcp-Session-Id"])
+                        if "Mcp-Session-Id" in headers
+                        else None
+                    )
+                    session.rpc_id = counter
+                    session.initialized = True
+                    session.redactions = tuple(SecretStr(value) for value in known_secrets)
                     return catalog
                 except CatalogError as error:
                     raise LiquidError(str(error)) from None
@@ -503,7 +523,8 @@ class LiquidConnection:
             "The client requests only `read`; additional or unconfirmed scopes are rejected.\n\n"
             "Account identity, paper mode, instrument access and execution are **unverified**. "
             "A tool catalog is not account or paper-trading verification. "
-            "No tool is called; orders remain blocked.\n\n"
+            "Metadata/catalog inspection calls no tool; orders remain blocked. "
+            "Only `/liquid-account` explicitly requests the reviewed address read.\n\n"
             "Use `/liquid-disconnect` to forget this process's credentials. "
             "Revoke provider consent separately in Liquid. No token is saved across restart.\n\n"
             + (

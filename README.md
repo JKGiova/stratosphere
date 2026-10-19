@@ -67,6 +67,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Portfolio and execution](docs/portfolio-and-execution.md) | Allocation, positions, risk, and orders |
 | [Authentication and connectors](docs/authentication-and-connectors.md) | Supabase OAuth login, optional accounts, authorization, and security |
 | [Liquid paper testing](docs/liquid-paper-testing.md) | Read-only browser connection, test options and unverified paper execution |
+| [Liquid account diagnostics](docs/liquid-account-diagnostics.md) | Explicit public-address reads, private observations and unverified ownership/environment |
 | [Paper ledger foundation](docs/phase5-paper-ledger.md) | Internal authored-paper reservations, fill attribution and native accounting checks |
 | [Closed-bar journal](docs/phase5-closed-bars.md) | Internal reviewed authored streams, persistent crossings and freshness/gap controls |
 | [Authored signal decisions](docs/phase5-signal-decisions.md) | Internal position-aware reservations and deterministic account risk gates |

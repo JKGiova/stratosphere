@@ -56,6 +56,10 @@ Local complete drafts populate Library with stable strategy IDs and dedicated ag
 
 `/paper-review` or an explicit request such as `Review the authored paper account budget and risk` invokes the same [private two-role advisory operation](phase5-paper-reviews.md). It requires a configured model, online access and an existing internal authored account journal. It does not create or connect an account. The selected provider receives a fixed authored financial snapshot; onboarding discloses this. `/paper-reviews` lists attempts, and `/paper-review-show <complete-review-id>` opens an integrity-checked report in Reports. Interpretations remain unverified; pending/held allocations are locked, and proposals cannot approve or modify anything. Cancellation, busy guards, restart and responsive report scrolling use the existing UI controls. Positions remains unknown without a verified provider account; authored fixture balances are not substituted there.
 
+## Explicit Liquid address diagnostic
+
+`/liquid-account` calls only the reviewed `get_account` operation after read-only catalog connection. `/liquid-account-reads` lists private attempts and `/liquid-account-show <complete-read-id>` opens a historical record online. [Scope and verification limits](liquid-account-diagnostics.md) remain explicit: provider text is literal, known credentials are rejected, no model is involved, and a reported address cannot link an account, populate Positions, verify paper mode or authorize execution.
+
 ## Login and optional account setup
 
 Application login uses Supabase Auth OAuth, independent of broker accounts. A browser may be used for the external sign-in/consent step; research, chat, and portfolio interaction remain in the permanent TUI. The exact PKCE/callback flow and local token storage must be verified before implementation.

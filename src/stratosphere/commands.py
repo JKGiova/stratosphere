@@ -20,6 +20,9 @@ HELP = """/help — Show commands
 /liquid-tools — Inspect the connected tool catalog; no tool calls
 /liquid-tool <name> — Inspect one exact tool definition
 /liquid-catalog-save — Save a private catalog snapshot; no credentials
+/liquid-account — Explicitly read the provider's reported trading-account address
+/liquid-account-reads — List private account diagnostic attempts
+/liquid-account-show <read-id> — Inspect a retained historical diagnostic online
 /paper-review — Ask budget/risk agents for an advisory authored-account review
 /paper-reviews — List paper-review attempts
 /paper-review-show <review-id> — Open a retained advisory report
@@ -72,12 +75,18 @@ def route_command(text: str) -> Command:
         "/liquid-disconnect",
         "/liquid-tools",
         "/liquid-catalog-save",
+        "/liquid-account",
+        "/liquid-account-reads",
     }:
         return (
             Command(name[1:])
             if len(words) == 1
             else Command("message", "Liquid commands take no arguments; never paste credentials.")
         )
+    if name == "/liquid-account-show":
+        if len(words) == 2 and re.fullmatch(r"[a-f0-9]{32}", words[1]):
+            return Command("liquid-account-show", args=(words[1],))
+        return Command("message", "Usage: /liquid-account-show <complete-read-id>")
     if name == "/liquid-tool":
         if len(words) == 2 and re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", words[1]):
             return Command("liquid-tool", args=(words[1],))

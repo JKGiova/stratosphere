@@ -63,3 +63,5 @@ See [registry-anchored studies](phase3-registry-studies.md) for direct studies o
 See [reviewed closed-bar processing](phase5-closed-bars.md) for the internal authored stream journal, exact review, gap/freshness gates and fresh-process continuation. It adds no real feed or order delivery.
 
 See [reviewed authored signal decisions](phase5-signal-decisions.md) for position-aware reservations, shared exposure/loss gates and one-time delivery claims. Provider transport remains unimplemented. The [authored account reviews](phase5-paper-reviews.md) add separate explicit advisory budget/risk roles over read-only existing journals; they cannot alter accounts or approve execution.
+
+See [Liquid account diagnostics](liquid-account-diagnostics.md) for the explicit fixed address-read operation, private historical evidence and remaining actual-provider/ownership/environment verification. Catalog inspection stays non-invoking.

@@ -3854,3 +3854,67 @@ Added advisory budget/risk reviews for internal journals and Reports. **930 test
 Code, docs, AGENTS.md and the transcript are pushed. Phases 3–5 remain in progress.
 
 ---
+
+### 424 — Assistant (progress update)
+
+I’ll continue with Liquid account identification. I’ll inspect the connector boundary and add an explicit read-only diagnostic for `get_account`, keeping account linking separate from trading authority.
+
+---
+
+### 425 — Assistant (progress update)
+
+I’m using the read-docs skill to check the pinned MCP tool-result contract. The new diagnostic will accept only the reviewed `get_account` shape and won’t add a generic tool dispatcher.
+
+---
+
+### 426 — Assistant (progress update)
+
+The protocol supports a structured result alongside provider text. I’ll retain any confirmation text privately and show it literally, without following links or treating it as permission. A reported address will remain separate from verified ownership, paper mode and trading authorization.
+
+---
+
+### 427 — Assistant (progress update)
+
+The explicit account reader is wired into the TUI. It uses the current read session, a fixed request and the reviewed schema, and records attempts privately. I’m testing credential echoes, schema changes, cancellation, stale sessions and the display of provider confirmations before running regression.
+
+---
+
+### 428 — Assistant (progress update)
+
+The schema guard matches your saved catalog. Local checks also show that confirmations, widget metadata, mismatched IDs and expired or changed sessions cannot become an accepted account result. Successful fixture reads leave ownership, environment and trading authority unverified; actual provider behavior still needs a real TUI read.
+
+---
+
+### 429 — Assistant (progress update)
+
+All 54 new checks passed, including TUI cancellation, private history, restart and small-terminal scrolling. The full regression suite is running. I’m documenting what an address read proves and what remains unverified, including paper isolation and feed entitlement.
+
+---
+
+### 430 — Assistant (progress update)
+
+The installed wheel passed two fresh-process checks: one explicit fixture read, then reopening its diagnostic without restoring a session or making another provider request. The wide and narrow layouts also passed visual and keyboard checks. The remaining check is an actual TUI read against Liquid.
+
+---
+
+### 431 — Assistant (progress update)
+
+All **984 tests passed**, including native-account checks and the real OAuth callback listener. The package checks also passed. I’m publishing the fixed address diagnostic now; the next verification step will use your TUI session, whose credentials stay in memory.
+
+---
+
+### 432 — Assistant (question)
+
+Restart the updated TUI, run `/liquid-connect` (read only), then `/liquid-account`. Share the `observation.json` path shown in Focus, or the error message if no path appears. Don’t share the account address, token or key.
+
+---
+
+### 433 — Assistant
+
+Added `/liquid-account` with private, inspectable diagnostics. **984 tests passed**, plus package/restart/UI checks. Code, docs, AGENTS.md and the transcript are pushed.
+
+Restart the TUI, run `/liquid-connect` with read access, then `/liquid-account`. Send only the `observation.json` path shown in Focus, or the error message.
+
+Actual account ownership, feeds and paper isolation remain unverified; Phases 3–5 stay in progress.
+
+---

@@ -4,11 +4,15 @@ import asyncio
 import json
 from datetime import UTC, datetime
 
+import httpx
 import pytest
+from pydantic import SecretStr
 from test_paper_decisions import activate, evaluate
 from test_paper_decisions import decision as decision
 from test_paper_runtime import stream as stream
 
+from stratosphere.models.openrouter import OpenRouterChat
+from stratosphere.models.settings import ModelSettings
 from stratosphere.models.streaming import ModelError
 from stratosphere.paper.ledger import PaperError
 from stratosphere.paper.reviews import (
@@ -251,6 +255,64 @@ async def test_cancellation_preserves_attempt_and_budget_without_a_completed_rep
     (identity,) = service.store.jobs()
     assert service.store.state(identity) == "canceled" and not service.records()
     assert (service.store.directory(identity) / "budget.json").is_file()
+
+
+@pytest.mark.parametrize("risk_content", ["empty", "complete_json"])
+async def test_openrouter_nonstop_risk_preserves_budget_without_retry_or_publication(
+    reviews, risk_content
+):
+    service, fixture = reviews
+    before = service.journal.read_bytes()
+    requests = []
+
+    async def handler(request):
+        body = json.loads(request.content)
+        requests.append(body)
+        assert len(requests) <= 2
+        assert body["stream"] is True and body["max_tokens"] == 4096
+        assert body["provider"]["max_price"] == {"prompt": 0, "completion": 0}
+        budget = len(requests) == 1
+        title = "BudgetProposal" if budget else "RiskProposal"
+        assert title in body["messages"][0]["content"]
+        parts = [part async for part in fixture.stream_json(body["messages"], {"title": title})]
+        content = "" if not budget and risk_content == "empty" else "".join(parts)
+        event = {
+            "choices": [
+                {
+                    "delta": {"content": content},
+                    "finish_reason": "stop" if budget else "length",
+                }
+            ]
+        }
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            content="data: " + json.dumps(event) + "\n\ndata: [DONE]\n\n",
+        )
+
+    provider = OpenRouterChat(
+        ModelSettings(
+            provider="openrouter",
+            model="cohere/north-mini-code:free",
+            api_key=SecretStr("artificial-openrouter-key"),
+        ),
+        transport=httpx.MockTransport(handler),
+    )
+    with pytest.raises(ModelError, match="truncated"):
+        await service.review(provider, "openrouter:fixture")
+    assert len(requests) == 2 and service.journal.read_bytes() == before
+    (identity,) = service.store.jobs()
+    directory = service.store.directory(identity)
+    assert service.store.state(identity) == "failed"
+    assert (directory / "budget.json").is_file()
+    assert not (directory / "review.json").exists()
+    assert not (directory / "manifest.json").exists()
+    assert service.records() == []
+    with pytest.raises(ResearchError):
+        service.retained(identity)
+    assert json.loads(requests[1]["messages"][1]["content"])["basis"] == json.loads(
+        requests[0]["messages"][1]["content"]
+    )
 
 
 async def test_secrets_in_raw_or_escaped_model_prose_are_never_retained(reviews):

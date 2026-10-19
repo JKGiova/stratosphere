@@ -3997,3 +3997,49 @@ Budget/risk reliability and interpretation quality remain unverified. Phases 3�
 Automatic approval review rejected that external test because the payload and destination lacked explicit approval. No OpenRouter test has run.
 
 ---
+
+### 445 — Assistant (progress update)
+
+The external checks are still pending. I’ll work on the testing/reporting path next, starting by comparing the current reports with the plan’s requirements and improving the gaps that don’t depend on account access or data entitlement.
+
+---
+
+### 446 — User
+
+Question: May I send this [prepared artificial fixture](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/p345/openrouter-fixture-request-preview.md) to OpenRouter’s `cohere/north-mini-code:free` for at most two budget/risk calls? It uses fake balances/IDs, no real account or chat data, and a zero-price ceiling. The second call adds only the first validated reply.
+
+Answer: Approve two free fixture calls
+
+---
+
+### 447 — Assistant (progress update)
+
+Approved. I’ll run the sealed OpenRouter fixture now, with at most two requests and the zero-price guard. Then I’ll continue the report-inspection work.
+
+---
+
+### 448 — Assistant (progress update)
+
+Both approved requests ran. The budget reply passed validation; the risk reply was truncated, so the review failed. The fixture journal is unchanged. I’ll retain the failure evidence and check the request limits locally. The two-call allowance is used.
+
+---
+
+### 449 — Assistant (progress update)
+
+Both requests used streaming, low reasoning effort, a 4,096-token limit and zero-price ceilings. The retained data doesn’t establish why the risk response ended early. I’ll add a local regression check that this failure preserves the budget but cannot publish a completed review or retry automatically.
+
+---
+
+### 450 — Assistant (progress update)
+
+The 230 targeted tests passed, including both new risk-termination cases. The failed live attempt retains its validated budget, has no completed report, and leaves the journal unchanged. I’ll publish the regression tests, evidence summary and transcript; model reliability remains unverified.
+
+---
+
+### 451 — Assistant
+
+Both approved calls ran: the budget passed validation, but risk failed with a truncation error. No completed review was produced; the journal is unchanged. No extra calls were made.
+
+**230 local tests passed.** Pushed regression tests, the evidence summary and transcript. Model reliability remains unverified.
+
+---

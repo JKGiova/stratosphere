@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import re
 from pathlib import Path
 
 from pydantic import SecretStr, ValidationError
@@ -688,19 +689,17 @@ class StratosphereApp(App[None]):
         return message
 
     def contains_session_credential(self, content: bytes) -> bool:
+        def matches(key):
+            return bool(key) and (
+                key.encode() in content
+                or json.dumps(key, ensure_ascii=False)[1:-1].encode() in content
+            )
+
         if self.liquid.contains_credential(content):
             return True
-        if (
-            self.settings
-            and (key := self.settings.api_key.get_secret_value())
-            and key.encode() in content
-        ):
+        if self.settings and matches(self.settings.api_key.get_secret_value()):
             return True
-        return any(
-            key.encode() in content
-            for name in set(KEY_ENVIRONMENTS.values())
-            if (key := os.getenv(name))
-        )
+        return any(matches(os.getenv(name)) for name in set(KEY_ENVIRONMENTS.values()))
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "prompt":
@@ -898,7 +897,7 @@ class StratosphereApp(App[None]):
                 self.call_after_refresh(
                     self.handle_research_command,
                     "study",
-                    (action["job_id"],),
+                    (action.get("job_id") or action["strategy_id"],),
                     action.get("suggestion"),
                 )
             elif action and action["action"] == "resume":
@@ -961,7 +960,7 @@ class StratosphereApp(App[None]):
         for job_id in self.studies.store.jobs():
             try:
                 protocol = self.studies.store.protocol(job_id)
-                name = protocol.parent_plan.draft.name + " · study"
+                name = protocol.name + " · study"
                 jobs.add_row(
                     job_id[:12], Text(safe_text(name)), self.studies.store.state(job_id), key=job_id
                 )
@@ -1064,14 +1063,23 @@ class StratosphereApp(App[None]):
                         if self.service_for(j["job_id"]) is self.research
                     ]
                     job_id = candidates[-1]["job_id"] if candidates else None
-                if job_id is None:
+                reference = job_id or self.session.active_strategy
+                if reference is None:
                     raise ResearchError(
-                        "Select a strategy with a supported /new plan, "
-                        "or use /study <parent-job-id>."
+                        "Select a registered strategy or use /study <parent-job-id>."
                     )
-                plan = self.research.store.plan(job_id)
+                if re.fullmatch(r"[0-9]{24}", reference):
+                    strategy_id = reference
+                    plan = self.studies.registry_anchor(strategy_id)
+                    job_id = None
+                else:
+                    job_id = reference
+                    plan = self.research.store.plan(job_id)
+                    strategy_id = self.database.strategy_for_job(job_id)["public_id"]
+                if self.contains_session_credential(plan.model_dump_json().encode()):
+                    raise ResearchError("Credential-bearing study context was rejected.")
                 await self.research.require_online()
-                self.research_form = StudyForm(job_id, plan, suggestion)
+                self.research_form = StudyForm(job_id, plan, suggestion, strategy_id=strategy_id)
                 self.action_select_view("chat")
                 self.query_one("#prompt", Input).disabled = True
                 self.query_one("#composer").display = False
@@ -1389,7 +1397,10 @@ class StratosphereApp(App[None]):
         form = self.research_form
         if not isinstance(form, StudyForm):
             return
-        if event.proposal and self.contains_session_credential(json.dumps(event.proposal).encode()):
+        if event.proposal and self.contains_session_credential(
+            json.dumps(event.proposal).encode()
+            + (event.anchor.model_dump_json().encode() if event.anchor else b"")
+        ):
             form.query_one("#study-error", Static).update(
                 "Remove credentials from the study proposal."
             )
@@ -1399,17 +1410,24 @@ class StratosphereApp(App[None]):
         self.query_one("#prompt", Input).disabled = False
         self.query_one("#composer").display = True
         if event.proposal:
-            self.research_worker = self.prepare_study(form.parent_job, event.proposal)
+            self.research_worker = self.prepare_study(
+                form.parent_job, event.proposal, strategy_id=form.strategy_id, anchor=event.anchor
+            )
         self.action_focus_pane("chat")
 
     @work(group="research", exclusive=True)
-    async def prepare_study(self, parent_job, proposal):
+    async def prepare_study(self, parent_job, proposal, *, strategy_id=None, anchor=None):
         self.update_status("RESEARCH · Pinning study protocol")
         try:
-            owner = self.database.strategy_for_job(parent_job)
-            job_id, protocol = await self.studies.prepare(
-                owner["public_id"], self.research.store.plan(parent_job), **proposal
-            )
+            if anchor is not None:
+                job_id, protocol = await self.studies.prepare_registered(
+                    strategy_id, anchor, **proposal
+                )
+            else:
+                owner = self.database.strategy_for_job(parent_job)
+                job_id, protocol = await self.studies.prepare(
+                    owner["public_id"], self.research.store.plan(parent_job), **proposal
+                )
             self.research_job_id = job_id
             await self.add_research_markdown(protocol_markdown(job_id, protocol), "Study plan:")
             await self.query_one("#conversation", VerticalScroll).mount(

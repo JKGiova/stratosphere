@@ -1,0 +1,402 @@
+{
+  "protocol": {
+    "schema_version": "bounded-study/1",
+    "parent_strategy_id": "111111111111111111111111",
+    "parent_plan": {
+      "original_plan_sha256": "9188857fdf65d789e72dfce452fb989eb5019d6876cd325c79c05598f6821f7e",
+      "source_sha256": "2b5234417b2c610c60527d00e5c7ddeb119065e1ff131fba36bf5faeed555c78",
+      "draft": {
+        "status": "ready",
+        "name": "Authored SMA 3/8",
+        "symbol": "BTCUSDT",
+        "timeframe_seconds": 3600,
+        "fast_period": 3,
+        "slow_period": 8,
+        "quantity": "0.01",
+        "entry": "fast_crosses_above_slow",
+        "exit": "fast_crosses_below_slow",
+        "evidence": [
+          {
+            "field": "entry",
+            "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+          },
+          {
+            "field": "exit",
+            "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+          },
+          {
+            "field": "fast_period",
+            "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+          },
+          {
+            "field": "quantity",
+            "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+          },
+          {
+            "field": "slow_period",
+            "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+          },
+          {
+            "field": "symbol",
+            "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+          },
+          {
+            "field": "timeframe_seconds",
+            "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+          }
+        ],
+        "questions": []
+      },
+      "specification": {
+        "schema_version": "strategy/1",
+        "indicators": [
+          {
+            "id": "fast",
+            "algorithm": "sma",
+            "algorithm_version": 1,
+            "input": "close",
+            "period": 3,
+            "timeframe_seconds": 3600
+          },
+          {
+            "id": "slow",
+            "algorithm": "sma",
+            "algorithm_version": 1,
+            "input": "close",
+            "period": 8,
+            "timeframe_seconds": 3600
+          }
+        ],
+        "entry_rules": [
+          {
+            "id": "enter_long",
+            "condition": {
+              "op": "crosses_above",
+              "value": null,
+              "args": [
+                {
+                  "op": "indicator",
+                  "value": "fast",
+                  "args": []
+                },
+                {
+                  "op": "indicator",
+                  "value": "slow",
+                  "args": []
+                }
+              ]
+            },
+            "action": "open_long"
+          }
+        ],
+        "exit_rules": [
+          {
+            "id": "exit_long",
+            "condition": {
+              "op": "crosses_below",
+              "value": null,
+              "args": [
+                {
+                  "op": "indicator",
+                  "value": "fast",
+                  "args": []
+                },
+                {
+                  "op": "indicator",
+                  "value": "slow",
+                  "args": []
+                }
+              ]
+            },
+            "action": "close_long"
+          }
+        ],
+        "position_sizing": {
+          "mode": "fixed_base",
+          "amount": "0.01"
+        },
+        "signal_timing": {
+          "evaluate": "bar_close",
+          "submit": "next_bar_open",
+          "precedence": "exit_before_entry"
+        },
+        "timeframes": [
+          3600
+        ],
+        "market_conditions": [],
+        "instrument_constraints": {
+          "asset_classes": [
+            "crypto_spot"
+          ],
+          "fixed_symbols": [
+            "BTCUSDT"
+          ],
+          "selection": "fixed"
+        },
+        "data_requirements": {
+          "input": "ohlcv",
+          "warmup_bars": 9,
+          "availability": "closed_bars_only"
+        },
+        "execution_requirements": {
+          "order_type": "market",
+          "shorting": false,
+          "max_positions": 1,
+          "reinforcement": false,
+          "session_end": "hold"
+        },
+        "missing_data_policy": {
+          "action": "abort",
+          "max_staleness_seconds": 3600
+        },
+        "assumptions": [
+          "Long-only fixed BTC quantity; no reinforcement, leverage, stops or other filters.",
+          "SMA periods count closed hourly observations; exact rational arithmetic.",
+          "Cross above: previous fast <= slow and current fast > slow; below reverses inequalities.",
+          "Warmup needs the slow SMA plus a previous comparison; no entry from initial SMA alignment.",
+          "Entry requires flat exposure; exit requires long exposure; end exposure is held."
+        ]
+      },
+      "config": {
+        "initial_balance": "10000",
+        "fee_rate": "0.001",
+        "spread_bps": "2",
+        "slippage_bps": "1"
+      },
+      "engine_version": "1.231.0"
+    },
+    "hypothesis": "Authored historical protocol for compatibility only",
+    "candidates": [
+      {
+        "fast": 3,
+        "slow": 8
+      },
+      {
+        "fast": 4,
+        "slow": 10
+      }
+    ],
+    "development": {
+      "month": "2025-01",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "provider": "binance-spot-btcusdt-hourly-microseconds/1"
+    },
+    "holdout": {
+      "month": "2025-02",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "provider": "binance-spot-btcusdt-hourly-microseconds/1"
+    },
+    "max_simulations": 10,
+    "implementation_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "selection": "validation-stress-net-pnl-drawdown-order/1",
+    "benchmark": "cash-and-same-quantity-buy-hold/1",
+    "data_entitlement": "commercial-rights-unverified",
+    "assumptions": [
+      "BTCUSDT spot hourly SMA only; candidate changes are exactly the listed SMA periods.",
+      "Development is the first floor(70% * monthly bars); validation is the remaining bars.",
+      "Each window starts flat with the reviewed initial cash; indicators warm on prior bars only.",
+      "Crossings must occur at a measured closed candle; orders fill at its next open.",
+      "No order from pre-window crossings; terminal exposure is marked, not closed.",
+      "Every candidate has development and validation runs at base and doubled costs.",
+      "Selection uses validation doubled-cost net P&L, then lower drawdown, then listed order.",
+      "Development metrics are descriptive; holdout performance cannot change selection.",
+      "A candidate is eligible only after all four runs complete; failures stay in the denominator.",
+      "The selected candidate gets one base and one doubled-cost run on the next monthly archive.",
+      "Acquire holdout bars after immutable selection; claim local exposure before download.",
+      "Local tracking cannot prove data was unseen outside this workspace or on another device.",
+      "Synthetic full fills, eight-decimal SIM values; account fees/liquidity are unverified.",
+      "No profitability threshold, automatic promotion, paper/live activation or fee collection.",
+      "Binance Vision commercial data rights are not granted by this protocol or application."
+    ]
+  },
+  "sha256": "4505ed06adabb23195216dade6716cb3e8aada43089f4a385a5d8f4746f6bc51",
+  "research_plan": {
+    "schema_version": "research-plan/1",
+    "source_sha256": "2b5234417b2c610c60527d00e5c7ddeb119065e1ff131fba36bf5faeed555c78",
+    "draft": {
+      "status": "ready",
+      "name": "Authored SMA 3/8",
+      "symbol": "BTCUSDT",
+      "timeframe_seconds": 3600,
+      "fast_period": 3,
+      "slow_period": 8,
+      "quantity": "0.01",
+      "entry": "fast_crosses_above_slow",
+      "exit": "fast_crosses_below_slow",
+      "evidence": [
+        {
+          "field": "entry",
+          "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+        },
+        {
+          "field": "exit",
+          "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+        },
+        {
+          "field": "fast_period",
+          "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+        },
+        {
+          "field": "quantity",
+          "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+        },
+        {
+          "field": "slow_period",
+          "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+        },
+        {
+          "field": "symbol",
+          "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+        },
+        {
+          "field": "timeframe_seconds",
+          "quote": "BTCUSDT spot, 1-hour closed candles. Fast SMA 3 and slow SMA 8. Buy when fast SMA crosses above slow SMA; exit when it crosses below. Fixed quantity 0.01 BTC. No shorting, leverage, reinforcement, stops or other filters."
+        }
+      ],
+      "questions": []
+    },
+    "specification": {
+      "schema_version": "strategy/1",
+      "indicators": [
+        {
+          "id": "fast",
+          "algorithm": "sma",
+          "algorithm_version": 1,
+          "input": "close",
+          "period": 3,
+          "timeframe_seconds": 3600
+        },
+        {
+          "id": "slow",
+          "algorithm": "sma",
+          "algorithm_version": 1,
+          "input": "close",
+          "period": 8,
+          "timeframe_seconds": 3600
+        }
+      ],
+      "entry_rules": [
+        {
+          "id": "enter_long",
+          "condition": {
+            "op": "crosses_above",
+            "value": null,
+            "args": [
+              {
+                "op": "indicator",
+                "value": "fast",
+                "args": []
+              },
+              {
+                "op": "indicator",
+                "value": "slow",
+                "args": []
+              }
+            ]
+          },
+          "action": "open_long"
+        }
+      ],
+      "exit_rules": [
+        {
+          "id": "exit_long",
+          "condition": {
+            "op": "crosses_below",
+            "value": null,
+            "args": [
+              {
+                "op": "indicator",
+                "value": "fast",
+                "args": []
+              },
+              {
+                "op": "indicator",
+                "value": "slow",
+                "args": []
+              }
+            ]
+          },
+          "action": "close_long"
+        }
+      ],
+      "position_sizing": {
+        "mode": "fixed_base",
+        "amount": "0.01"
+      },
+      "signal_timing": {
+        "evaluate": "bar_close",
+        "submit": "next_bar_open",
+        "precedence": "exit_before_entry"
+      },
+      "timeframes": [
+        3600
+      ],
+      "market_conditions": [],
+      "instrument_constraints": {
+        "asset_classes": [
+          "crypto_spot"
+        ],
+        "fixed_symbols": [
+          "BTCUSDT"
+        ],
+        "selection": "fixed"
+      },
+      "data_requirements": {
+        "input": "ohlcv",
+        "warmup_bars": 9,
+        "availability": "closed_bars_only"
+      },
+      "execution_requirements": {
+        "order_type": "market",
+        "shorting": false,
+        "max_positions": 1,
+        "reinforcement": false,
+        "session_end": "hold"
+      },
+      "missing_data_policy": {
+        "action": "abort",
+        "max_staleness_seconds": 3600
+      },
+      "assumptions": [
+        "Long-only fixed BTC quantity; no reinforcement, leverage, stops or other filters.",
+        "SMA periods count closed hourly observations; exact rational arithmetic.",
+        "Cross above: previous fast <= slow and current fast > slow; below reverses inequalities.",
+        "Warmup needs the slow SMA plus a previous comparison; no entry from initial SMA alignment.",
+        "Entry requires flat exposure; exit requires long exposure; end exposure is held."
+      ]
+    },
+    "config": {
+      "initial_balance": "10000",
+      "fee_rate": "0.001",
+      "spread_bps": "2",
+      "slippage_bps": "1"
+    },
+    "dataset_profile": "binance-btcusdt-1h-2025-01/1",
+    "archive_sha256": "e7f2aaa5396a8062a57ab29ce9fab2d76b2c84ec58815d4ab7b3fe16f78c7118",
+    "engine_version": "1.231.0",
+    "implementation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "adapter_version": "research-next-open/1",
+    "normalization_version": "binance-spot-microseconds-ohlcv/1",
+    "simulation_count": 2,
+    "assumptions": [
+      "Long-only fixed BTC quantity; no reinforcement, leverage, stops or other filters.",
+      "SMA periods count closed hourly observations; exact rational arithmetic.",
+      "Cross above: previous fast <= slow and current fast > slow; below reverses inequalities.",
+      "Warmup needs the slow SMA plus a previous comparison; no entry from initial SMA alignment.",
+      "Entry requires flat exposure; exit requires long exposure; end exposure is held.",
+      "BTC/USDT spot only; no shorting, leverage, reinforcement, stops or intrabar exits.",
+      "Signals use closed hourly candles; orders fill at the next candle's open.",
+      "Synthetic bid/ask quotes apply half the spread plus slippage on each side.",
+      "Full fills and sufficient synthetic liquidity are assumed; no market-impact model.",
+      "SIM uses eight-decimal prices/quantities, not historical Binance order filters.",
+      "One open position; fixed BTC quantity; initial exposure is flat; end exposure is marked.",
+      "Candle close timestamps are assumed availability, not archived publication evidence.",
+      "Development/validation use chronological 70/30 segments with carried positions/indicators.",
+      "The validation segment is not an independent final holdout or a promotion decision.",
+      "Two simulations: base costs and doubled fee/spread/slippage; no parameter search.",
+      "Costs are user-reviewed simulation assumptions, not verified account fee tiers.",
+      "The future stratosphere opening-order commission is not collected or modeled here."
+    ]
+  },
+  "research_plan_sha256": "9188857fdf65d789e72dfce452fb989eb5019d6876cd325c79c05598f6821f7e"
+}

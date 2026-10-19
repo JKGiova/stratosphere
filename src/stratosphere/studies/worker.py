@@ -7,13 +7,17 @@ from pydantic import Field
 
 from stratosphere.phase0.contracts import Contract
 from stratosphere.research.engine import run_simulation
-from stratosphere.studies.contracts import StudyProtocol, study_implementation_digest
+from stratosphere.studies.contracts import (
+    RegistryStudyProtocol,
+    StudyProtocol,
+    study_implementation_digest,
+)
 from stratosphere.studies.data import normalize_month
 
 
 class CellRequest(Contract):
     kind: Literal["bounded-study-cell/1"] = "bounded-study-cell/1"
-    protocol: StudyProtocol
+    protocol: StudyProtocol | RegistryStudyProtocol
     candidate_index: int = Field(strict=True, ge=0)
     window: Literal["development", "validation", "holdout"]
     selected_index: int | None = Field(default=None, strict=True, ge=0)

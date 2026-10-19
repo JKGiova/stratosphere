@@ -150,3 +150,7 @@ Login implementation is deferred to later pre-release work; preserve it in the f
 ## Liquid catalog inspection
 
 After `/liquid-connect`, `/liquid-tools` lists the captured tool catalog and `/liquid-tool <exact-name>` displays a definition in scrollable Focus. `/liquid-catalog-save` explicitly saves private definitions and a hash manifest under the research state directory, then displays the path. These commands need no model setup, make no provider tool call, and cannot activate paper/live trading. They require online access and a complete unexpired process-local connection. See [catalog format, privacy and limits](liquid-paper-testing.md#catalog-inspection-and-export).
+
+## Studies without a parent research job
+
+`/study <24-digit-strategy-id>` opens the registered-definition form with editable costs; `/study` falls back to this path for the selected agent when no standalone research plan exists. A 32-character parent job ID retains the original path. Natural-language test/study requests reach the same review and approval operations. Explicit fast/slow notation is pinned by the application; the form remains editable before the protocol is frozen. The target stays pinned if Library selection changes. See [contracts, cost policy and verification](phase3-registry-studies.md).

@@ -7,7 +7,7 @@ import re
 import uuid
 
 from stratosphere.research.store import ResearchError, ResearchStore
-from stratosphere.studies.contracts import StudyProtocol
+from stratosphere.studies.contracts import RegistryStudyProtocol, StudyProtocol, load_study_protocol
 
 MANDATORY = {
     "source.json",
@@ -76,8 +76,8 @@ class StudyStore(ResearchStore):
     def exists(self, job_id: str, name: str) -> bool:
         return (self.directory(job_id) / name).is_file()
 
-    def protocol(self, job_id: str) -> StudyProtocol:
-        return StudyProtocol.model_validate(self.read(job_id, "protocol.json"))
+    def protocol(self, job_id: str) -> StudyProtocol | RegistryStudyProtocol:
+        return load_study_protocol(self.read(job_id, "protocol.json"))
 
     def seal(self, job_id: str) -> None:
         directory = self.directory(job_id)

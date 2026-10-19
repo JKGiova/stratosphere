@@ -3,17 +3,22 @@
 from decimal import ROUND_HALF_UP, Decimal
 
 from stratosphere.phase0.contracts import fingerprint
+from stratosphere.research.contracts import SimulationPlan
 from stratosphere.research.engine import execution_quote
 from stratosphere.research.metrics import amount
 
 
 def baselines(protocol, bars):
-    config = protocol.parent_plan.config
+    config = protocol.config
     capital = Decimal(config.initial_balance)
-    quantity = Decimal(protocol.parent_plan.draft.quantity)
+    quantity = Decimal(protocol.parameters.quantity)
     result = {"cash": {"net_pnl": "0", "final_equity": amount(capital)}}
     for multiplier in (1, 2):
-        _, ask = execution_quote(bars[0].open, protocol.parent_plan, multiplier)
+        _, ask = execution_quote(
+            bars[0].open,
+            SimulationPlan(draft=protocol.parameters, config=protocol.config),
+            multiplier,
+        )
         cost = ask * quantity
         fee = (cost * Decimal(config.fee_rate) * multiplier).quantize(
             Decimal("0.00000001"), rounding=ROUND_HALF_UP
@@ -42,11 +47,13 @@ def build_study_report(
     if holdout_snapshot:
         baseline["holdout"] = baselines(protocol, holdout_snapshot.bars)
     return {
-        "schema_version": "study-report/1",
-        "name": protocol.parent_plan.draft.name + " · bounded study",
+        "schema_version": "study-report/2"
+        if protocol.schema_version == "bounded-study/2"
+        else "study-report/1",
+        "name": protocol.name + " · bounded study",
         "job_id": job_id,
         "plan_sha256": protocol.digest,
-        "strategy_sha256": fingerprint(protocol.parent_plan.specification),
+        "strategy_sha256": fingerprint(protocol.specification),
         "implementation_sha256": protocol.implementation_sha256,
         "parent_strategy_id": protocol.parent_strategy_id,
         "hypothesis": protocol.hypothesis,
@@ -166,12 +173,24 @@ def study_markdown(report):
 
 def protocol_markdown(job_id, protocol):
     candidates = ", ".join(f"{c.fast}/{c.slow}" for c in protocol.candidates)
-    config = protocol.parent_plan.config
+    config = protocol.config
     return "\n".join(
         [
             "# Review bounded study",
             "",
             f"Job `{job_id}` · parent strategy `{protocol.parent_strategy_id}`",
+            *(
+                [
+                    "Anchor: registered definition `"
+                    + protocol.registry_anchor.strategy_sha256
+                    + "`. "
+                    "No parent research plan or source conversion is claimed.",
+                    "Synthetic commissions: exact price × quantity × reviewed fee, "
+                    "rounded half up to eight decimals before native money construction.",
+                ]
+                if protocol.schema_version == "bounded-study/2"
+                else []
+            ),
             "",
             f"Hypothesis: {protocol.hypothesis}",
             f"SMA candidates (listed tie order): {candidates}",
@@ -185,7 +204,7 @@ def protocol_markdown(job_id, protocol):
             "requires a separate written license.",
             "Published terms: https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md",
             "",
-            f"Fixed quantity: {protocol.parent_plan.draft.quantity} BTC. "
+            f"Fixed quantity: {protocol.parameters.quantity} BTC. "
             f"Starting cash per window: {config.initial_balance} USDT.",
             f"Fee {config.fee_rate}; spread {config.spread_bps} bps; "
             f"slippage {config.slippage_bps} bps.",

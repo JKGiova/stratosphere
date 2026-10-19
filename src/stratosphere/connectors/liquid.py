@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 import httpx
 from pydantic import SecretStr
 
-from stratosphere.connectors.catalog import CatalogError, LiquidCatalog, strict_json
+from stratosphere.connectors.catalog import CatalogError, LiquidCatalog, canonical, strict_json
 from stratosphere.research.store import ResearchError
 
 ORIGIN = "https://coinvest.liquid.trade"
@@ -178,7 +178,10 @@ class LiquidConnection:
         self.session = None
 
     def contains_credential(self, content: bytes) -> bool:
-        return bool(self.session and self.session.token.get_secret_value().encode() in content)
+        if self.session is None:
+            return False
+        token = self.session.token.get_secret_value()
+        return token.encode() in content or canonical(token)[1:-1].encode() in content
 
     def client(self):
         return httpx.AsyncClient(

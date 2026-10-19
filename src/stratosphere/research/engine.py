@@ -1,7 +1,7 @@
 """Trusted SMA implementation on the pinned native NautilusTrader engine."""
 
 import platform
-from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
+from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
 from importlib.metadata import version
 
 from stratosphere.phase0.signals import SmaCross
@@ -46,6 +46,7 @@ def run_simulation(
         raise ValueError("Trading must start at an observed opening boundary")
     measured_count = sum(trade_start_ns is None or bar.open_ns >= trade_start_ns for bar in bars)
     from nautilus_trader.backtest.engine import BacktestEngine
+    from nautilus_trader.backtest.models.fee import FeeModel
     from nautilus_trader.config import BacktestEngineConfig, LoggingConfig
     from nautilus_trader.model.currencies import BTC, USDT
     from nautilus_trader.model.data import Bar, BarType, QuoteTick
@@ -74,6 +75,15 @@ def run_simulation(
         ts_init=0,
     )
     opens = {bar.open_ns: bar.open for bar in bars}
+
+    class DecimalResearchFees(FeeModel):
+        def get_commission(self, order, fill_qty, fill_px, instrument):
+            # Quantize before constructing native money: Money(Decimal, currency) takes
+            # a float path which can move an exact half-quantum below its rounding tie.
+            amount = (fill_px.as_decimal() * fill_qty.as_decimal() * fee_rate).quantize(
+                TICK, rounding=ROUND_HALF_UP
+            )
+            return Money.from_decimal(amount, instrument.quote_currency)
 
     class SmaStrategy(Strategy):
         def __init__(self):
@@ -168,6 +178,7 @@ def run_simulation(
             bar_execution=False,
             trade_execution=False,
             allow_cash_borrowing=False,
+            fee_model=DecimalResearchFees(),
         )
         engine.add_instrument(native_instrument)
         quotes, candles = [], []

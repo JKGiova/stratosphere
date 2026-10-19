@@ -4,7 +4,7 @@ import asyncio
 import json
 from datetime import UTC, datetime
 
-from stratosphere.phase0.contracts import fingerprint
+from stratosphere.phase0.contracts import StrategySpec, canonical_bytes, fingerprint
 from stratosphere.registry.workspace import WorkspaceDatabase, now
 from stratosphere.research.data import require_online
 from stratosphere.research.metrics import summarize
@@ -12,6 +12,8 @@ from stratosphere.research.service import run_worker
 from stratosphere.research.store import ResearchError, ResearchStore
 from stratosphere.studies.contracts import (
     Candidate,
+    RegistryStudyAnchor,
+    RegistryStudyProtocol,
     StrategyAnchor,
     StudyProtocol,
     study_implementation_digest,
@@ -57,9 +59,40 @@ class StudyService:
                 except ResearchError:
                     continue
 
+    def registry_anchor(self, strategy_id, config=None):
+        try:
+            return RegistryStudyAnchor.from_record(self.database.strategy(strategy_id), config)
+        except ValueError:
+            raise ResearchError(
+                "This registered definition differs from the supported BTCUSDT hourly SMA "
+                "implementation; no study was prepared."
+            ) from None
+
     async def prepare(self, parent_id, parent_plan, hypothesis, candidates, month, max_simulations):
+        return await self._prepare(
+            parent_id,
+            StrategyAnchor.from_plan(parent_plan),
+            hypothesis,
+            candidates,
+            month,
+            max_simulations,
+        )
+
+    async def prepare_registered(
+        self, parent_id, anchor, hypothesis, candidates, month, max_simulations
+    ):
+        anchor = RegistryStudyAnchor.model_validate(
+            anchor.model_dump(mode="json") if isinstance(anchor, RegistryStudyAnchor) else anchor
+        )
+        await self.require_online()
+        return await self._prepare(
+            parent_id, anchor, hypothesis, candidates, month, max_simulations
+        )
+
+    async def _prepare(self, parent_id, anchor, hypothesis, candidates, month, max_simulations):
         if self.active_job or self.preparing:
             raise ResearchError("A study operation is already active")
+        registered = isinstance(anchor, RegistryStudyAnchor)
         proposal = {
             "parent_strategy_id": parent_id,
             "hypothesis": hypothesis,
@@ -67,37 +100,40 @@ class StudyService:
             "development_month": month,
             "max_simulations": max_simulations,
         }
+        if registered:
+            proposal["registry_anchor"] = anchor.model_dump(mode="json")
         job_id = self.store.create(json.dumps(proposal, ensure_ascii=False))
         self.preparing = True
         try:
             with self.store.lock(job_id):
-                if self.database.strategy(parent_id)["spec_sha256"] != fingerprint(
-                    parent_plan.specification
-                ):
-                    raise ResearchError("The parent plan belongs to another strategy")
+                self._verify_anchor(parent_id, anchor)
                 development = await self.pinner(month)
                 next_month = datetime.fromtimestamp(
                     (development.first_ns + development.count * 3600 * 10**9) // 10**9, UTC
                 ).strftime("%Y-%m")
                 holdout = await self.pinner(next_month)
-                protocol = StudyProtocol(
-                    parent_strategy_id=parent_id,
-                    parent_plan=StrategyAnchor.from_plan(parent_plan),
-                    hypothesis=hypothesis,
-                    candidates=tuple(Candidate.model_validate(c) for c in candidates),
-                    development=development,
-                    holdout=holdout,
-                    max_simulations=max_simulations,
-                    implementation_sha256=study_implementation_digest(),
+                self._verify_anchor(parent_id, anchor)
+                fields = {
+                    "parent_strategy_id": parent_id,
+                    "hypothesis": hypothesis,
+                    "candidates": tuple(Candidate.model_validate(c) for c in candidates),
+                    "development": development,
+                    "holdout": holdout,
+                    "max_simulations": max_simulations,
+                    "implementation_sha256": study_implementation_digest(),
+                }
+                protocol = (
+                    RegistryStudyProtocol(
+                        schema_version="bounded-study/2", registry_anchor=anchor, **fields
+                    )
+                    if registered
+                    else StudyProtocol(parent_plan=anchor, **fields)
                 )
                 self.store.write(job_id, "protocol.json", protocol.model_dump(mode="json"))
                 self.store.write(
                     job_id,
                     "implementation.json",
-                    {
-                        "sha256": protocol.implementation_sha256,
-                        "modules": study_sources(),
-                    },
+                    {"sha256": protocol.implementation_sha256, "modules": study_sources()},
                 )
                 self.store.event(job_id, "awaiting_approval")
                 self.database.attach_job(parent_id, job_id, protocol.digest, "awaiting_approval")
@@ -111,11 +147,20 @@ class StudyService:
         finally:
             self.preparing = False
 
+    def _verify_anchor(self, parent_id, anchor):
+        record = self.database.strategy(parent_id)
+        actual = StrategySpec.model_validate(record["specification"])
+        if record["spec_sha256"] != fingerprint(anchor.specification) or canonical_bytes(
+            actual
+        ) != canonical_bytes(anchor.specification):
+            raise ResearchError("The study anchor belongs to another or changed strategy")
+
     def approve(self, job_id, digest):
         with self.store.lock(job_id):
             protocol = self.store.protocol(job_id)
             if self.store.state(job_id) != "awaiting_approval" or digest != protocol.digest:
                 raise ResearchError("Approve exactly the pending reviewed study protocol")
+            self._verify_anchor(protocol.parent_strategy_id, protocol)
             if protocol.implementation_sha256 != study_implementation_digest():
                 raise ResearchError("Implementation changed; review a new study")
             self.store.write(job_id, "approval.json", {"protocol_sha256": digest})
@@ -227,10 +272,10 @@ class StudyService:
             result = response["result"]
             if (
                 result.get("cost_multiplier") != multiplier
-                or result.get("engine_version") != protocol.parent_plan.engine_version
+                or result.get("engine_version") != protocol.engine_version
             ):
                 raise ResearchError("Native study engine/cost identity mismatch")
-            metrics = summarize(result, protocol.parent_plan.config.initial_balance)
+            metrics = summarize(result, protocol.config.initial_balance)
             curve = result["equity_curve"]
             metrics["segments"] = [
                 {
@@ -264,6 +309,7 @@ class StudyService:
                 raise ResearchError("Only an approved paused study can run")
             if self.store.read(job_id, "approval.json").get("protocol_sha256") != protocol.digest:
                 raise ResearchError("Study approval integrity mismatch")
+            self._verify_anchor(protocol.parent_strategy_id, protocol)
             if protocol.implementation_sha256 != study_implementation_digest():
                 raise ResearchError("Implementation changed; review a new study")
             self.active_job, self.stop_state = job_id, "canceled"
@@ -285,9 +331,7 @@ class StudyService:
                     entry = {"index": index, "parameters": candidate.model_dump(), "cells": {}}
                     try:
                         spec = protocol.variant(candidate)
-                        original = fingerprint(spec) == fingerprint(
-                            protocol.parent_plan.specification
-                        )
+                        original = fingerprint(spec) == fingerprint(protocol.specification)
                         record = self.database.register(
                             spec,
                             f"SMA {candidate.fast}/{candidate.slow}",

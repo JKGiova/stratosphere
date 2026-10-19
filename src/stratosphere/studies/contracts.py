@@ -22,7 +22,9 @@ from stratosphere.research.contracts import (
     SimulationPlan,
     SmaParameters,
     build_spec,
+    compile_sma_spec,
     implementation_sources,
+    sma_parameters,
 )
 
 HOUR_NS = 3600 * 10**9
@@ -131,10 +133,8 @@ def study_implementation_digest() -> str:
     return digest.hexdigest()
 
 
-class StudyProtocol(Contract):
-    schema_version: Literal["bounded-study/1"] = "bounded-study/1"
+class BoundedProtocol(Contract):
     parent_strategy_id: str = Field(pattern=r"^[0-9]{24}$")
-    parent_plan: StrategyAnchor
     hypothesis: str = Field(min_length=1)
     candidates: tuple[Candidate, ...] = Field(min_length=1)
     development: ArchivePin
@@ -172,6 +172,35 @@ class StudyProtocol(Contract):
     def digest(self) -> str:
         return fingerprint(self)
 
+
+class StudyProtocol(BoundedProtocol):
+    schema_version: Literal["bounded-study/1"] = "bounded-study/1"
+    parent_plan: StrategyAnchor
+
+    @property
+    def parameters(self):
+        return SmaParameters(
+            fast_period=self.parent_plan.draft.fast_period,
+            slow_period=self.parent_plan.draft.slow_period,
+            quantity=self.parent_plan.draft.quantity,
+        )
+
+    @property
+    def config(self):
+        return self.parent_plan.config
+
+    @property
+    def specification(self):
+        return self.parent_plan.specification
+
+    @property
+    def name(self):
+        return self.parent_plan.draft.name
+
+    @property
+    def engine_version(self):
+        return self.parent_plan.engine_version
+
     def simulation(self, candidate: Candidate) -> SimulationPlan:
         parameters = candidate.parameters(self.parent_plan.draft.quantity)
         if parameters.slow_period >= self.split:
@@ -185,3 +214,88 @@ class StudyProtocol(Contract):
         payload = self.parent_plan.draft.model_dump(mode="json")
         payload.update(fast_period=candidate.fast, slow_period=candidate.slow)
         return build_spec(Extraction.model_validate(payload))
+
+
+class RegistryStudyAnchor(Contract):
+    """A registry definition and reviewed simulation costs, with no fictitious source plan."""
+
+    kind: Literal["registered_definition/1"] = "registered_definition/1"
+    strategy_sha256: Digest
+    specification: StrategySpec
+    parameters: SmaParameters
+    name: str = Field(min_length=1, pattern=r"\S")
+    config: ResearchConfig
+    engine_version: Literal["1.231.0"] = "1.231.0"
+
+    @model_validator(mode="after")
+    def matched(self):
+        if fingerprint(self.specification) != self.strategy_sha256:
+            raise ValueError("Registered definition digest mismatch")
+        if sma_parameters(self.specification) != self.parameters:
+            raise ValueError("Parameters differ from the exact registered behavior")
+        return self
+
+    @classmethod
+    def from_record(cls, record, config=None):
+        specification = StrategySpec.model_validate(record["specification"])
+        return cls(
+            strategy_sha256=record["spec_sha256"],
+            specification=specification,
+            parameters=sma_parameters(specification),
+            name=record["name"],
+            config=config or ResearchConfig(),
+        )
+
+
+class RegistryStudyProtocol(BoundedProtocol):
+    schema_version: Literal["bounded-study/2"]
+    registry_anchor: RegistryStudyAnchor
+    fee_model: Literal["decimal-price-quantity-half-up-8/1"] = "decimal-price-quantity-half-up-8/1"
+
+    @model_validator(mode="after")
+    def baseline_included(self):
+        if (self.parameters.fast_period, self.parameters.slow_period) not in {
+            (candidate.fast, candidate.slow) for candidate in self.candidates
+        }:
+            raise ValueError("A registry study must include the exact registered baseline")
+        return self
+
+    @property
+    def parameters(self):
+        return self.registry_anchor.parameters
+
+    @property
+    def config(self):
+        return self.registry_anchor.config
+
+    @property
+    def specification(self):
+        return self.registry_anchor.specification
+
+    @property
+    def name(self):
+        return self.registry_anchor.name
+
+    @property
+    def engine_version(self):
+        return self.registry_anchor.engine_version
+
+    def simulation(self, candidate):
+        parameters = candidate.parameters(self.parameters.quantity)
+        if parameters.slow_period >= self.split:
+            raise ValueError("The development window cannot warm these SMA periods")
+        return SimulationPlan(draft=parameters, config=self.config)
+
+    def variant(self, candidate):
+        return compile_sma_spec(self.simulation(candidate).draft)
+
+
+def load_study_protocol(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("A study protocol must be an object")
+    version = payload.get("schema_version", "bounded-study/1")
+    if version == "bounded-study/1":
+        return StudyProtocol.model_validate(payload)
+    if version == "bounded-study/2":
+        return RegistryStudyProtocol.model_validate(payload)
+    raise ValueError("Unsupported study protocol version")

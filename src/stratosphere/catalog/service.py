@@ -80,7 +80,7 @@ class AssessmentService:
                         limitations=tuple(report["limitations"]),
                     )
                 )
-            elif report.get("schema_version") == "study-report/1":
+            elif report.get("schema_version") in {"study-report/1", "study-report/2"}:
                 if (target.asset_class, target.symbol, target.timeframe_seconds) != (
                     "crypto_spot",
                     "BTCUSDT",

@@ -141,6 +141,16 @@ def build_spec(draft: Extraction) -> StrategySpec:
     """Compile validated parameters into a complete canonical behavior contract."""
 
     draft.validate_behavior()
+    return compile_sma_spec(
+        SmaParameters(
+            fast_period=draft.fast_period, slow_period=draft.slow_period, quantity=draft.quantity
+        )
+    )
+
+
+def compile_sma_spec(parameters: SmaParameters) -> StrategySpec:
+    """Compile trusted parameters without claiming a source extraction or its provenance."""
+    parameters = SmaParameters.model_validate(parameters.model_dump())
 
     def reference(name):
         return {"op": "indicator", "value": name}
@@ -157,7 +167,10 @@ def build_spec(draft: Extraction) -> StrategySpec:
                     "period": period,
                     "timeframe_seconds": 3600,
                 }
-                for name, period in [("fast", draft.fast_period), ("slow", draft.slow_period)]
+                for name, period in [
+                    ("fast", parameters.fast_period),
+                    ("slow", parameters.slow_period),
+                ]
             ],
             "entry_rules": [
                 {
@@ -179,7 +192,7 @@ def build_spec(draft: Extraction) -> StrategySpec:
                     "action": "close_long",
                 }
             ],
-            "position_sizing": {"mode": "fixed_base", "amount": draft.quantity},
+            "position_sizing": {"mode": "fixed_base", "amount": parameters.quantity},
             "signal_timing": {
                 "evaluate": "bar_close",
                 "submit": "next_bar_open",
@@ -194,7 +207,7 @@ def build_spec(draft: Extraction) -> StrategySpec:
             },
             "data_requirements": {
                 "input": "ohlcv",
-                "warmup_bars": draft.slow_period + 1,
+                "warmup_bars": parameters.slow_period + 1,
                 "availability": "closed_bars_only",
             },
             "execution_requirements": {
@@ -208,6 +221,21 @@ def build_spec(draft: Extraction) -> StrategySpec:
             "assumptions": BEHAVIOR_ASSUMPTIONS,
         }
     )
+
+
+def sma_parameters(specification: StrategySpec) -> SmaParameters:
+    try:
+        indicators = {item.id: item for item in specification.indicators}
+        parameters = SmaParameters(
+            fast_period=indicators["fast"].period,
+            slow_period=indicators["slow"].period,
+            quantity=specification.position_sizing.amount,
+        )
+    except KeyError, ValueError:
+        raise ValueError("The definition is outside the supported SMA implementation") from None
+    if canonical_bytes(specification) != canonical_bytes(compile_sma_spec(parameters)):
+        raise ValueError("The complete definition differs from the supported SMA implementation")
+    return parameters
 
 
 def implementation_sources() -> dict[str, str]:

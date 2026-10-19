@@ -31,7 +31,7 @@ HELP = """/help — Show commands
 /source-reviews — List retained source-review attempts
 /source-review-show <review-id> — Inspect a verified source review
 /new [text] — Draft a supported research plan in chat
-/study [parent-job-id] — Review a bounded SMA experiment with a separate final holdout
+/study [strategy-id|parent-job-id] — Review a bounded SMA study with a separate final holdout
 /assess [market symbol interval-seconds] — Record dated applicability for the selected agent
 /recommend <market> <symbol> <interval-seconds> — Ask each local strategy agent for candidates
 /assessment <assessment-id> — Open a retained applicability snapshot

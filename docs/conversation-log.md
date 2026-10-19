@@ -3575,3 +3575,77 @@ Restart with `.venv/bin/python -m stratosphere`, run `/liquid-connect` (read onl
 Phases 3–5 remain in progress.
 
 ---
+
+### 380 — Assistant (progress update)
+
+While the Liquid catalog export is pending, I’m addressing a Phase 3 gap: a strategy agent currently needs a separate `/new` research plan before it can propose a study. I’ll add a study path that anchors directly to the registered strategy and still requires review and approval.
+
+---
+
+### 381 — Assistant (progress update)
+
+The new protocol will pin the registered definition, supported SMA parameters and reviewed costs. It won’t invent a parent-plan hash or source quotes. I’m also preserving the version-1 wire formats and hashes so existing plans and reports remain readable.
+
+---
+
+### 382 — Assistant (progress update)
+
+The new path now reaches protocol review, execution and report attribution in fixture tests. I’m testing the remaining failure cases: a changed definition after review, an omitted baseline, and restart after an interrupted test. The native check will compare every result with an independent SMA and cash oracle.
+
+---
+
+### 383 — Assistant (progress update)
+
+The native check found a formatting difference: Nautilus reports `0.0020007` where the oracle reports `0.00200070`; their values and equity paths agree. I’m changing those assertions to compare exact decimals. The live Ollama check also omitted the required baseline, which validation rejected before creating a study.
+
+---
+
+### 384 — Assistant (progress update)
+
+The broader cost check also found a real one-unit fee difference caused by Nautilus’s decimal-to-float money conversion. I’m adding an exact-decimal fee model for these synthetic research runs and keeping the oracle strict. For registered-strategy proposals, I’m also moving baseline inclusion into the application; the model will propose alternatives, and the complete budget will remain visible before approval.
+
+---
+
+### 385 — Assistant (progress update)
+
+The focused native tests passed with exact fee, cash and equity agreement. Ollama also produced proposals for two registered strategies without parent research jobs, with isolated contexts and restored histories. I’m now checking the packaged TUI path from review and approval through native execution to Reports.
+
+---
+
+### 386 — Assistant (progress update)
+
+Inspection showed that the model also proposed different pairs from the ones requested. I’m making explicit `fast/slow` pairs application-owned too. They’ll pass unchanged into review, while the model supplies only an unverified hypothesis; general experiment requests can still receive editable model suggestions.
+
+---
+
+### 387 — User
+
+Read-only catalog connected
+
+---
+
+### 388 — Assistant (progress update)
+
+I’ll check the saved Liquid catalog and the current implementation. Read-only connection confirms catalog access; feed access and paper-trading support still need verification.
+
+---
+
+### 389 — Assistant (question)
+
+The read-only connection succeeded. In the same TUI session, run `/liquid-catalog-save` and share the file path shown in Focus so I can inspect the available schemas. Share only the path, never a token or key.
+
+---
+
+### 390 — Assistant (progress update)
+
+There’s no saved Liquid catalog in the default folder yet, so I still need the export to inspect its schemas. The registry-study changes have passed **813 tests**, including native checks and the packaged TUI flow. I’m finishing documentation and publishing this increment; the local model’s hypothesis text still needs human review.
+
+---
+
+### 391 — Assistant
+
+Liquid’s read-only catalog connection succeeded. Run `/liquid-catalog-save` and send the path shown in Focus; feed access and paper isolation remain unverified.
+
+Registered SMA strategies can now open reviewed studies directly. **813 tests passed**, plus native/package checks. Pushed code, docs, AGENTS.md and the conversation log. Phases 3–5 remain in progress.
+
+---

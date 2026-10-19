@@ -67,6 +67,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Liquid paper testing](docs/liquid-paper-testing.md) | Read-only browser connection, test options and unverified paper execution |
 | [Paper ledger foundation](docs/phase5-paper-ledger.md) | Internal authored-paper reservations, fill attribution and native accounting checks |
 | [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
+| [Registry-anchored studies](docs/phase3-registry-studies.md) | Approved studies of existing definitions and variants without a standalone parent job |
 | [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |
 | [Source reviews](docs/source-reviews.md) | Strategy-owned interpretations, validated source references and private reports |
 | [Data capabilities](docs/market-data-capabilities.md) | Exact profile/purpose matching, freshness and unresolved provider requirements |

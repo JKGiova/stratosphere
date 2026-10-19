@@ -66,6 +66,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Authentication and connectors](docs/authentication-and-connectors.md) | Supabase OAuth login, optional accounts, authorization, and security |
 | [Liquid paper testing](docs/liquid-paper-testing.md) | Read-only browser connection, test options and unverified paper execution |
 | [Paper ledger foundation](docs/phase5-paper-ledger.md) | Internal authored-paper reservations, fill attribution and native accounting checks |
+| [Closed-bar journal](docs/phase5-closed-bars.md) | Internal reviewed authored streams, persistent crossings and freshness/gap controls |
 | [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
 | [Registry-anchored studies](docs/phase3-registry-studies.md) | Approved studies of existing definitions and variants without a standalone parent job |
 | [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |

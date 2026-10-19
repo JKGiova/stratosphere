@@ -131,7 +131,7 @@ class PaperLedger:
         path.chmod(0o600)
         with self._transaction() as db:
             version = db.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (0, 1):
+            if version not in (0, 1, 2):
                 raise PaperError("Unsupported paper journal version")
             db.execute(
                 "CREATE TABLE IF NOT EXISTS events "
@@ -143,7 +143,7 @@ class PaperLedger:
                     f"BEFORE {operation} ON events BEGIN "
                     "SELECT RAISE(ABORT,'Paper events are immutable'); END"
                 )
-            db.execute("PRAGMA user_version=1")
+            db.execute(f"PRAGMA user_version={max(1, version)}")
             state, chain = self._load(db)
             if state["account"] is None:
                 self._append(db, chain, {"kind": "account", "value": account.model_dump()})
@@ -182,6 +182,7 @@ class PaperLedger:
             "fills": {},
             "blocks": [],
             "entries_blocked": False,
+            "runtimes": {},
         }
         chain = ""
         try:
@@ -256,6 +257,10 @@ class PaperLedger:
                     else "partially_filled"
                 )
             state["fills"][fill.event_id] = fill.model_dump()
+        elif kind.startswith("runtime_"):
+            from stratosphere.paper.runtime import reduce_event
+
+            reduce_event(state, event)
         else:
             raise PaperError("Unknown paper journal event")
 

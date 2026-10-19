@@ -3649,3 +3649,49 @@ Liquid’s read-only catalog connection succeeded. Run `/liquid-catalog-save` an
 Registered SMA strategies can now open reviewed studies directly. **813 tests passed**, plus native/package checks. Pushed code, docs, AGENTS.md and the conversation log. Phases 3–5 remain in progress.
 
 ---
+
+### 392 — Assistant (progress update)
+
+I’m continuing the remaining Phase 3–5 work. The previous turn published a tested study increment; next I’ll inspect the gaps in source conversion and the persistent paper runtime, then implement the next part that doesn’t depend on the pending Liquid export.
+
+---
+
+### 393 — Assistant (progress update)
+
+The paper ledger currently tracks reservations and fills, but it doesn’t process a durable candle stream. I’m adding that next: a reviewed, strategy-bound closed-bar journal with freshness checks, gap detection and restart-safe signals. I’ll test it with authored data while Liquid’s feed contract remains unverified.
+
+---
+
+### 394 — Assistant (progress update)
+
+The journal now requires an exact mandate approval before accepting candles and produces no order or reservation changes. I also added tracking for duplicate candles delivered under new IDs, so reusing one of those IDs with different data halts the stream. Tests are checking restart, concurrent delivery and stale or conflicting observations.
+
+---
+
+### 395 — Assistant (progress update)
+
+The focused checks passed, including continuation in a fresh Python process and comparison with native Nautilus signal timing. The journal also preserves existing reservations when a stream halts. This verifies authored closed-bar processing; provider feeds, risk approval and order delivery are still separate work.
+
+---
+
+### 396 — Assistant (progress update)
+
+The added checks passed for separate strategy streams, rollback after a simulated crash and continued processing in a fresh interpreter. The full suite is running now. I’m also checking an independently installed wheel to confirm the behavior works outside the editable checkout.
+
+---
+
+### 397 — Assistant (progress update)
+
+The full run passed 847 tests. One existing OAuth callback test couldn’t bind its localhost listener in the sandbox. I’m rerunning that test with listener permission; the installed-wheel checks have already passed for 96 authored candles, restart continuation and duplicate suppression.
+
+---
+
+### 398 — Assistant
+
+Added the internal authored-data closed-bar journal with approval, gap/freshness checks and restart recovery.
+
+**848 tests verified** (including a loopback-permission rerun), plus installed-wheel checks. Pushed code, docs, AGENTS.md and the conversation log.
+
+Real feeds and paper order delivery remain pending; Phases 3–5 stay in progress.
+
+---

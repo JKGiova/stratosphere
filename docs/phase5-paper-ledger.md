@@ -45,6 +45,10 @@ Run the native verification in an environment containing the pinned engine:
 STRATOSPHERE_REQUIRE_ENGINE=1 python -m pytest tests/test_paper_ledger.py tests/test_paper_native.py -q
 ```
 
+## Closed-bar processing follow-up
+
+The [reviewed closed-bar journal](phase5-closed-bars.md) now adds an internal observation-processing mandate, exact approval, ordered/freshness gates and retained crossings in the same account transaction. It upgrades journals to version 2 only when a stream is prepared and preserves historical events. It does not deliver orders, provide a real feed, approve a production execution mandate or implement operational TUI controls.
+
 ## Remaining Phase 5 work
 
 The [acceptance ledger](phase3-5.md) remains authoritative and unchecked for production paper execution. Still required: trusted executable/personal-mandate review and activation; budget/risk agents and deterministic exposure/concentration/loss/drawdown checks; verified real feeds and account identity/environment; native runtime/gateway ownership; provider paper isolation/confirmations; complete order/event/account reconciliation; whole-process restart and sustained operation; read-only operational views; and the settled keep-positions/request-all-closures TUI exit choice. There is no session-end liquidation policy or running paper daemon in this increment.

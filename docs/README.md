@@ -55,3 +55,5 @@ See [Liquid paper testing](liquid-paper-testing.md) for the selected test route,
 See [authored-paper ledger](phase5-paper-ledger.md) for internal durable reservations, virtual attribution and native currency checks. The production feed/runtime and operational paper gateway remain pending.
 
 See [source reviews](source-reviews.md) for specialist review of retained snapshots, exact quote references and private Reports integration. This does not enable converted execution or testing of extracted rules.
+
+Liquid’s [catalog inspection and private export](liquid-paper-testing.md#catalog-inspection-and-export) expose observed tool definitions for the next connector-verification step. They do not call provider tools or implement paper execution.

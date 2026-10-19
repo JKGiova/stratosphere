@@ -146,3 +146,7 @@ Login implementation is deferred to later pre-release work; preserve it in the f
 ## Source reviews
 
 `/source-review <source-id> [strategy-id]` delegates a retained snapshot to the selected or named registered strategy specialist. Explicit chat review requests reach the same operation. `/source-reviews` lists attempt states; `/source-review-show <review-id>` opens a verified completed report in Focus. Reports lists completed source reviews alongside research evidence. Page Down/Page Up from the Reports panel enters its scrollable report body; Focus supports the same keys. These controls work in the single-panel small-terminal layout. See [source-review workflow and limits](source-reviews.md).
+
+## Liquid catalog inspection
+
+After `/liquid-connect`, `/liquid-tools` lists the captured tool catalog and `/liquid-tool <exact-name>` displays a definition in scrollable Focus. `/liquid-catalog-save` explicitly saves private definitions and a hash manifest under the research state directory, then displays the path. These commands need no model setup, make no provider tool call, and cannot activate paper/live trading. They require online access and a complete unexpired process-local connection. See [catalog format, privacy and limits](liquid-paper-testing.md#catalog-inspection-and-export).

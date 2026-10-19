@@ -1,5 +1,6 @@
 """Deterministic slash-command routing without a model call."""
 
+import re
 import shlex
 from dataclasses import dataclass
 
@@ -16,6 +17,9 @@ HELP = """/help — Show commands
 /liquid — Check public connection metadata; no account or tool access
 /liquid-connect — Open browser for read-only MCP catalog authorization
 /liquid-disconnect — Cancel connection and forget session credentials
+/liquid-tools — Inspect the connected tool catalog; no tool calls
+/liquid-tool <name> — Inspect one exact tool definition
+/liquid-catalog-save — Save a private catalog snapshot; no credentials
 /source <url> [github-ref] — Acquire a read-only source snapshot; inspect access limits
 /sources — List retained source attempts
 /source-show <source-id> — Inspect a retained source snapshot online
@@ -59,12 +63,22 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
-    if name in {"/liquid", "/liquid-connect", "/liquid-disconnect"}:
+    if name in {
+        "/liquid",
+        "/liquid-connect",
+        "/liquid-disconnect",
+        "/liquid-tools",
+        "/liquid-catalog-save",
+    }:
         return (
             Command(name[1:])
             if len(words) == 1
             else Command("message", "Liquid commands take no arguments; never paste credentials.")
         )
+    if name == "/liquid-tool":
+        if len(words) == 2 and re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", words[1]):
+            return Command("liquid-tool", args=(words[1],))
+        return Command("message", "Usage: /liquid-tool <exact-name-from-/liquid-tools>")
     if name == "/data":
         return (
             Command("data", args=tuple(words[1:]))

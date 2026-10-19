@@ -3,7 +3,6 @@
 import asyncio
 import base64
 import hashlib
-import json
 import re
 import secrets
 import time
@@ -14,6 +13,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 import httpx
 from pydantic import SecretStr
 
+from stratosphere.connectors.catalog import CatalogError, LiquidCatalog, strict_json
 from stratosphere.research.store import ResearchError
 
 ORIGIN = "https://coinvest.liquid.trade"
@@ -59,7 +59,11 @@ class Discovery:
 class ReadSession:
     token: SecretStr
     expires_at: float
-    tools: tuple[str, ...] = ()
+    catalog: LiquidCatalog | None = None
+
+    @property
+    def tools(self):
+        return self.catalog.names if self.catalog is not None else ()
 
     def __repr__(self):
         return "ReadSession(credentials=redacted, account_identity=unverified)"
@@ -162,6 +166,7 @@ class LiquidConnection:
         self.callback_factory = callback_factory
         self.session = None
         self._busy = False
+        self.catalog_secret_check = None
 
     @staticmethod
     async def _open_browser(url):
@@ -221,14 +226,21 @@ class LiquidConnection:
                                 if line.startswith(b"data:")
                             )
                             if data:
-                                payload = json.loads(data)
+                                payload = strict_json(data)
                                 if isinstance(payload, dict) and "id" in payload:
                                     return payload, response.headers
                 required(not is_sse, "Liquid event stream ended without a response.")
-                payload = json.loads(content)
+                payload = strict_json(content)
                 required(isinstance(payload, dict), "Invalid Liquid protocol response.")
                 return payload, response.headers
-        except httpx.HTTPError, TimeoutError, ValueError, UnicodeError:
+        except (
+            httpx.HTTPError,
+            TimeoutError,
+            ValueError,
+            UnicodeError,
+            RecursionError,
+            OverflowError,
+        ):
             raise LiquidError(
                 "Liquid connection failed; no provider response body was retained."
             ) from None
@@ -356,13 +368,29 @@ class LiquidConnection:
                     SecretStr(tokens["access_token"]), requested_at + tokens["expires_in"]
                 )
                 # No refresh token, authorization response or client registration is saved.
-                session.tools = await self._catalog(client, session)
+                session.catalog = await self._catalog(
+                    client,
+                    session,
+                    known_secrets=tuple(
+                        value
+                        for value in (
+                            tokens["access_token"],
+                            tokens.get("refresh_token"),
+                            code,
+                            verifier,
+                            state,
+                            registration.get("client_secret"),
+                            registration.get("registration_access_token"),
+                        )
+                        if isinstance(value, str) and value
+                    ),
+                )
                 self.session = session
                 return self.status_markdown()
         finally:
             self._busy = False
 
-    async def _catalog(self, client, session):
+    async def _catalog(self, client, session, *, known_secrets=()):
         headers = {
             "Accept": "application/json, text/event-stream",
             "Authorization": "Bearer " + session.token.get_secret_value(),
@@ -418,7 +446,7 @@ class LiquidConnection:
         )
         headers["Mcp-Protocol-Version"] = PROTOCOL
         await rpc("notifications/initialized", notification=True)
-        names, cursors, cursor = [], set(), None
+        definitions, names, cursors, cursor = [], set(), set(), None
         for _ in range(100):
             result = await rpc("tools/list", {"cursor": cursor} if cursor is not None else {})
             required(isinstance(result.get("tools"), list), "Invalid Liquid tool catalog.")
@@ -430,13 +458,34 @@ class LiquidConnection:
                     "Invalid Liquid tool catalog name.",
                 )
                 required(tool["name"] not in names, "Liquid repeated a catalog tool.")
-                names.append(tool["name"])
+                names.add(tool["name"])
+                definitions.append(tool)
             cursor = result.get("nextCursor")
             if cursor is None:
-                return tuple(names)
+                try:
+                    catalog = LiquidCatalog.capture(
+                        definitions,
+                        known_secrets=(*known_secrets, headers.get("Mcp-Session-Id", "")),
+                    )
+                    required(
+                        not self.catalog_secret_check
+                        or not catalog.contains_secret(self.catalog_secret_check),
+                        "Credential-bearing Liquid catalog was rejected.",
+                    )
+                    return catalog
+                except CatalogError as error:
+                    raise LiquidError(str(error)) from None
             required(opaque(cursor) and cursor not in cursors, "Invalid Liquid catalog pagination.")
             cursors.add(cursor)
         raise LiquidError("Liquid tool catalog pagination exceeded its protocol limit.")
+
+    def catalog_snapshot(self):
+        required(
+            self.session is not None and time.monotonic() < self.session.expires_at,
+            "Connect with /liquid-connect before inspecting the Liquid catalog.",
+        )
+        required(self.session.catalog is not None, "No complete Liquid catalog is available.")
+        return self.session.catalog
 
     def status_markdown(self):
         active = self.session is not None and time.monotonic() < self.session.expires_at
@@ -456,6 +505,8 @@ class LiquidConnection:
             "Revoke provider consent separately in Liquid. No token is saved across restart.\n\n"
             + (
                 f"Catalog tool count: {len(self.session.tools)}. "
+                "Use `/liquid-tools` to inspect names and `/liquid-tool <name>` for definitions. "
+                "Use `/liquid-catalog-save` for an explicit private export. "
                 "Descriptions are not sent to a model."
                 if active
                 else "No account data has been loaded."

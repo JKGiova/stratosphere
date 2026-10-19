@@ -321,6 +321,7 @@ class StratosphereApp(App[None]):
         )
         self.provider_factory = provider_factory
         self.liquid = liquid_connection or LiquidConnection()
+        self.liquid.catalog_secret_check = self.contains_session_credential
         self.liquid_worker: Worker | None = None
         self.settings: ModelSettings | None = None
         self.session: Orchestrator | None = None
@@ -720,7 +721,14 @@ class StratosphereApp(App[None]):
                 self.action_focus_pane("chat")
             if command.action in {"new", "study", "approve", "pause", "resume", "show", "report"}:
                 await self.handle_research_command(command.action, command.args)
-            elif command.action in {"liquid", "liquid-connect", "liquid-disconnect"}:
+            elif command.action in {
+                "liquid",
+                "liquid-connect",
+                "liquid-disconnect",
+                "liquid-tools",
+                "liquid-tool",
+                "liquid-catalog-save",
+            }:
                 if command.action == "liquid-disconnect":
                     if self.liquid_worker and not self.liquid_worker.is_finished:
                         self.liquid_worker.cancel()
@@ -734,7 +742,7 @@ class StratosphereApp(App[None]):
                         "Liquid connection is running. Use /liquid-disconnect to cancel."
                     )
                 else:
-                    self.liquid_worker = self.inspect_liquid(command.action == "liquid-connect")
+                    self.liquid_worker = self.inspect_liquid(command.action, command.args)
             elif command.action == "data":
                 try:
                     await self.research.require_online()
@@ -820,15 +828,34 @@ class StratosphereApp(App[None]):
         self.response_worker = self.generate_response(text)
 
     @work(group="liquid", exclusive=True)
-    async def inspect_liquid(self, connect: bool):
+    async def inspect_liquid(self, action: str, args=()):
         try:
-            if connect:
+            if action == "liquid-connect":
                 await self.add_message(
                     "Opening Liquid browser authorization for read-only catalog inspection. "
                     "Approve only read access. No tool or order will be called. "
                     "Use /liquid-disconnect to cancel; sign-in expires after four minutes."
                 )
                 text = await self.liquid.connect()
+            elif action in {"liquid-tools", "liquid-tool", "liquid-catalog-save"}:
+                await self.research.require_online()
+                catalog = self.liquid.catalog_snapshot()
+                if catalog.contains_secret(self.contains_session_credential):
+                    raise ResearchError("Credential-bearing Liquid catalog was rejected.")
+                if action == "liquid-catalog-save":
+                    directory = await asyncio.to_thread(
+                        catalog.save, self.research.store.root / "liquid-catalogs"
+                    )
+                    text = (
+                        "# Liquid catalog exported\n\n"
+                        f"Private definitions: `{directory / 'catalog.json'}`\n\n"
+                        "The adjacent manifest verifies the saved digest. "
+                        "OAuth responses, headers and callbacks are not part of this export. "
+                        "The snapshot grants no permissions and does not verify an account "
+                        "or paper mode. No tool was called."
+                    )
+                else:
+                    text = catalog.markdown(args[0] if action == "liquid-tool" else None)
             else:
                 await self.liquid.discover()
                 text = self.liquid.status_markdown()

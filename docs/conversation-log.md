@@ -3533,3 +3533,45 @@ Source reviews now use application-owned passages, preserve blank lines and vali
 Pushed code, docs, AGENTS.md and the conversation log to the private repo. Phases 3–5, including Liquid feed/paper execution, remain in progress.
 
 ---
+
+Editorial correction for entry 373: that response was saved as an undelivered draft, not sent as a chat message. Its text is preserved above to avoid silently changing the published record. The actual conversation continues below.
+
+### 374 — Assistant (progress update)
+
+I’m verifying the published source-review changes, then moving to Liquid catalog inspection. We need the actual tool definitions before choosing an account read or designing the paper adapter.
+
+---
+
+### 375 — Assistant (progress update)
+
+The client currently discards the tool schemas and keeps only their names. I’m adding catalog browsing and an explicit private export so we can inspect definitions from your connection. Descriptions and schemas will remain untrusted data; this change adds no tool calls or trade permissions.
+
+---
+
+### 376 — Assistant (progress update)
+
+The focused checks passed: catalog browsing and export work without a model, reject echoed credentials, and make no provider tool calls. I’m finishing the credential checks and package verification, then I’ll use a catalog exported from your account to identify the next read operation.
+
+---
+
+### 377 — Assistant (question)
+
+Restart the TUI (`.venv/bin/python -m stratosphere`), run `/liquid-connect` with read access only, then `/liquid-catalog-save`. What path appears in Focus? Share the path only, never a key; stop if it requests trade access or funding.
+
+---
+
+### 378 — Assistant (progress update)
+
+All **785 local tests passed**. The built-package checks also passed, including private export, small-terminal scrolling and rejection of offline operations. I’m publishing this increment; actual Liquid tool definitions and paper isolation remain unverified until we inspect your exported catalog.
+
+---
+
+### 379 — Assistant
+
+Added `/liquid-tools`, `/liquid-tool <name>` and `/liquid-catalog-save` for private schema inspection. **785 tests passed**, plus package/UI checks. No tool calls or trades were added. Code, docs and the conversation log are pushed.
+
+Restart with `.venv/bin/python -m stratosphere`, run `/liquid-connect` (read only), then `/liquid-catalog-save`. Send the path shown in Focus.
+
+Phases 3–5 remain in progress.
+
+---

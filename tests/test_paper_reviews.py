@@ -421,3 +421,20 @@ async def test_loaded_prompt_contract_is_pinned_across_model_await(reviews, monk
     value = await service.review(provider, "fixture")
     assert value.reviewer_sha256 == digest
     assert provider.calls[1][0]["content"] == original_prompt
+
+
+async def test_changed_schema_delivery_between_roles_cannot_publish_a_mixed_contract(
+    reviews, monkeypatch
+):
+    from stratosphere.models import streaming
+
+    service, provider = reviews
+    provider.mutate = lambda count: monkeypatch.setattr(
+        streaming, "SCHEMA_INSTRUCTIONS", "Changed delivery contract"
+    )
+    with pytest.raises(ResearchError, match="Schema delivery changed"):
+        await service.review(provider, "fixture")
+    (identity,) = service.store.jobs()
+    assert len(provider.calls) == 1 and service.store.state(identity) == "failed"
+    assert (service.store.directory(identity) / "budget.json").exists()
+    assert not (service.store.directory(identity) / "review.json").exists()

@@ -3918,3 +3918,82 @@ Restart the TUI, run `/liquid-connect` with read access, then `/liquid-account`.
 Actual account ownership, feeds and paper isolation remain unverified; Phases 3–5 stay in progress.
 
 ---
+
+### 434 — Assistant (progress update)
+
+While the Liquid read awaits your TUI result, I’ll work on the failed budget/risk model check. I’ll test the unchanged workflow with the other installed Ollama model, inspect its output, and use that evidence to decide what needs fixing.
+
+---
+
+### 435 — Assistant (progress update)
+
+The other Ollama model is still running. I also checked the application’s diagnostic folder: there’s no Liquid account observation yet. I’ll leave that verification pending and preserve the current model attempt without restarting it.
+
+---
+
+### 436 — Assistant (progress update)
+
+The 4B model returned a valid budget for both instances, then timed out during the risk response. I also found a provider-path bug: the exact output schema reaches Ollama’s native constraint, but never reaches the other providers. I’ll make the schema visible to every provider while keeping the existing validators and approval gates.
+
+---
+
+### 437 — Assistant (progress update)
+
+The schema-delivery fix passed 261 focused checks, including wire checks for all 12 adapters. Structured requests now include the exact schema in the system prompt; ordinary chat is unchanged. I also clarified that reservations encumber settled cash until fills, addressing an accounting claim in the 4B response.
+
+---
+
+### 438 — Assistant (progress update)
+
+Spark also timed out before completing a budget after the change, so local review reliability remains unverified. I’ll test the configured OpenRouter free model with the same authored fixture and zero-price guard. The goal is to verify the corrected non-Ollama path without adding a fallback to the app.
+
+---
+
+### 439 — Assistant (progress update)
+
+I’ll continue local validation and prepare the exact proposed messages for review.
+
+Automatic approval review rejected the OpenRouter test because it would send an account-shaped snapshot to an external service without explicit approval for that payload and destination. The fixture uses artificial values; the external test did not run.
+
+---
+
+### 440 — Assistant (question)
+
+May I send this [prepared artificial fixture](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/p345/openrouter-fixture-request-preview.md) to OpenRouter’s `cohere/north-mini-code:free` for at most two budget/risk calls? It uses fake balances/IDs, no real account or chat data, and a zero-price ceiling. The second call adds only the first validated reply.
+
+Options:
+
+- Approve two free fixture calls
+- Keep testing local
+
+---
+
+### 441 — Assistant (progress update)
+
+The exact messages are ready for review. I’ll continue the local checks while the approval is pending.
+
+Automatic approval review rejected the OpenRouter test because this payload and external destination lacked explicit approval. The request covers artificial fixture data only; no external test has run.
+
+---
+
+### 442 — Assistant (progress update)
+
+The installed package passed its adapter and advisory checks. Local Spark also completed source reviews for two separate strategy agents in 37.6 seconds, with source references, private-context separation and restored histories verified. I’m inspecting the interpretations now; valid references alone don’t prove the claims.
+
+---
+
+### 443 — Assistant (progress update)
+
+All **999 tests passed**, and historical reports reopened with their original hashes and bytes. Inspection still found inaccurate source interpretations, so I’m keeping interpretation quality unverified. I’ll publish the schema-delivery fix now; the OpenRouter fixture test remains pending your approval.
+
+---
+
+### 444 — Assistant
+
+Fixed schema delivery for all 12 model adapters; ordinary chat is unchanged. **999 tests passed**, plus package and historical-report checks. Pushed code, docs, AGENTS.md and transcript.
+
+Budget/risk reliability and interpretation quality remain unverified. Phases 3–5 remain in progress. May I run up to two free OpenRouter calls with the [prepared artificial fixture](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/reports/p345/openrouter-fixture-request-preview.md)?
+
+Automatic approval review rejected that external test because the payload and destination lacked explicit approval. No OpenRouter test has run.
+
+---

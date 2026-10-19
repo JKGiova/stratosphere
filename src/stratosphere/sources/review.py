@@ -9,7 +9,7 @@ from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, Field, model_validator
 
-from stratosphere.models.streaming import ModelError
+from stratosphere.models.streaming import ModelError, schema_delivery_contract
 from stratosphere.models.structured import structured_response
 from stratosphere.phase0.contracts import Contract, Digest, fingerprint
 from stratosphere.research.store import ResearchError, ResearchStore
@@ -122,6 +122,7 @@ def reviewer_digest():
         json.dumps(
             {
                 "prompt": PROMPT,
+                "schema_delivery": schema_delivery_contract(),
                 "evidence_protocol": EVIDENCE_PROTOCOL,
                 "passage_characters": PASSAGE_CHARACTERS,
                 "proposal_schema": Interpretation.model_json_schema(),

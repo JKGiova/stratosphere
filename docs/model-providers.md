@@ -49,6 +49,18 @@ Tests cover all requested providers' endpoint/auth/body routing, text streaming,
 
 ## Final local validation
 
+### Structured workflow schema delivery
+
+Structured requests previously passed a schema to the transport, but only Ollama received it through a native format parameter. Other adapters silently omitted it, so workflows without a complete inline example could ask for an output shape the model never saw.
+
+The `request-json-schema-text/1` delivery contract now appends the exact, deterministically serialized application schema to a copied system message for all 12 configured adapters, or creates a system message when absent. Claude's existing conversion folds it into the native top-level system field. Ollama retains its additional native schema constraint; no new native-format capability is assumed for other providers. Ordinary chat is unchanged, and the transport never mutates caller messages or history. Instructions remain prompt guidance, not proof of compliant output: client parsing, reference checks, deterministic operations and approval gates still apply. Invalid output is neither repaired nor retried automatically; OpenRouter's existing free-model and zero-price limits remain unchanged.
+
+New source/account review provenance includes this delivery contract. Budget/risk review aborts if it changes between stages. Historical persisted formats and readers remain compatible; old report hashes are not replaced with a digest of the new prompts. An actual prior paper report and two prior source reports reopened without changing artifact bytes or hashes, using an explicit fixture online gate.
+
+Wire tests verify exact schema delivery and unchanged ordinary chat across all 12 adapters. These are HTTP fixtures, not authenticated live-provider capability checks. Local Spark completed two strategy-owned source reviews with six valid source references and isolated/restored contexts in 37.623 seconds; response inspection still found inaccurate interpretations, including an unsupported crossing claim against a period-only citation and nonsensical terminology. Interpretation quality remains unverified.
+
+The unchanged 4B account workflow returned a valid two-instance budget but timed out during risk generation after 180 seconds; its partial narrative included unsupported accounting claims. After the delivery/prompt clarification, Spark timed out before completing its budget. Neither check completed a reliable budget/risk review. A proposed OpenRouter test against a sealed artificial fixture was rejected by automatic approval review pending explicit payload/destination authorization; it did not run. No model was downloaded, no paid capacity was enabled and no application provider was replaced automatically. Final regression/package evidence is recorded in the [acceptance ledger](phase3-5.md).
+
 The final suite passed **380 tests with zero skips**, including seven tests with the pinned native NautilusTrader engine. The 29 upstream Pandas deprecation warnings remain visible. Ruff lint/formatting and `git diff --check` passed. No dependency or lockfile changes were needed. The rebuilt wheel/sdist and isolated package onboarding checks passed after the final credential validation changes. Both package archives and publishable files passed exact scans for configured local credentials. Screenshots confirmed focused address/key fields remain accessible in the existing scrollable inline form.
 
 New hosted APIs have protocol/workflow coverage only. Live checks passed for the existing free OpenRouter route and the new local Ollama route, as detailed above. Cross-platform GitHub execution is recorded separately after publication; local tests do not imply a new CI pass or release approval.

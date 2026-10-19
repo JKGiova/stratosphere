@@ -56,3 +56,9 @@ Two actual retained reports from the earlier substring-based revision also reope
 After the plain-question validation change, the Spark two-strategy reference/isolation check passed again in 46.044 seconds with two requests (3 and 4 findings). Response inspection still found inaccurate interpretations, so this is a bounded reference/provenance check, not validation of factual extraction. The separate full-character tests cover blank lines, long Unicode lines and six line-separator forms; whitespace-only references are rejected before publication.
 
 The final passage-protocol regression passed **759 tests with zero skips**, with 36 upstream Pandas warnings; the focused source/agent/UI suite passed 85 checks. Ruff lint/formatting, built-package source/credential exclusion and responsive chat/slash report inspection are checked separately. These software checks do not upgrade the experimental interpretation-quality status above.
+
+## Schema-delivery follow-up
+
+The configured adapters now include the exact interpretation schema as explicit system-prompt data, with the shared `request-json-schema-text/1` contract included in new reviewer provenance. Native Ollama constraints remain additional; other providers are not assumed to enforce a native format. Persisted readers and old hashes remain unchanged. Two actual prior source reviews reopened with their old hashes and artifact bytes intact.
+
+Local Spark then completed two strategy-owned reviews in 37.623 seconds, with three valid passage references each, private context isolation and restored histories. Manual inspection still found inaccurate interpretations: a period-only citation was described as supporting crossing behavior, and another finding introduced nonsensical terminology. A valid reference remains insufficient evidence of semantic entailment, faithful conversion, empirical performance or approval. The full [acceptance ledger](phase3-5.md) stays in progress.

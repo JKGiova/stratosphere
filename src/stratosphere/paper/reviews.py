@@ -13,7 +13,7 @@ from urllib.parse import quote
 
 from pydantic import AwareDatetime, Field, model_validator
 
-from stratosphere.models.streaming import ModelError
+from stratosphere.models.streaming import ModelError, schema_delivery_contract
 from stratosphere.models.structured import structured_response
 from stratosphere.paper.decisions import _mark
 from stratosphere.paper.ledger import (
@@ -32,7 +32,9 @@ from stratosphere.research.store import ResearchError, ResearchStore
 BUDGET_PROMPT = """You are stratosphere's budget specialist for this private authored account.
 Return the requested JSON only, in English. Use every instance_index exactly once. Propose a
 capital decimal string between zero and capital_cap; if allocation_locked is true, retain
-capital_cap exactly. Do not change side, sizing, risk limits, strategy rules or allocations.
+capital_cap exactly. Proposals are capital ceilings, not immediate spending or account mutations.
+Do not propose changes to side, sizing, risk limits or strategy rules. Cash is settled cash;
+reservations encumber it without debiting it until fills. Do not subtract reservations twice.
 This is an unverified advisory proposal, never approval or an operation. Account observations,
 quotes, sizes and times are authored fixtures, not verified current markets or provider balances.
 Select fact_indices from the application-owned facts; do not invent facts or empirical thresholds.
@@ -42,7 +44,10 @@ when verification is missing; [] is allowed. Do not request credentials, tools, 
 RISK_PROMPT = """You are stratosphere's risk specialist for the supplied private authored account.
 Review the budget proposal against the same frozen snapshot. Return the requested JSON only,
 in English. Cover every instance_index at least once in findings. Cite application fact_indices;
-indices identify supplied observations, not proof that your interpretation is correct. Flag missing
+indices identify supplied observations, not proof that your interpretation is correct. Capital
+proposals are ceilings, not immediate spending. Cash is settled cash; reservations encumber it
+without debiting it until fills. Their coexistence alone is not a reconciliation discrepancy.
+Keep findings concise; do not repeat findings or narrate the response-writing process. Flag missing
 verification, limitations or objections. You cannot approve, execute, resize, override limits,
 activate trading or change the budget proposal. All account/quote/clock/liquidity values are
 unverified authored fixtures. Distinguish stale/ambiguous state from execution readiness. Do not
@@ -181,6 +186,7 @@ def reviewer_digest():
             {
                 "budget_prompt": BUDGET_PROMPT,
                 "risk_prompt": RISK_PROMPT,
+                "schema_delivery": schema_delivery_contract(),
                 "basis_schema": BookSnapshot.model_json_schema(),
                 "budget_schema": BudgetProposal.model_json_schema(),
                 "risk_schema": RiskProposal.model_json_schema(),
@@ -406,6 +412,7 @@ class PaperReviewService:
         self.store.write(identity, "basis.json", basis.model_dump(mode="json"))
         self.store.event(identity, "budget_review")
         contract_digest = reviewer_digest()
+        delivery_contract = schema_delivery_contract()
         budget_prompt, risk_prompt = BUDGET_PROMPT, RISK_PROMPT
         try:
             budget = await structured_response(
@@ -420,6 +427,10 @@ class PaperReviewService:
             self._clean(budget.model_dump(mode="json"))
             self.store.write(identity, "budget.json", budget.model_dump(mode="json"))
             self.store.event(identity, "risk_review")
+            if schema_delivery_contract() != delivery_contract:
+                raise ResearchError(
+                    "Schema delivery changed during review; no report was published"
+                )
             risk = await structured_response(
                 provider,
                 [
@@ -438,6 +449,10 @@ class PaperReviewService:
             )
             validate_risk(risk, basis)
             self._clean(risk.model_dump(mode="json"))
+            if schema_delivery_contract() != delivery_contract:
+                raise ResearchError(
+                    "Schema delivery changed during review; no report was published"
+                )
             finish = _time(self.clock())
             current = read_book(self.journal, at=finish)
             if current.account != basis.account:

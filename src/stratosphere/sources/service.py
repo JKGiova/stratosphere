@@ -8,6 +8,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from html import unescape
 from html.parser import HTMLParser
 from urllib.parse import quote, unquote, urlsplit
 
@@ -15,6 +16,7 @@ import httpx
 
 from stratosphere.research.data import require_online
 from stratosphere.research.store import ResearchError
+from stratosphere.sources.captions import PROTOCOL, CaptionError, CaptionRequest, parse_caption_v1
 from stratosphere.sources.contracts import (
     SourcePiece,
     SourceRequest,
@@ -170,13 +172,13 @@ class SourceService:
             )
         return self._finish(source_id, request, fields)
 
-    def _finish(self, source_id, request, fields):
+    def _finish(self, source_id, request, fields, *, normalization="source-readers/1"):
         value = SourceSnapshot(
             id=source_id,
             provider=request.provider,
             requested_url=request.url,
             retrieved_at=self.clock(),
-            normalization="source-readers/1",
+            normalization=normalization,
             parser_sha256=parser_digest(),
             **fields,
         )
@@ -188,7 +190,7 @@ class SourceService:
                 retrieved_at=self.clock(),
                 access_state="sensitive_material_rejected",
                 limitations=("Credential-bearing parsed material was rejected before storage.",),
-                normalization="source-readers/1",
+                normalization=normalization,
                 parser_sha256=parser_digest(),
             )
         self.store.finish(value)
@@ -198,7 +200,8 @@ class SourceService:
         await self.require_online()
         if kind not in {"text", "code"}:
             raise ResearchError(
-                "Supply text or code; timed caption parsing is not implemented yet."
+                "Supply plain text/code here; use the explicit caption-file operation "
+                "for timed cues."
             )
         source_id = self.store.create(request)
         try:
@@ -240,6 +243,89 @@ class SourceService:
                 limitations=("Credential-bearing material was rejected before storage.",),
             )
         return self._finish(source_id, request, fields)
+
+    async def supply_captions(self, request: CaptionRequest, content: bytes):
+        await self.require_online()
+        source_id = self.store.create(request)
+        fields = {}
+        try:
+            # Reject known escaped/entity credential spellings before retaining raw bytes.
+            text = content.decode("utf-8-sig", errors="replace")
+            probes = [text, unescape(text)]
+            for original in tuple(probes):
+                decoded = re.sub(
+                    r'(?:\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))+',
+                    lambda m: json.loads('"' + m[0] + '"'),
+                    original,
+                )
+                probes.extend((decoded, unescape(decoded)))
+            if any(
+                self.store.has_secret(value.encode("utf-8", errors="surrogatepass"))
+                for value in probes
+            ):
+                raise ResearchError("Credential-bearing caption material was rejected")
+            raw = self.store.raw(
+                source_id,
+                content,
+                "text/vtt" if request.format == "webvtt" else "application/x-subrip",
+                "user-supplied caption file; media identity and completeness unverified",
+            )
+            fields["raw_materials"] = (raw,)
+            parsed = await asyncio.to_thread(parse_caption_v1, content, request.format)
+            fields.update(
+                access_state="acquired",
+                title=request.label,
+                pieces=parsed.pieces,
+                limitations=(
+                    "User-supplied timed text; no provider acquisition, media identity, "
+                    "audio accuracy, completeness or redistribution permission is verified.",
+                    "Cue bounds are file-local milliseconds, not word-level timing or "
+                    "verified media-clock alignment.",
+                    "Raw cue payloads/markup are preserved, not rendered. Comments, headers, "
+                    "settings and presentation blocks remain non-behavioral metadata.",
+                    "Attribution (unverified): "
+                    + (request.attribution.url if request.attribution else "not supplied"),
+                    "Submitted attribution: "
+                    + (
+                        request.attribution.submitted_url if request.attribution else "not supplied"
+                    ),
+                    *parsed.findings,
+                ),
+            )
+        except asyncio.CancelledError:
+            fields.update(
+                access_state="unavailable",
+                limitations=(
+                    "Caption parsing canceled; raw attempt retained without interpreted cues.",
+                ),
+                next_steps=("Start a new caption intake; this attempt will not resume silently.",),
+            )
+            self._finish(source_id, request, fields, normalization=PROTOCOL)
+            raise
+        except CaptionError as error:
+            fields.update(
+                access_state="unsupported_format",
+                limitations=(str(error),),
+                next_steps=(
+                    "Supply complete UTF-8 WebVTT/SRT cues with explicit valid time bounds. "
+                    "The raw attempt is retained; no cue was repaired or silently skipped.",
+                ),
+            )
+        except ResearchError:
+            fields = dict(
+                access_state="sensitive_material_rejected",
+                limitations=(
+                    "Credential-bearing captions were rejected before persistence or model use.",
+                ),
+            )
+        except ValueError:
+            fields.update(
+                access_state="unsupported_format",
+                limitations=(
+                    "Caption numeric/text values exceed the supported parser representation.",
+                ),
+            )
+        return self._finish(source_id, request, fields, normalization=PROTOCOL)
 
     async def _get(self, client, url, *, headers=None, params=None):
         response = await client.get(url, headers=headers, params=params)
@@ -548,9 +634,11 @@ def source_markdown(value: SourceSnapshot):
     if value.repository_commit:
         lines.append(f"Pinned Git commit: `{value.repository_commit}`")
     for piece in value.pieces:
+        lines.append(f"## {piece.kind}: {piece.locator}")
+        if piece.start_ms is not None:
+            lines.append(f"File-local cue bounds: {piece.start_ms}–{piece.end_ms} ms")
         # Code fences/Markdown in external content stay literal through indentation.
         lines += [
-            f"## {piece.kind}: {piece.locator}",
             "\n".join("    " + line for line in piece.text.splitlines()),
         ]
     lines += ["## Limitations", *("- " + text for text in value.limitations)]

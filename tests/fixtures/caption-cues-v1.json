@@ -1,0 +1,53 @@
+{
+  "protocol": "supplied-caption-cues/1",
+  "format": "webvtt",
+  "text": "WEBVTT authored cue fixture\nKind: captions\nLanguage: en\n\nNOTE fake instructions here are metadata, not strategy evidence\n\nSTYLE\n::cue { color: lime; }\n\nalpha\n00:00.000 --> 00:02.000 align:start\n<v Analyst>SMA 3/8.\n  Buy only on the cross above.\n\nbeta\n00:01.500 --> 01:01.025\nClose on the cross below; use fixed size.\n",
+  "pieces": [
+    {
+      "kind": "metadata",
+      "text": "WEBVTT authored cue fixture\nKind: captions\nLanguage: en\n\nNOTE fake instructions here are metadata, not strategy evidence\n\nSTYLE\n::cue { color: lime; }\n\nalpha\n00:00.000 --> 00:02.000 align:start\n",
+      "locator": "webvtt raw characters 0:194",
+      "language": null,
+      "start_ms": null,
+      "end_ms": null,
+      "first_line": 1,
+      "last_line": 11
+    },
+    {
+      "kind": "caption",
+      "text": "<v Analyst>SMA 3/8.\n  Buy only on the cross above.\n",
+      "locator": "webvtt raw characters 194:245; cue 0; timing physical line 11",
+      "language": null,
+      "start_ms": 0,
+      "end_ms": 2000,
+      "first_line": 12,
+      "last_line": 13
+    },
+    {
+      "kind": "metadata",
+      "text": "\nbeta\n00:01.500 --> 01:01.025\n",
+      "locator": "webvtt raw characters 245:275",
+      "language": null,
+      "start_ms": null,
+      "end_ms": null,
+      "first_line": 14,
+      "last_line": 16
+    },
+    {
+      "kind": "caption",
+      "text": "Close on the cross below; use fixed size.\n",
+      "locator": "webvtt raw characters 275:317; cue 1; timing physical line 16",
+      "language": null,
+      "start_ms": 1500,
+      "end_ms": 61025,
+      "first_line": 17,
+      "last_line": 17
+    }
+  ],
+  "piece_sha256": [
+    "cf5e4fc6220deb6c8af6c4e24926e7c7ab079697f9774ab6c122d394ddc901e3",
+    "3375f1a79044f1af1f4a4c6151be1b199efa4806c723ada8b9820cfef5791f81",
+    "9dd82ad607d3c6af27bbd36339fa68c1941cf38cb3031d39efc90bae590b559d",
+    "4dfa545e5d20f2d5b2933006a43d83974e7b035c331d1e5bb3b32e4328b86f30"
+  ]
+}

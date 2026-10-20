@@ -4099,3 +4099,67 @@ Added detailed report inspection with `/report-data <job-id>` and `Inspect repor
 **1,031 tests passed**, plus package/restart and responsive UI checks. Pushed code, docs, AGENTS.md and transcript. Phases 3–5 remain in progress.
 
 ---
+
+### 461 — Assistant (progress update)
+
+I’ll review the remaining Phase 3–5 requirements and the current source-conversion path, then choose the next substantial gap to implement and test.
+
+---
+
+### 462 — Assistant (progress update)
+
+The source pipeline already has caption time fields, but supplied files are still treated as plain text. I’ll add timed WebVTT/SRT ingestion with raw-file retention and cue references, then connect it to source inspection and review. I’ll check the published format references first using the Firecrawl skill.
+
+---
+
+### 463 — Assistant (progress update)
+
+Automatic approval review rejected the Firecrawl scrape because it may incur per-URL charges. I’ll use the free web reader for the public format references.
+
+---
+
+### 464 — Assistant (progress update)
+
+The reader now preserves cue payloads and metadata separately, including the original character spans. It also records duplicate or out-of-order findings without sorting or dropping cues. Next I’ll connect file ingestion to the TUI and test raw-byte retention, malformed input, credential rejection and historical snapshot compatibility.
+
+---
+
+### 465 — Assistant (progress update)
+
+The first 148 source and review checks passed. Caption findings carry exact cue bounds, while comments stay outside behavioral evidence. I’ll also route `.vtt` and `.srt` files from `/source-file` through this reader, so malformed captions cannot silently fall back to plain text.
+
+---
+
+### 466 — Assistant (progress update)
+
+The TUI checks passed at both large and small terminal sizes. I also added a cancellation check: stopping parsing retains the raw attempt, and a late parser result cannot publish cues. One local Ollama check is now running with artificial caption text.
+
+---
+
+### 467 — Assistant (progress update)
+
+Local Spark returned two valid passage references in 21.2 seconds. Its statements match the two artificial cues I inspected, and the private-history marker was excluded from the request. This verifies that test’s reference handling; it does not establish model reliability or correspondence with real media.
+
+---
+
+### 468 — Assistant (progress update)
+
+The installed-package check passed across two fresh processes. It reopened the caption review with the same hashes and owner, and also reopened two older source reviews without changing their artifact bytes. The full regression suite is still running; I’ll check the rendered screens next.
+
+---
+
+### 469 — Assistant (progress update)
+
+All **1,091 tests passed**, including the existing native accounting and OAuth listener checks. I’ll publish the caption workflow, compatibility tests, documentation and transcript. Provider caption downloads, media synchronization and strategy conversion remain unverified.
+
+---
+
+### 470 — Assistant
+
+Added WebVTT/SRT ingestion with preserved cue text, file-local timing and source-review references. Try `/source-captions webvtt "/path/captions.vtt"`.
+
+**1,091 tests passed**, plus package/restart and a local Ollama check. Pushed code, docs, AGENTS.md and transcript.
+
+Provider caption downloads and faithful conversion remain pending; Phases 3–5 stay in progress.
+
+---

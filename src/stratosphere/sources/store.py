@@ -7,6 +7,7 @@ import uuid
 from pathlib import Path
 
 from stratosphere.research.store import ResearchError, ResearchStore
+from stratosphere.sources.captions import PROTOCOL, CaptionRequest, parse_caption_v1
 from stratosphere.sources.contracts import (
     RawMaterial,
     SourceRequest,
@@ -16,6 +17,8 @@ from stratosphere.sources.contracts import (
 
 
 def load_request(payload):
+    if payload.get("schema_version") == "supplied-captions/1":
+        return CaptionRequest.model_validate(payload)
     return (SourceRequest if "url" in payload else SuppliedRequest).model_validate(payload)
 
 
@@ -52,7 +55,7 @@ class SourceStore(ResearchStore):
             self.session_secret_check and self.session_secret_check(content)
         )
 
-    def create(self, request: SourceRequest | SuppliedRequest):
+    def create(self, request: SourceRequest | SuppliedRequest | CaptionRequest):
         if self.has_secret(request.model_dump_json().encode()):
             raise ResearchError("Remove credentials from the source request; they were not saved")
         self.root.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -126,4 +129,17 @@ class SourceStore(ResearchStore):
             raise ResearchError("Source snapshot integrity check failed")
         for material in snapshot.raw_materials:
             self._verify_blob(source_id, material)
+        if isinstance(request, CaptionRequest) and snapshot.access_state == "acquired":
+            if snapshot.normalization != PROTOCOL or len(snapshot.raw_materials) != 1:
+                raise ResearchError("Caption normalization/raw identity mismatch")
+            raw = snapshot.raw_materials[0]
+            content = (self.directory(source_id) / ("blob_" + raw.sha256 + ".bin")).read_bytes()
+            try:
+                pieces = parse_caption_v1(content, request.format).pieces
+            except ValueError:
+                raise ResearchError(
+                    "Retained caption normalization integrity check failed"
+                ) from None
+            if pieces != snapshot.pieces:
+                raise ResearchError("Caption pieces do not match their retained raw file")
         return snapshot

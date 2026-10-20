@@ -57,6 +57,7 @@ from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
 from stratosphere.research.store import ResearchError, ResearchStore, default_research_root
 from stratosphere.research.widgets import ResearchForm, ResearchReview
+from stratosphere.sources.captions import CaptionRequest
 from stratosphere.sources.conformance import ConformanceService, conformance_markdown
 from stratosphere.sources.contracts import SourceRequest, SuppliedRequest
 from stratosphere.sources.pine import PineChartContext
@@ -800,6 +801,7 @@ class StratosphereApp(App[None]):
                 "source-show",
                 "source-text",
                 "source-file",
+                "source-captions",
                 "conformance",
                 "conformance-show",
             }:
@@ -1417,6 +1419,21 @@ class StratosphereApp(App[None]):
                 value = await self.sources.acquire(
                     SourceRequest(url=args[0], github_ref=args[1] if len(args) > 1 else None)
                 )
+            elif action == "source-captions":
+                await self.sources.require_online()
+                request = CaptionRequest(
+                    label=Path(args[1]).name,
+                    format=args[0],
+                    attribution=SourceRequest(url=args[2]) if len(args) > 2 else None,
+                )
+                path = Path(args[1]).expanduser()
+                if path.is_symlink() or not path.is_file():
+                    raise ResearchError(
+                        "Use an explicit regular caption file, not a link or directory."
+                    )
+                value = await self.sources.supply_captions(
+                    request, await asyncio.to_thread(path.read_bytes)
+                )
             elif action == "source-file":
                 await self.sources.require_online()
                 path = Path(args[0]).expanduser()
@@ -1424,11 +1441,21 @@ class StratosphereApp(App[None]):
                     raise ResearchError(
                         "Use an explicit regular UTF-8 file, not a link or directory."
                     )
-                value = await self.sources.supply(
-                    SuppliedRequest(label=path.name),
-                    await asyncio.to_thread(path.read_bytes),
-                    kind="code" if path.suffix in {".py", ".pine"} else "text",
-                )
+                content = await asyncio.to_thread(path.read_bytes)
+                if path.suffix.casefold() in {".vtt", ".srt"}:
+                    value = await self.sources.supply_captions(
+                        CaptionRequest(
+                            label=path.name,
+                            format="webvtt" if path.suffix.casefold() == ".vtt" else "srt",
+                        ),
+                        content,
+                    )
+                else:
+                    value = await self.sources.supply(
+                        SuppliedRequest(label=path.name),
+                        content,
+                        kind="code" if path.suffix in {".py", ".pine"} else "text",
+                    )
             else:
                 value = await self.sources.supply(
                     SuppliedRequest(label="Pasted source text"), args[0].encode()

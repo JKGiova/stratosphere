@@ -35,3 +35,7 @@ Source reviews now use numbered application-owned passages. Agents select eviden
 ## Detailed retained report inspection
 
 The bridge resolves an explicit `/report-data` or `Inspect report …` query to the job's registered strategy owner and invokes that specialist's read-only `report_evidence` operation. Both entry points use the same sealed-artifact inspector; no model chooses a cell or receives raw tables. The active strategy and private histories remain unchanged. Candidate/window/cost pages identify the exact variant, including selected-only final holdout attribution, while exposing every candidate's status and the full study denominators. See [report evidence](report-evidence.md) for syntax, fidelity and verification boundaries. This extends the supported local SMA research/study workflow, not the full pending agent/source/market/paper scope.
+
+## Native source registration
+
+An explicit [native source registration](native-source-registration.md) binds a retained whole `strategy/1` JSON definition to the stable registry/agent through the same slash/chat operation. It makes no model call, preserves active selection/private histories and does not approve tests. Exact duplicates reuse the agent while accumulating source provenance; explicit behavioral variants retain declared acyclic lineage. The returned identity can open the existing reviewed `/study` path without a standalone parent research job. This is native declaration import, not faithful external-code/media conversion or deployment of a shared registry service.

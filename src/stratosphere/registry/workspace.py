@@ -92,6 +92,15 @@ CREATE TRIGGER IF NOT EXISTS immutable_source_review BEFORE UPDATE ON source_rev
 BEGIN SELECT RAISE(ABORT, 'Source reviews are immutable'); END;
 CREATE TRIGGER IF NOT EXISTS retain_source_review BEFORE DELETE ON source_reviews
 BEGIN SELECT RAISE(ABORT, 'Source reviews are retained evidence'); END;
+CREATE TABLE IF NOT EXISTS source_registrations (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS source_registrations_strategy ON source_registrations(strategy_id);
+CREATE TRIGGER IF NOT EXISTS immutable_source_registration BEFORE UPDATE ON source_registrations
+BEGIN SELECT RAISE(ABORT, 'Source registrations are immutable receipts'); END;
+CREATE TRIGGER IF NOT EXISTS retain_source_registration BEFORE DELETE ON source_registrations
+BEGIN SELECT RAISE(ABORT, 'Source registrations are retained receipts'); END;
 CREATE TABLE IF NOT EXISTS assessments (
  id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
  payload TEXT NOT NULL, assessed_at TEXT NOT NULL
@@ -137,80 +146,220 @@ class WorkspaceDatabase:
             db.close()
 
     def register(
-        self, spec: StrategySpec, name: str, source: dict, evidence=(), parent=None
+        self,
+        spec: StrategySpec,
+        name: str,
+        source: dict,
+        evidence=(),
+        parent=None,
+        *,
+        comparison=False,
     ) -> dict:
         """Exact identity reuse, atomic public-ID retry, source accumulation and one agent."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return self._register(db, spec, name, source, evidence, parent, comparison=comparison)
+
+    def _register(self, db, spec, name, source, evidence=(), parent=None, *, comparison=False):
+        """The transaction owner commits identity, provenance, lineage and any receipt together."""
         digest, canonical = fingerprint(spec), canonical_bytes(spec).decode()
         if not name.strip():
             raise RegistryError("A descriptive strategy name is required.")
+        at = now()
+        row = db.execute("SELECT * FROM strategies WHERE spec_sha256=?", (digest,)).fetchone()
+        if row and row["spec_json"] != canonical:
+            raise RegistryError(
+                "Behavior digest collision; automatic identity merging was blocked."
+            )
+        parent_row = self._strategy(db, parent) if parent else None
+        if comparison and row and parent_row:
+            # Reusing known behavior is a comparison, not a new derivation of an ancestor.
+            source = {**source, "comparison_parent_strategy_id": parent}
+            parent_row = None
         source_json = encoded(source)
         source_hash = hashlib.sha256(source_json.encode()).hexdigest()
-        at = now()
+        if row and parent_row and row["id"] == parent_row["id"]:
+            raise RegistryError("A variant must change behavior, not only its name or source.")
+        if (
+            row
+            and parent_row
+            and db.execute(
+                "WITH RECURSIVE descendants(id) AS ("
+                "SELECT child_id FROM strategy_lineage WHERE parent_id=? UNION "
+                "SELECT l.child_id FROM strategy_lineage l JOIN descendants d ON l.parent_id=d.id) "
+                "SELECT 1 FROM descendants WHERE id=?",
+                (row["id"], parent_row["id"]),
+            ).fetchone()
+        ):
+            raise RegistryError("A variant lineage cannot create a cycle.")
+        resolution = "exact_duplicate" if row else "variant" if parent else "new_strategy"
+        if not row:
+            internal = uuid.uuid7().hex
+            for _ in range(100):
+                public = "".join(str(secrets.randbelow(10)) for _ in range(24))
+                try:
+                    db.execute(
+                        "INSERT INTO strategies VALUES (?,?,?,?,?,?,?)",
+                        (
+                            internal,
+                            public,
+                            digest,
+                            canonical,
+                            name,
+                            parent_row["id"] if parent_row else None,
+                            at,
+                        ),
+                    )
+                    break
+                except sqlite3.IntegrityError:
+                    if not db.execute(
+                        "SELECT 1 FROM strategies WHERE public_id=?", (public,)
+                    ).fetchone():
+                        raise
+            else:
+                raise RegistryError("Public identity allocation could not complete; retry later.")
+            row = self._strategy(db, public)
+            db.execute("INSERT INTO agents VALUES (?,?,?)", (internal, uuid.uuid7().hex, at))
+        if parent_row:
+            db.execute(
+                "INSERT OR IGNORE INTO strategy_lineage VALUES (?,?,?)",
+                (parent_row["id"], row["id"], at),
+            )
+        source_row = db.execute(
+            "SELECT * FROM sources WHERE source_sha256=?", (source_hash,)
+        ).fetchone()
+        if source_row and source_row["payload"] != source_json:
+            raise RegistryError("Source digest collision; the snapshot was not overwritten.")
+        source_id = source_row["id"] if source_row else uuid.uuid7().hex
+        if not source_row:
+            db.execute(
+                "INSERT INTO sources VALUES (?,?,?,?)",
+                (source_id, source_hash, source_json, at),
+            )
+        db.execute(
+            "INSERT OR IGNORE INTO strategy_sources VALUES (?,?,?,?)",
+            (row["id"], source_id, encoded(list(evidence)), at),
+        )
+        db.execute(
+            "INSERT INTO submissions VALUES (?,?,?,?,?)",
+            (uuid.uuid7().hex, row["id"], source_id, resolution, at),
+        )
+        return self._public(db, row) | {"resolution": resolution}
+
+    def register_source(self, identity, request, proof, requested_at):
+        """One atomic, idempotent binding of native source, strategy, agent and receipt."""
+        from stratosphere.sources.registration import (
+            SourceRegistration,
+            native_definition,
+            source_payload,
+        )
+
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            row = db.execute("SELECT * FROM strategies WHERE spec_sha256=?", (digest,)).fetchone()
-            if row and row["spec_json"] != canonical:
-                raise RegistryError(
-                    "Behavior digest collision; automatic identity merging was blocked."
-                )
-            parent_row = self._strategy(db, parent) if parent else None
-            if row and parent_row and row["id"] == parent_row["id"]:
-                raise RegistryError("A variant must change behavior, not only its name or source.")
-            resolution = "exact_duplicate" if row else "variant" if parent else "new_strategy"
-            if not row:
-                internal = uuid.uuid7().hex
-                for _ in range(100):
-                    public = "".join(str(secrets.randbelow(10)) for _ in range(24))
-                    try:
-                        db.execute(
-                            "INSERT INTO strategies VALUES (?,?,?,?,?,?,?)",
-                            (
-                                internal,
-                                public,
-                                digest,
-                                canonical,
-                                name,
-                                parent_row["id"] if parent_row else None,
-                                at,
-                            ),
-                        )
-                        break
-                    except sqlite3.IntegrityError:
-                        if not db.execute(
-                            "SELECT 1 FROM strategies WHERE public_id=?", (public,)
-                        ).fetchone():
-                            raise
-                else:
-                    raise RegistryError(
-                        "Public identity allocation could not complete; retry later."
-                    )
-                row = self._strategy(db, public)
-                db.execute("INSERT INTO agents VALUES (?,?,?)", (internal, uuid.uuid7().hex, at))
-            if parent_row:
-                db.execute(
-                    "INSERT OR IGNORE INTO strategy_lineage VALUES (?,?,?)",
-                    (parent_row["id"], row["id"], at),
-                )
-            source_row = db.execute(
-                "SELECT * FROM sources WHERE source_sha256=?", (source_hash,)
+            old = db.execute(
+                "SELECT * FROM source_registrations WHERE id=?", (identity,)
             ).fetchone()
-            if source_row and source_row["payload"] != source_json:
-                raise RegistryError("Source digest collision; the snapshot was not overwritten.")
-            source_id = source_row["id"] if source_row else uuid.uuid7().hex
-            if not source_row:
-                db.execute(
-                    "INSERT INTO sources VALUES (?,?,?,?)",
-                    (source_id, source_hash, source_json, at),
-                )
-            db.execute(
-                "INSERT OR IGNORE INTO strategy_sources VALUES (?,?,?,?)",
-                (row["id"], source_id, encoded(list(evidence)), at),
+            if old:
+                value = self._source_registration(db, old)
+                if (
+                    value.request != request
+                    or value.proof != proof
+                    or value.requested_at != requested_at
+                ):
+                    raise RegistryError("A registration identity cannot bind different inputs.")
+                return value
+            spec = native_definition(proof.snapshot)
+            origin = source_payload(identity, request, proof)
+            record = self._register(
+                db,
+                spec,
+                request.name or proof.snapshot.title or "Imported SMA definition",
+                origin,
+                [{"kind": "whole_native_definition", "piece_sha256": proof.piece_sha256}],
+                request.parent_strategy_id,
             )
-            db.execute(
-                "INSERT INTO submissions VALUES (?,?,?,?,?)",
-                (uuid.uuid7().hex, row["id"], source_id, resolution, at),
+            value = SourceRegistration(
+                id=identity,
+                request=request,
+                requested_at=requested_at,
+                recorded_at=now(),
+                proof=proof,
+                strategy_id=record["public_id"],
+                agent_id=record["agent_id"],
+                registered_name=record["name"],
+                resolution=record["resolution"],
+                source_payload_sha256=hashlib.sha256(encoded(origin).encode()).hexdigest(),
             )
-            return self._public(db, row) | {"resolution": resolution}
+            strategy = self._strategy(db, record["public_id"])
+            db.execute(
+                "INSERT INTO source_registrations VALUES (?,?,?,?,?)",
+                (
+                    identity,
+                    strategy["id"],
+                    value.model_dump_json(),
+                    value.digest,
+                    value.recorded_at.isoformat(),
+                ),
+            )
+            return value
+
+    def _source_registration(self, db, row):
+        from stratosphere.sources.registration import SourceRegistration, source_payload
+
+        value = SourceRegistration.model_validate_json(row["payload"])
+        strategy = db.execute(
+            "SELECT * FROM strategies WHERE id=?", (row["strategy_id"],)
+        ).fetchone()
+        record = self._public(db, strategy)
+        source = db.execute(
+            "SELECT s.* FROM sources s JOIN strategy_sources l ON l.source_id=s.id "
+            "WHERE l.strategy_id=? AND s.source_sha256=?",
+            (row["strategy_id"], value.source_payload_sha256),
+        ).fetchone()
+        origin = source_payload(value.id, value.request, value.proof)
+        if (
+            value.id != row["id"]
+            or value.digest != row["payload_sha256"]
+            or value.recorded_at.isoformat() != row["created_at"]
+            or value.strategy_id != record["public_id"]
+            or value.agent_id != record["agent_id"]
+            or value.proof.strategy_sha256 != record["spec_sha256"]
+            or source is None
+            or source["payload"] != encoded(origin)
+            or hashlib.sha256(source["payload"].encode()).hexdigest() != value.source_payload_sha256
+        ):
+            raise RegistryError("Source registration receipt failed its integrity/owner check.")
+        count = db.execute(
+            "SELECT COUNT(*) FROM submissions WHERE strategy_id=? AND source_id=?",
+            (row["strategy_id"], source["id"]),
+        ).fetchone()[0]
+        if count != 1:
+            raise RegistryError("Source registration has ambiguous submission delivery.")
+        if (
+            value.request.parent_strategy_id
+            and value.request.parent_strategy_id not in record["parent_public_ids"]
+        ):
+            raise RegistryError("Source registration parent binding is missing.")
+        return value
+
+    def source_registration(self, identity):
+        try:
+            with self.connect() as db:
+                row = db.execute(
+                    "SELECT * FROM source_registrations WHERE id=?", (identity,)
+                ).fetchone()
+                if row is None:
+                    raise RegistryError("No committed source registration receipt for this ID.")
+                return self._source_registration(db, row)
+        except ValueError, KeyError, TypeError:
+            raise RegistryError("Source registration receipt failed its integrity check.") from None
+
+    def source_registration_ids(self):
+        with self.connect() as db:
+            return [
+                r["id"]
+                for r in db.execute("SELECT id FROM source_registrations ORDER BY created_at,id")
+            ]
 
     @staticmethod
     def _strategy(db, public_id):

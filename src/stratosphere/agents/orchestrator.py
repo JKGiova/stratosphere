@@ -21,6 +21,11 @@ from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
 from stratosphere.research.store import ResearchError
 from stratosphere.sources.contracts import SourceRequest
+from stratosphere.sources.registration import (
+    RegistrationRequest,
+    SourceRegistrationService,
+    registration_markdown,
+)
 from stratosphere.sources.review import SourceReviewService, review_markdown
 from stratosphere.sources.service import SourceService
 from stratosphere.sources.store import SourceStore
@@ -580,6 +585,7 @@ class Orchestrator:
             SourceStore(research.store.root / "sources"), online_check=research.require_online
         )
         self.source_reviews = SourceReviewService(self.sources, database)
+        self.source_registrations = SourceRegistrationService(self.sources, database)
         self.general = ChatSession(provider)
         self.agents: dict[str, StrategyAgent] = {}
         self.active_strategy: str | None = None
@@ -682,6 +688,9 @@ class Orchestrator:
     async def inspect_report(self, query):
         owner = self.database.strategy_for_job(query.job_id)["public_id"]
         return await self.agent(owner).inspect_report(query)
+
+    async def register_source(self, request):
+        return await self.source_registrations.register(request)
 
     async def route(self, text: str) -> Route:
         active_strategy = self.active_strategy
@@ -808,6 +817,20 @@ class Orchestrator:
         self.responding_strategy = None
         try:
             original_strategy = self.active_strategy
+            registration = re.fullmatch(
+                r"\s*(?:please\s+)?register\s+source\s+([a-f0-9]{32})\s*",
+                text,
+                re.IGNORECASE,
+            )
+            if registration:
+                value = await self.register_source(RegistrationRequest(source_id=registration[1]))
+                self.last_action = {
+                    "action": "source_registration",
+                    "id": value.id,
+                    "receipt": value,
+                }
+                yield registration_markdown(value)
+                return
             query = natural_report_query(text)
             if query is not None:
                 page = await self.inspect_report(query)

@@ -341,6 +341,7 @@ class StudyService:
                                 "candidate_index": index,
                             },
                             parent=None if original else protocol.parent_strategy_id,
+                            comparison=not original,
                         )
                         entry["strategy_id"] = record["public_id"]
                         entry["strategy_sha256"] = record["spec_sha256"]

@@ -4163,3 +4163,65 @@ Added WebVTT/SRT ingestion with preserved cue text, file-local timing and source
 Provider caption downloads and faithful conversion remain pending; Phases 3–5 stay in progress.
 
 ---
+
+### 471 — Assistant (progress update)
+
+I’ll review the remaining source-to-strategy workflow next. The key gap is whether a specialist can turn retained material into an inspectable test proposal while preserving provenance and making any missing or unsupported behavior explicit.
+
+---
+
+### 472 — Assistant (progress update)
+
+Retained source files still cannot create a registered definition directly. I’ll connect validated stratosphere definition JSON to the registry, stable agents and reviewed studies, with immutable source references. External-code conversion will keep its existing conformance gate.
+
+---
+
+### 473 — Assistant (progress update)
+
+I’m making the registry change and its source-binding receipt commit in one database transaction. That should let restart distinguish a completed import from an interrupted attempt without repeating registration. The binding will cover the exact snapshot, definition, stable agent identity and optional parent lineage.
+
+---
+
+### 474 — Assistant (progress update)
+
+The import path is connected to slash commands and explicit `Register source …` requests, with no model call. I’ll now test duplicate identity reuse, lineage, transaction rollback and interrupted commits before exercising the imported definition through an approved native study.
+
+---
+
+### 475 — Assistant (progress update)
+
+The first 29 checks passed, including a ten-cell native study from an imported definition. I found one more provenance detail to pin before broader testing: the binding should retain the exact acquisition request, including the submitted URL, as well as the normalized snapshot.
+
+---
+
+### 476 — Assistant (progress update)
+
+The provenance checks now cover acquisition-request changes, concurrent delivery and library navigation during import. They passed, and the full suite is running. I’m also checking the installed package with the committed example definition, a separate study approval and native results.
+
+---
+
+### 477 — Assistant (progress update)
+
+The integration review exposed a lineage edge case: a study may revisit an already registered ancestor definition. I’m making that reuse retain comparison provenance without adding a reverse derivation edge. Explicit cyclic parent claims will still be rejected.
+
+---
+
+### 478 — Assistant (progress update)
+
+The installed wheel passed the full path: retain the example, explicitly register it, review and approve a study, run ten native cells, then inspect the results. A fresh process restored the same receipt, agent and sealed report. No model or provider calls were needed.
+
+---
+
+### 479 — Assistant (progress update)
+
+All **1,127 tests passed**, including the ancestor-comparison case and native import-to-report checks. I’ll publish the importer, example definition, documentation, repository rules and transcript. External-code conversion and the wider Phase 3–5 requirements remain in progress.
+
+---
+
+### 480 — Assistant
+
+Added explicit native JSON source registration with `/source-register <source-id>`. It preserves source provenance, reuses stable strategy agents for duplicates, and requires separate approval for tests.
+
+**1,127 tests passed**, plus an installed-wheel native/restart check. Pushed code, example, docs, AGENTS.md and transcript. External-code conversion and the wider Phase 3–5 work remain in progress.
+
+---

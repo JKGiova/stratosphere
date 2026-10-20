@@ -61,6 +61,7 @@ from stratosphere.sources.captions import CaptionRequest
 from stratosphere.sources.conformance import ConformanceService, conformance_markdown
 from stratosphere.sources.contracts import SourceRequest, SuppliedRequest
 from stratosphere.sources.pine import PineChartContext
+from stratosphere.sources.registration import RegistrationRequest, registration_markdown
 from stratosphere.sources.review import review_markdown
 from stratosphere.sources.service import SourceService, source_markdown
 from stratosphere.sources.store import SourceStore
@@ -365,6 +366,7 @@ class StratosphereApp(App[None]):
         )
         self.assessments = self.workspace_bridge.assessments
         self.source_reviews = self.workspace_bridge.source_reviews
+        self.source_registrations = self.workspace_bridge.source_registrations
         self.source_conformance = ConformanceService(
             self.sources, ResearchStore(self.research.store.root / "source-conformance")
         )
@@ -802,6 +804,9 @@ class StratosphereApp(App[None]):
                 "source-text",
                 "source-file",
                 "source-captions",
+                "source-register",
+                "source-registrations",
+                "source-registration-show",
                 "conformance",
                 "conformance-show",
             }:
@@ -988,6 +993,10 @@ class StratosphereApp(App[None]):
                 await self.open_report_panel("source-review:" + action["id"])
             elif action and action["action"] == "source":
                 await self.show_source(await self.sources.open(action["id"]), focus=False)
+            elif action and action["action"] == "source_registration":
+                await self.show_source_registration(
+                    action["id"], receipt=action["receipt"], focus=False
+                )
             self.refresh_research_views()
         except asyncio.CancelledError:
             bubble.update_reply(
@@ -1378,12 +1387,26 @@ class StratosphereApp(App[None]):
                 )
             elif action == "source-show":
                 await self.show_source(await self.sources.open(args[0]))
+            elif action == "source-registration-show":
+                await self.show_source_registration(args[0])
+            elif action == "source-registrations":
+                rows = await self.source_registrations.attempts()
+                await self.add_research_markdown(
+                    "\n".join(
+                        f"`{r['id']}` · {r['state']} · {r['strategy_id'] or 'unregistered'}"
+                        for r in rows
+                    )
+                    or "No native source registration attempts.",
+                    "Source registrations:",
+                )
             elif action == "conformance-show":
                 await self.show_source_conformance(await self.source_conformance.open(args[0]))
             else:
                 # Validate before starting the background task; no model is needed.
                 if action == "source":
                     SourceRequest(url=args[0], github_ref=args[1] if len(args) > 1 else None)
+                elif action == "source-register":
+                    RegistrationRequest.arguments(args)
                 self.research_job_id = None
                 self.research_worker = self.acquire_source(action, args)
         except ResearchError as error:
@@ -1393,6 +1416,32 @@ class StratosphereApp(App[None]):
 
     @work(group="research", exclusive=True)
     async def acquire_source(self, action, args):
+        if action == "source-register":
+            try:
+                value = await (self.session or self.workspace_bridge).register_source(
+                    RegistrationRequest.arguments(args)
+                )
+                await self.show_source_registration(value.id, receipt=value, focus=False)
+                await self.add_message(
+                    f"Native source registered as {value.strategy_id} · {value.resolution}. "
+                    "Its stable agent is ready in Library. No test was approved or started."
+                )
+                self.update_status("READY")
+            except asyncio.CancelledError:
+                await self.add_message(
+                    "Registration operation interrupted; /source-registrations shows "
+                    "committed or canceled state."
+                )
+                raise
+            except ResearchError as error:
+                await self.add_message(str(error))
+            except ValueError, OSError:
+                await self.add_message(
+                    "Native source registration failed; inspect retained attempts."
+                )
+            finally:
+                self.refresh_research_views()
+            return
         self.update_status("RESEARCH · Reading source")
         try:
             if action == "conformance":
@@ -1487,6 +1536,18 @@ class StratosphereApp(App[None]):
         view = self.query_one("#focus-body", VerticalScroll)
         await view.remove_children()
         await view.mount(Static(Markdown(safe_text(source_markdown(value)), hyperlinks=False)))
+        if focus:
+            self.action_select_view("focus")
+
+    async def show_source_registration(self, identity, *, receipt=None, focus=True):
+        value = receipt if receipt is not None else await self.source_registrations.open(identity)
+        if value.id != identity:
+            raise ResearchError("Registration receipt identity mismatch.")
+        view = self.query_one("#focus-body", VerticalScroll)
+        await view.remove_children()
+        await view.mount(
+            Static(Markdown(safe_text(registration_markdown(value)), hyperlinks=False))
+        )
         if focus:
             self.action_select_view("focus")
 

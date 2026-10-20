@@ -32,6 +32,9 @@ HELP = """/help — Show commands
 /source-text <text> — Retain supplied text as unverified source material
 /source-file <path> — Retain an explicit UTF-8 file; quote paths containing spaces
 /source-captions <webvtt|srt> <path> [url] — Retain timed caption cues and attribution
+/source-register <source-id> [name|-] [parent-id] — Register supported native JSON
+/source-registrations — List native definition registration attempts
+/source-registration-show <registration-id> — Inspect an immutable registration receipt
 /conformance <source-id> [market symbol seconds chart-type properties] — Check conversion gaps
 /conformance-show <assessment-id> — Inspect a retained conversion assessment
 /source-review <source-id> [strategy-id] — Ask that strategy's agent to review source evidence
@@ -117,6 +120,9 @@ def route_command(text: str) -> Command:
         "/source-show",
         "/source-file",
         "/source-captions",
+        "/source-register",
+        "/source-registrations",
+        "/source-registration-show",
         "/conformance",
         "/conformance-show",
         "/source-review",
@@ -133,6 +139,9 @@ def route_command(text: str) -> Command:
             "/source-show": {2},
             "/source-file": {2},
             "/source-captions": {3, 4},
+            "/source-register": {2, 3, 4},
+            "/source-registrations": {1},
+            "/source-registration-show": {2},
             "/conformance": {2, 7},
             "/conformance-show": {2},
             "/source-review": {2, 3},

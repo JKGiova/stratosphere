@@ -1,0 +1,110 @@
+{
+  "schema_version": "strategy/1",
+  "indicators": [
+    {
+      "id": "fast",
+      "algorithm": "sma",
+      "algorithm_version": 1,
+      "input": "close",
+      "period": 3,
+      "timeframe_seconds": 3600
+    },
+    {
+      "id": "slow",
+      "algorithm": "sma",
+      "algorithm_version": 1,
+      "input": "close",
+      "period": 8,
+      "timeframe_seconds": 3600
+    }
+  ],
+  "entry_rules": [
+    {
+      "id": "enter_long",
+      "condition": {
+        "op": "crosses_above",
+        "value": null,
+        "args": [
+          {
+            "op": "indicator",
+            "value": "fast",
+            "args": []
+          },
+          {
+            "op": "indicator",
+            "value": "slow",
+            "args": []
+          }
+        ]
+      },
+      "action": "open_long"
+    }
+  ],
+  "exit_rules": [
+    {
+      "id": "exit_long",
+      "condition": {
+        "op": "crosses_below",
+        "value": null,
+        "args": [
+          {
+            "op": "indicator",
+            "value": "fast",
+            "args": []
+          },
+          {
+            "op": "indicator",
+            "value": "slow",
+            "args": []
+          }
+        ]
+      },
+      "action": "close_long"
+    }
+  ],
+  "position_sizing": {
+    "mode": "fixed_base",
+    "amount": "0.01"
+  },
+  "signal_timing": {
+    "evaluate": "bar_close",
+    "submit": "next_bar_open",
+    "precedence": "exit_before_entry"
+  },
+  "timeframes": [
+    3600
+  ],
+  "market_conditions": [],
+  "instrument_constraints": {
+    "asset_classes": [
+      "crypto_spot"
+    ],
+    "fixed_symbols": [
+      "BTCUSDT"
+    ],
+    "selection": "fixed"
+  },
+  "data_requirements": {
+    "input": "ohlcv",
+    "warmup_bars": 9,
+    "availability": "closed_bars_only"
+  },
+  "execution_requirements": {
+    "order_type": "market",
+    "shorting": false,
+    "max_positions": 1,
+    "reinforcement": false,
+    "session_end": "hold"
+  },
+  "missing_data_policy": {
+    "action": "abort",
+    "max_staleness_seconds": 3600
+  },
+  "assumptions": [
+    "Long-only fixed BTC quantity; no reinforcement, leverage, stops or other filters.",
+    "SMA periods count closed hourly observations; exact rational arithmetic.",
+    "Cross above: previous fast <= slow and current fast > slow; below reverses inequalities.",
+    "Warmup needs the slow SMA plus a previous comparison; no entry from initial SMA alignment.",
+    "Entry requires flat exposure; exit requires long exposure; end exposure is held."
+  ]
+}

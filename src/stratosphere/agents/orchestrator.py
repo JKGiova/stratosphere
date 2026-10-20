@@ -15,6 +15,7 @@ from stratosphere.models.streaming import ModelError
 from stratosphere.models.structured import structured_response
 from stratosphere.phase0.contracts import Contract
 from stratosphere.registry.workspace import RegistryError, WorkspaceDatabase
+from stratosphere.report_evidence import ReportInspector, evidence_hint, natural_report_query
 from stratosphere.research.contracts import SmaParameters
 from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
@@ -296,7 +297,7 @@ class StrategyAgent:
                         job_id, report, kind="study" if service is self.studies else "research"
                     )
                     self.last_action = {"action": "report", "job_id": job_id}
-                    yield report_markdown(report)
+                    yield report_markdown(report) + evidence_hint(job_id)
             elif action == "tests":
                 pending = [j for j in jobs if j["state"] in {"awaiting_approval", "paused"}]
                 if not pending:
@@ -501,6 +502,21 @@ class StrategyAgent:
                 self.public_id, job_id, plan.digest, service.store.state(job_id)
             )
 
+    async def inspect_report(self, query):
+        operation = self.database.operation(self.public_id, "report_evidence", job_id=query.job_id)
+        try:
+            value = await ReportInspector(self.research, self.studies, self.database).open(
+                query, strategy_id=self.public_id
+            )
+            self.database.finish_operation(operation, "completed", query.command())
+            return value
+        except asyncio.CancelledError:
+            self.database.finish_operation(operation, "canceled")
+            raise
+        except Exception:
+            self.database.finish_operation(operation, "failed", "Report evidence unavailable")
+            raise
+
     def service_for(self, job_id):
         if self.studies.store.directory(job_id).is_dir():
             return self.studies
@@ -663,6 +679,10 @@ class Orchestrator:
             records.append(await self.agent(strategy["public_id"]).assess(target))
         return records
 
+    async def inspect_report(self, query):
+        owner = self.database.strategy_for_job(query.job_id)["public_id"]
+        return await self.agent(owner).inspect_report(query)
+
     async def route(self, text: str) -> Route:
         active_strategy = self.active_strategy
         if re.fullmatch(
@@ -788,6 +808,13 @@ class Orchestrator:
         self.responding_strategy = None
         try:
             original_strategy = self.active_strategy
+            query = natural_report_query(text)
+            if query is not None:
+                page = await self.inspect_report(query)
+                self.responding_strategy = page.owner_strategy_id
+                self.last_action = {"action": "report-data", "page": page}
+                yield page.markdown()
+                return
             route = await self.route(text)
             if route.action == "paper_review":
                 await self.research.require_online()

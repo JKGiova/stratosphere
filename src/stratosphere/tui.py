@@ -51,6 +51,7 @@ from stratosphere.models.streaming import ModelError, safe_text
 from stratosphere.paper.reviews import PaperReviewService
 from stratosphere.paper.reviews import review_markdown as paper_review_markdown
 from stratosphere.registry.workspace import WorkspaceDatabase
+from stratosphere.report_evidence import ReportQuery, evidence_hint
 from stratosphere.research.contracts import ResearchConfig
 from stratosphere.research.metrics import report_markdown
 from stratosphere.research.service import ResearchService, plan_markdown
@@ -739,7 +740,16 @@ class StratosphereApp(App[None]):
             command = route_command(text)
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
-            if command.action in {"new", "study", "approve", "pause", "resume", "show", "report"}:
+            if command.action in {
+                "new",
+                "study",
+                "approve",
+                "pause",
+                "resume",
+                "show",
+                "report",
+                "report-data",
+            }:
                 await self.handle_research_command(command.action, command.args)
             elif command.action in {
                 "liquid",
@@ -968,6 +978,8 @@ class StratosphereApp(App[None]):
                 self.research_worker = self.run_paper_review()
             elif action and action["action"] == "report":
                 await self.open_report_panel(action["job_id"])
+            elif action and action["action"] == "report-data":
+                self.show_report_evidence(action["page"])
             elif action and action["action"] == "assessment":
                 await self.open_report_panel("assessment:" + action["id"])
             elif action and action["action"] == "source_review":
@@ -1183,6 +1195,11 @@ class StratosphereApp(App[None]):
                 self.research_worker.cancel()
             elif action == "show":
                 await self.show_research_job(args[0])
+            elif action == "report-data":
+                query = ReportQuery.arguments(args)
+                page = await (self.session or self.workspace_bridge).inspect_report(query)
+                self.show_report_evidence(page)
+                await self.add_message("Opened retained report evidence in Reports.")
             elif action == "report":
                 service = self.service_for(args[0])
                 report = await service.open_report(args[0])
@@ -1772,6 +1789,16 @@ class StratosphereApp(App[None]):
         self.update_status(self.request_state)
         self.action_select_view("focus")
 
+    def show_report_evidence(self, page):
+        self.selected_report_key = page.query.job_id
+        self.select_report_row()
+        self.query_one("#report-preview", Static).update(
+            Markdown(safe_text(page.markdown()), hyperlinks=False)
+        )
+        self.query_one("#reports-empty").display = False
+        self.query_one("#report-body", VerticalScroll).scroll_home(animate=False)
+        self.action_select_view("reports")
+
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
         if job_id.startswith("paper-review:"):
             value = await self.paper_reviews.open(job_id.removeprefix("paper-review:"))
@@ -1812,7 +1839,7 @@ class StratosphereApp(App[None]):
         self.select_report_row()
         (self.session or self.workspace_bridge).sync_research()
         self.query_one("#report-preview", Static).update(
-            Markdown(safe_text(report_markdown(report)), hyperlinks=False)
+            Markdown(safe_text(report_markdown(report) + evidence_hint(job_id)), hyperlinks=False)
         )
         self.query_one("#reports-empty").display = False
         if focus:

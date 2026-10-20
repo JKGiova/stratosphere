@@ -4043,3 +4043,59 @@ Both approved calls ran: the budget passed validation, but risk failed with a tr
 **230 local tests passed.** Pushed regression tests, the evidence summary and transcript. Model reliability remains unverified.
 
 ---
+
+### 452 — Assistant (progress update)
+
+I’ll continue with report inspection. I’ll check how retained test evidence reaches strategy agents and the Reports panel, then add access to the detailed results through shared application operations.
+
+---
+
+### 453 — Assistant (progress update)
+
+The detailed data is retained, but the TUI mainly shows summaries. I’ll add a paged inspector for candidate results, metrics, trades, fills, equity, signals and baselines. It will read sealed evidence and label the exact strategy and study cell, including failed and nonselected attempts.
+
+---
+
+### 454 — Assistant (progress update)
+
+The inspector is connected to slash commands and explicit chat requests. It opens a study under its owning strategy agent without changing the selected strategy or adding raw results to chat history. I’m checking pagination, failed-cell display, ownership and damaged-artifact handling.
+
+---
+
+### 455 — Assistant (progress update)
+
+The lifecycle checks pass: all 744 equity rows are reachable, the inspector reads the stress cell separately, and failed or invalid candidates remain visible. Native NautilusTrader checks are running now to compare every displayed row with the retained results.
+
+---
+
+### 456 — Assistant (progress update)
+
+Both historical study formats passed the native row comparisons. I also moved the result records ahead of the longer context so they’re easier to reach in the TUI. I’m finishing interface checks and an installed-package check before the full regression run.
+
+---
+
+### 457 — Assistant (progress update)
+
+The installed wheel reopened a historical native report in two fresh processes and left all 122 artifact files unchanged. Forced and chat inspection also worked at 180×48 and 45×12, with no model calls. The screenshot review showed too much header text, so I shortened it to bring the records into view sooner.
+
+---
+
+### 458 — Assistant (progress update)
+
+All **1,031 tests passed**, including the OAuth listener and native-engine checks. The final display adjustment also passed 28 focused checks. I’ll publish the inspector, documentation, repository rules and transcript. The wider source, feed and paper-trading requirements remain in progress.
+
+---
+
+### 459 — Assistant (progress update)
+
+I’m resuming the interrupted publish step. I’ll check the build and repository state, verify the final package, then push the report inspector and its validation record.
+
+---
+
+### 460 — Assistant
+
+Added detailed report inspection with `/report-data <job-id>` and `Inspect report …`. Pages preserve exact strategy/cell attribution and raw results.
+
+**1,031 tests passed**, plus package/restart and responsive UI checks. Pushed code, docs, AGENTS.md and transcript. Phases 3–5 remain in progress.
+
+---

@@ -46,6 +46,7 @@ HELP = """/help — Show commands
 /resume <job-id> — Resume the same approved plan online
 /show <job-id> — Inspect a local research job
 /report <job-id> — Display a completed research report
+/report-data <job-id> [section] [cell|-] [page] — Inspect sealed simulation rows
 /agent [strategy-id] — List or select a dedicated strategy agent
 /reports — Open retained reports panel
 /model — Choose a model provider, API address and session key
@@ -160,6 +161,10 @@ def route_command(text: str) -> Command:
             if len(words) == 2
             else Command("message", "Usage: /assessment <assessment-id>")
         )
+    if name == "/report-data":
+        if 2 <= len(words) <= 5:
+            return Command("report-data", args=tuple(words[1:]))
+        return Command("message", "Usage: /report-data <job-id> [section] [cell|-] [page]")
     arities = {"/approve": 2, "/pause": 1, "/resume": 1, "/show": 1, "/report": 1}
     if name in arities:
         if len(words) != arities[name] + 1:

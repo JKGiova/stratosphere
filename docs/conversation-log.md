@@ -4225,3 +4225,19 @@ Added explicit native JSON source registration with `/source-register <source-id
 **1,127 tests passed**, plus an installed-wheel native/restart check. Pushed code, example, docs, AGENTS.md and transcript. External-code conversion and the wider Phase 3–5 work remain in progress.
 
 ---
+
+### 481 — Assistant (progress update)
+
+I’m checking the repository and published results so I can report exactly what completed and whether any verification is still missing.
+
+---
+
+### 482 — Assistant
+
+Added explicit native JSON source registration with `/source-register <source-id>`. It preserves provenance, reuses stable strategy agents for duplicates, and requires separate test approval.
+
+**1,127 local tests passed**, including installed-package and restart verification. Code, docs, AGENTS.md and transcript are published to the private repository. Phases 3–5 remain in progress.
+
+The two approved OpenRouter calls ran: budget validation passed; the risk response failed. No completed review or trading operation resulted.
+
+---

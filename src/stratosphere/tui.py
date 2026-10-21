@@ -51,6 +51,7 @@ from stratosphere.models.streaming import ModelError, safe_text
 from stratosphere.paper.reviews import PaperReviewService
 from stratosphere.paper.reviews import review_markdown as paper_review_markdown
 from stratosphere.registry.workspace import WorkspaceDatabase
+from stratosphere.report_analysis import AnalysisRequest, analysis_markdown
 from stratosphere.report_evidence import ReportQuery, evidence_hint
 from stratosphere.research.contracts import ResearchConfig
 from stratosphere.research.metrics import report_markdown
@@ -365,6 +366,7 @@ class StratosphereApp(App[None]):
             None, self.database, self.research, studies=self.studies, sources=self.sources
         )
         self.assessments = self.workspace_bridge.assessments
+        self.report_analyses = self.workspace_bridge.report_analyses
         self.source_reviews = self.workspace_bridge.source_reviews
         self.source_registrations = self.workspace_bridge.source_registrations
         self.source_conformance = ConformanceService(
@@ -793,6 +795,8 @@ class StratosphereApp(App[None]):
                     await self.add_message("Use a listed data profile and purpose; inspect /data.")
             elif command.action in {"paper-review", "paper-reviews", "paper-review-show"}:
                 await self.handle_paper_review_command(command.action, command.args)
+            elif command.action in {"analyze-report", "report-analyses", "report-analysis-show"}:
+                await self.handle_report_analysis_command(command.action, command.args)
             elif command.action in {"source-review", "source-reviews", "source-review-show"}:
                 await self.handle_source_review_command(command.action, command.args)
             elif command.action in {"assess", "recommend", "assessment"}:
@@ -989,6 +993,8 @@ class StratosphereApp(App[None]):
                 self.show_report_evidence(action["page"])
             elif action and action["action"] == "assessment":
                 await self.open_report_panel("assessment:" + action["id"])
+            elif action and action["action"] == "report_analysis":
+                await self.open_report_panel("report-analysis:" + action["id"])
             elif action and action["action"] == "source_review":
                 await self.open_report_panel("source-review:" + action["id"])
             elif action and action["action"] == "source":
@@ -1076,6 +1082,13 @@ class StratosphereApp(App[None]):
                 "Assess " + record["id"][:10],
                 record["assessed_at"][:16],
                 key="assessment:" + record["id"],
+            )
+        for record in self.database.report_analyses():
+            reports.add_row(
+                Text(safe_text(record["name"])),
+                "Analysis " + record["id"][:10],
+                record["analyzed_at"][:16],
+                key="report-analysis:" + record["id"],
             )
         for record in self.database.source_reviews():
             reports.add_row(
@@ -1281,6 +1294,76 @@ class StratosphereApp(App[None]):
         finally:
             self.refresh_research_views()
             self.update_status(finished_state)
+
+    async def handle_report_analysis_command(self, action, args):
+        try:
+            await self.research.require_online()
+            if action == "report-analysis-show":
+                value = await self.report_analyses.open(args[0])
+                view = self.query_one("#focus-body", VerticalScroll)
+                await view.remove_children()
+                await view.mount(
+                    Static(
+                        Markdown(
+                            safe_text(
+                                analysis_markdown(value, int(args[1]) if len(args) == 2 else None)
+                            ),
+                            hyperlinks=False,
+                        )
+                    )
+                )
+                self.action_select_view("focus")
+            elif action == "report-analyses":
+                lines = ["# Report-analysis attempts", "Completed analyses are also in Reports."]
+                lines += [
+                    f"- `{identity}` · {state}"
+                    for identity, state in self.report_analyses.attempts()
+                ]
+                await self.add_research_markdown("\n\n".join(lines), "Report analyses:")
+            else:
+                if not self.session:
+                    raise ResearchError("Configure a model with /model before analyzing a report")
+                if self.research_busy or (
+                    self.response_worker and not self.response_worker.is_finished
+                ):
+                    raise ResearchError(
+                        "Pause or cancel the current operation before report analysis"
+                    )
+                request = AnalysisRequest(job_id=args[0])
+                # Freeze the report owner before worker awaits and Library navigation.
+                owner = self.database.strategy_for_job(request.job_id)["public_id"]
+                self.research_worker = self.run_report_analysis(owner, request)
+        except (ResearchError, ModelError) as error:
+            await self.add_message(str(error))
+        except ValueError, OSError:
+            await self.add_message("The retained report analysis could not be verified")
+
+    @work(group="research", exclusive=True)
+    async def run_report_analysis(self, owner, request):
+        self.update_status("ANALYZING REPORT")
+        try:
+            value = await self.session.agent(owner).analyze_report(request)
+            self.refresh_research_views()
+            await self.open_report_panel("report-analysis:" + value.id, focus=False)
+            await self.add_message(
+                f"Report analysis {value.id} · strategy {owner}. "
+                f"Open /report-analysis-show {value.id}. "
+                "Interpretations are unverified; no test ran."
+            )
+            self.update_status("READY")
+        except asyncio.CancelledError:
+            self.update_status("CANCELED")
+            raise
+        except (ResearchError, ModelError) as error:
+            await self.add_message(str(error))
+            self.update_status("ANALYSIS FAILED")
+        except ValueError, OSError:
+            await self.add_message(
+                "Report analysis failed; no complete analysis or test was created"
+            )
+            self.update_status("ANALYSIS FAILED")
+        finally:
+            self.refresh_research_views()
 
     async def handle_source_review_command(self, action, args):
         try:
@@ -1888,6 +1971,17 @@ class StratosphereApp(App[None]):
         self.action_select_view("reports")
 
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
+        if job_id.startswith("report-analysis:"):
+            value = await self.report_analyses.open(job_id.removeprefix("report-analysis:"))
+            self.selected_report_key = job_id
+            self.select_report_row()
+            self.query_one("#report-preview", Static).update(
+                Markdown(safe_text(analysis_markdown(value)), hyperlinks=False)
+            )
+            self.query_one("#reports-empty").display = False
+            if focus:
+                self.action_select_view("reports")
+            return
         if job_id.startswith("paper-review:"):
             value = await self.paper_reviews.open(job_id.removeprefix("paper-review:"))
             self.selected_report_key = job_id

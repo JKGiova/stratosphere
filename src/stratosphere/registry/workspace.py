@@ -101,6 +101,16 @@ CREATE TRIGGER IF NOT EXISTS immutable_source_registration BEFORE UPDATE ON sour
 BEGIN SELECT RAISE(ABORT, 'Source registrations are immutable receipts'); END;
 CREATE TRIGGER IF NOT EXISTS retain_source_registration BEFORE DELETE ON source_registrations
 BEGIN SELECT RAISE(ABORT, 'Source registrations are retained receipts'); END;
+CREATE TABLE IF NOT EXISTS report_analyses (
+ id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
+ job_id TEXT NOT NULL REFERENCES research_jobs(job_id), payload TEXT NOT NULL,
+ payload_sha256 TEXT NOT NULL, analyzed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS report_analyses_owner ON report_analyses(strategy_id,analyzed_at);
+CREATE TRIGGER IF NOT EXISTS immutable_report_analysis BEFORE UPDATE ON report_analyses
+BEGIN SELECT RAISE(ABORT, 'Report analyses are immutable'); END;
+CREATE TRIGGER IF NOT EXISTS retain_report_analysis BEFORE DELETE ON report_analyses
+BEGIN SELECT RAISE(ABORT, 'Report analyses are retained evidence'); END;
 CREATE TABLE IF NOT EXISTS assessments (
  id TEXT PRIMARY KEY, strategy_id TEXT NOT NULL REFERENCES strategies(id),
  payload TEXT NOT NULL, assessed_at TEXT NOT NULL
@@ -612,6 +622,102 @@ class WorkspaceDatabase:
             if row is None or (strategy_id and row["public_id"] != strategy_id):
                 raise RegistryError("That source review is unavailable for this strategy.")
             return self._source_review(row)
+
+    def record_report_analysis(self, analysis):
+        from stratosphere.report_analysis import ReportAnalysis
+
+        value = ReportAnalysis.model_validate(analysis)
+        evidence = value.evidence
+        payload = encoded(value.model_dump(mode="json"))
+        with self.connect() as db:
+            strategy = self._strategy(db, evidence.strategy_id)
+            agent = db.execute(
+                "SELECT agent_id FROM agents WHERE strategy_id=?", (strategy["id"],)
+            ).fetchone()
+            job = db.execute(
+                "SELECT * FROM research_jobs WHERE job_id=?", (evidence.job_id,)
+            ).fetchone()
+            if (
+                evidence.strategy_sha256 != strategy["spec_sha256"]
+                or agent["agent_id"] != evidence.agent_id
+                or job is None
+                or job["strategy_id"] != strategy["id"]
+                or job["plan_sha256"] != evidence.plan_sha256
+            ):
+                raise RegistryError("A report analysis must bind its exact strategy, agent and job")
+            old = db.execute(
+                "SELECT payload FROM report_analyses WHERE id=?", (value.id,)
+            ).fetchone()
+            if old:
+                if old["payload"] != payload:
+                    raise RegistryError("An immutable report analysis cannot be replaced")
+                return
+            db.execute(
+                "INSERT INTO report_analyses VALUES (?,?,?,?,?,?)",
+                (
+                    value.id,
+                    strategy["id"],
+                    evidence.job_id,
+                    payload,
+                    hashlib.sha256(payload.encode()).hexdigest(),
+                    value.analyzed_at.isoformat(),
+                ),
+            )
+
+    @staticmethod
+    def _report_analysis(row):
+        from stratosphere.report_analysis import ReportAnalysis
+
+        if hashlib.sha256(row["payload"].encode()).hexdigest() != row["payload_sha256"]:
+            raise RegistryError("Report analysis integrity check failed")
+        value = ReportAnalysis.model_validate_json(row["payload"])
+        evidence = value.evidence
+        if (
+            value.id != row["id"]
+            or evidence.strategy_id != row["public_id"]
+            or evidence.strategy_sha256 != row["spec_sha256"]
+            or evidence.agent_id != row["agent_id"]
+            or evidence.job_id != row["job_id"]
+            or evidence.plan_sha256 != row["plan_sha256"]
+            or value.analyzed_at.isoformat() != row["analyzed_at"]
+        ):
+            raise RegistryError("Report analysis owner/agent/job binding failed")
+        return {
+            "id": value.id,
+            "strategy_id": evidence.strategy_id,
+            "name": row["name"],
+            "analyzed_at": value.analyzed_at.isoformat(),
+            "analysis": value.model_dump(mode="json"),
+        }
+
+    def report_analyses(self, public_id=None):
+        with self.connect() as db:
+            if public_id:
+                self._strategy(db, public_id)
+            rows = db.execute(
+                "SELECT r.*,s.public_id,s.spec_sha256,s.name,a.agent_id,j.plan_sha256 "
+                "FROM report_analyses r JOIN strategies s ON s.id=r.strategy_id "
+                "JOIN agents a ON a.strategy_id=s.id "
+                "LEFT JOIN research_jobs j ON j.job_id=r.job_id AND j.strategy_id=s.id "
+                + ("WHERE s.public_id=? " if public_id else "")
+                + "ORDER BY r.analyzed_at,r.id",
+                (public_id,) if public_id else (),
+            ).fetchall()
+            return [self._report_analysis(row) for row in rows]
+
+    def report_analysis(self, identity, *, strategy_id=None):
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT r.*,s.public_id,s.spec_sha256,s.name,a.agent_id,j.plan_sha256 "
+                "FROM report_analyses r JOIN strategies s ON s.id=r.strategy_id "
+                "JOIN agents a ON a.strategy_id=s.id "
+                "LEFT JOIN research_jobs j ON j.job_id=r.job_id AND j.strategy_id=s.id "
+                "WHERE r.id=? " + ("AND s.public_id=?" if strategy_id else ""),
+                (identity, strategy_id) if strategy_id else (identity,),
+            ).fetchone()
+            if row is None:
+                raise RegistryError("That report analysis is unavailable for this strategy")
+            return self._report_analysis(row)
 
     def operation(self, public_id: str, action: str, *, job_id=None) -> str:
         with self.connect() as db:

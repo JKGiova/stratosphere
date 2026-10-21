@@ -4241,3 +4241,103 @@ Added explicit native JSON source registration with `/source-register <source-id
 The two approved OpenRouter calls ran: budget validation passed; the risk response failed. No completed review or trading operation resulted.
 
 ---
+
+### 483 — Assistant (progress update)
+
+I’ll review the remaining Phase 3–5 requirements and choose the next gap that advances the strategy-agent workflow. The previous step completed native source registration; external conversion, provider verification and paper execution still need separate evidence.
+
+---
+
+### 484 — Assistant (progress update)
+
+The next gap is specialist report analysis. Agents can display measured results, but they don’t yet produce a retained analysis tied to exact report evidence. I’ll add that workflow so an agent can explain its strategy’s tests, failed attempts and comparisons, with verifiable references and clearly marked model interpretations.
+
+---
+
+### 485 — Assistant (progress update)
+
+The analysis will use a frozen snapshot of the sealed report, preserving every candidate’s status and each result’s strategy, window and cost setting. The model will cite application-owned fact IDs; its explanations will remain unverified, and the operation cannot approve tests or trading.
+
+---
+
+### 486 — Assistant (progress update)
+
+The workflow is wired into `/analyze-report` and explicit “Analyze report …” chat requests. Both resolve the report’s owning agent before waiting on the model, so Library navigation cannot change the target. I’m testing evidence integrity, private-context isolation, restart and cancellation, plus Reports usability in small terminals.
+
+---
+
+### 487 — Assistant (progress update)
+
+The focused checks passed: 87 tests, including private ownership, failed-attempt retention, complete fact pagination and terminal navigation. The local Ollama check failed before returning usable output. I’m investigating that failure and will keep it separate from the deterministic test results.
+
+---
+
+### 488 — Assistant (progress update)
+
+Ollama rejected the request because the complete report needs 11,281 tokens and the installed model is configured for a 4,096-token context. I’ll check the official configuration options and test with a larger local context, preserving all report evidence.
+
+---
+
+### 489 — Assistant (progress update)
+
+I’m using the read-docs skill to check Ollama’s context configuration in its official documentation.
+
+---
+
+### 490 — Assistant (progress update)
+
+I added an actionable message for that specific local Ollama context error. It keeps provider text private and does not retry or alter the request. The adapter and analysis checks passed together: 218 tests. The full suite and installed-package checks are still running; the larger-context local test is being checked separately.
+
+---
+
+### 491 — Assistant (progress update)
+
+The installed wheel passed both entry points, complete fact paging and restart checks against a retained ten-cell native study. Its measured artifacts stayed unchanged. The full suite had one failure: the sandbox blocked the existing OAuth callback listener. I’ll rerun with listener access after finishing the local-model check.
+
+---
+
+### 492 — Assistant (progress update)
+
+The larger-context request reached the local client’s 60-second read timeout. I’ve let local Ollama prefill use the existing 180-second total request budget; other providers keep their current timeout. The targeted adapter checks passed. Final verification will also confirm that the analysis includes the complete registered rules.
+
+---
+
+### 493 — Assistant (progress update)
+
+The complete ten-cell report still timed out on the local CPU model within the 180-second budget, so live-model reliability remains unverified. The software and package checks retain evidence and failure state correctly. The temporary Ollama alias was removed, and the final suite is now running with callback-listener access.
+
+---
+
+### 494 — Assistant (progress update)
+
+The local model did produce partial JSON before timing out. I’ll make the analysis contract more concise—up to six short findings with fact references—while preserving the complete input evidence. That should reduce output time; oversized or incomplete replies will still fail validation rather than be truncated.
+
+---
+
+### 495 — Assistant (progress update)
+
+The final targeted checks passed: 292 tests covering the concise contract, provider handling, ownership, source reviews and UI. The local model still timed out with the shorter contract, so I’ll record that limitation. The full regression run is finishing its remaining checks.
+
+---
+
+### 496 — Assistant (progress update)
+
+I’m checking the completed report-analysis tests and publishing the verified changes.
+
+---
+
+### 497 — Assistant (progress update)
+
+Report analysis passed package and restart checks. Local Ollama still timed out; I’m recording that limitation and syncing the code, docs and transcript.
+
+---
+
+### 498 — Assistant
+
+Added `/analyze-report <job-id>`: the owning strategy agent analyzes retained test evidence and saves findings with exact fact references in Reports.
+
+**1,182 regression tests passed**, followed by **292 targeted checks** after the final changes. Installed-package and restart checks passed.
+
+Local Ollama still timed out, so live-model reliability remains unverified. Code, docs, AGENTS.md and transcript are published to the private repository. Phases 3–5 remain in progress.
+
+---

@@ -65,3 +65,5 @@ See [reviewed closed-bar processing](phase5-closed-bars.md) for the internal aut
 See [reviewed authored signal decisions](phase5-signal-decisions.md) for position-aware reservations, shared exposure/loss gates and one-time delivery claims. Provider transport remains unimplemented. The [authored account reviews](phase5-paper-reviews.md) add separate explicit advisory budget/risk roles over read-only existing journals; they cannot alter accounts or approve execution.
 
 See [Liquid account diagnostics](liquid-account-diagnostics.md) for the explicit fixed address-read operation, private historical evidence and remaining actual-provider/ownership/environment verification. Catalog inspection stays non-invoking.
+
+See [measured report analysis](report-analysis.md) for owning-agent interpretation of frozen simulation facts, complete evidence paging, immutable private Reports and local-model context/reliability limits.

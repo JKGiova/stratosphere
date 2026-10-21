@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import re
 from collections.abc import AsyncIterator
 
 import httpx
@@ -109,6 +110,37 @@ class ChatCompletions:
             headers["Authorization"] = f"Bearer {key}"
         return headers
 
+    async def response_failure(self, response):
+        # Only recognize the exact local Ollama context diagnostic. Provider text stays private.
+        if (
+            self.provider == "ollama"
+            and self.settings.resolved_base_url.startswith("http:")
+            and response.status_code == 400
+        ):
+            body = bytearray()
+            async for chunk in response.aiter_bytes():
+                body.extend(chunk[: 16385 - len(body)])
+                if len(body) > 16384:
+                    break
+            if len(body) <= 16384:
+                try:
+                    error = json.loads(body)["error"]
+                    message = error["message"] if isinstance(error, dict) else error
+                    match = re.fullmatch(
+                        r"request \(([0-9]+) tokens\) exceeds the available context size "
+                        r"\(([0-9]+) tokens\), try increasing it",
+                        message,
+                    )
+                    if match and int(match[1]) > int(match[2]) > 0:
+                        return ModelError(
+                            "The complete request exceeds this Ollama model's configured context. "
+                            "Select a model with a larger num_ctx using /model. "
+                            "No model response was accepted."
+                        )
+                except ValueError, KeyError, TypeError:
+                    pass
+        return provider_failure(response.status_code)
+
     async def events(self, response: httpx.Response):
         async for data in sse_data(response):
             if data == "[DONE]":
@@ -136,7 +168,14 @@ class ChatCompletions:
         try:
             async with asyncio.timeout(180):
                 async with httpx.AsyncClient(
-                    timeout=httpx.Timeout(60, connect=15),
+                    timeout=httpx.Timeout(
+                        60,
+                        connect=15,
+                        read=180
+                        if self.provider == "ollama"
+                        and self.settings.resolved_base_url.startswith("http:")
+                        else 60,
+                    ),
                     transport=self.transport,
                     follow_redirects=False,
                     trust_env=False,
@@ -145,7 +184,7 @@ class ChatCompletions:
                         "POST", self.endpoint, json=body, headers=headers
                     ) as response:
                         if response.status_code != 200:
-                            raise provider_failure(response.status_code)
+                            raise await self.response_failure(response)
                         if "text/event-stream" not in response.headers.get("content-type", ""):
                             raise ModelError("Provider did not return a streaming response.")
                         stopped = False

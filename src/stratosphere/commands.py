@@ -50,6 +50,9 @@ HELP = """/help — Show commands
 /resume <job-id> — Resume the same approved plan online
 /show <job-id> — Inspect a local research job
 /report <job-id> — Display a completed research report
+/analyze-report <job-id> — Ask the owning agent to analyze sealed measured evidence
+/report-analyses — List retained report-analysis attempts
+/report-analysis-show <analysis-id> [fact-page] — Inspect a verified advisory analysis
 /report-data <job-id> [section] [cell|-] [page] — Inspect sealed simulation rows
 /agent [strategy-id] — List or select a dedicated strategy agent
 /reports — Open retained reports panel
@@ -102,6 +105,24 @@ def route_command(text: str) -> Command:
         if len(words) == 2 and re.fullmatch(r"[a-f0-9]{32}", words[1]):
             return Command("paper-review-show", args=(words[1],))
         return Command("message", "Usage: /paper-review-show <complete-review-id>")
+    if name == "/report-analysis-show":
+        if (
+            len(words) in {2, 3}
+            and re.fullmatch(r"[a-f0-9]{32}", words[1])
+            and (len(words) == 2 or re.fullmatch(r"[1-9][0-9]*", words[2]))
+        ):
+            return Command("report-analysis-show", args=tuple(words[1:]))
+        return Command("message", "Usage: /report-analysis-show <complete-id> [fact-page]")
+    if name == "/analyze-report":
+        if len(words) == 2 and re.fullmatch(r"[a-f0-9]{32}", words[1]):
+            return Command(name[1:], args=(words[1],))
+        return Command("message", f"Usage: {name} <complete-id>")
+    if name == "/report-analyses":
+        return (
+            Command("report-analyses")
+            if len(words) == 1
+            else Command("message", "Usage: /report-analyses")
+        )
     if name == "/data":
         return (
             Command("data", args=tuple(words[1:]))

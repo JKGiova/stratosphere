@@ -15,6 +15,11 @@ from stratosphere.models.streaming import ModelError
 from stratosphere.models.structured import structured_response
 from stratosphere.phase0.contracts import Contract
 from stratosphere.registry.workspace import RegistryError, WorkspaceDatabase
+from stratosphere.report_analysis import (
+    ReportAnalysisService,
+    analysis_markdown,
+    natural_analysis_request,
+)
 from stratosphere.report_evidence import ReportInspector, evidence_hint, natural_report_query
 from stratosphere.research.contracts import SmaParameters
 from stratosphere.research.metrics import report_markdown
@@ -190,12 +195,14 @@ class StrategyAgent:
         studies: StudyService,
         assessments: AssessmentService,
         source_reviews: SourceReviewService,
+        report_analyses: ReportAnalysisService,
     ):
         self.database, self.public_id, self.model_ref = database, public_id, model_ref
         self.research = research
         self.studies = studies
         self.assessments = assessments
         self.source_reviews = source_reviews
+        self.report_analyses = report_analyses
         self.last_action: dict | None = None
         self.identity = database.strategy(public_id)
         self.session = ChatSession(provider, system_prompt=AGENT_PROMPT)
@@ -507,6 +514,29 @@ class StrategyAgent:
                 self.public_id, job_id, plan.digest, service.store.state(job_id)
             )
 
+    async def analyze_report(self, request):
+        owner = self.database.strategy_for_job(request.job_id)["public_id"]
+        if owner != self.public_id:
+            raise RegistryError("This report belongs to a different strategy agent")
+        operation = self.database.operation(
+            self.public_id, "report_analysis", job_id=request.job_id
+        )
+        try:
+            value = await self.report_analyses.analyze(
+                request,
+                strategy_id=self.public_id,
+                provider=self.session.provider,
+                model_ref=self.model_ref,
+            )
+            self.database.finish_operation(operation, "completed", value.id)
+            return value
+        except asyncio.CancelledError:
+            self.database.finish_operation(operation, "canceled")
+            raise
+        except Exception:
+            self.database.finish_operation(operation, "failed", "Report analysis failed")
+            raise
+
     async def inspect_report(self, query):
         operation = self.database.operation(self.public_id, "report_evidence", job_id=query.job_id)
         try:
@@ -586,6 +616,9 @@ class Orchestrator:
         )
         self.source_reviews = SourceReviewService(self.sources, database)
         self.source_registrations = SourceRegistrationService(self.sources, database)
+        self.report_analyses = ReportAnalysisService(
+            research, self.studies, database, secret_check=self.sources.store.has_secret
+        )
         self.general = ChatSession(provider)
         self.agents: dict[str, StrategyAgent] = {}
         self.active_strategy: str | None = None
@@ -612,6 +645,7 @@ class Orchestrator:
                 self.studies,
                 self.assessments,
                 self.source_reviews,
+                self.report_analyses,
             )
         return self.agents[identity]
 
@@ -688,6 +722,10 @@ class Orchestrator:
     async def inspect_report(self, query):
         owner = self.database.strategy_for_job(query.job_id)["public_id"]
         return await self.agent(owner).inspect_report(query)
+
+    async def analyze_report(self, request):
+        owner = self.database.strategy_for_job(request.job_id)["public_id"]
+        return await self.agent(owner).analyze_report(request)
 
     async def register_source(self, request):
         return await self.source_registrations.register(request)
@@ -830,6 +868,14 @@ class Orchestrator:
                     "receipt": value,
                 }
                 yield registration_markdown(value)
+                return
+            analysis_request = natural_analysis_request(text)
+            if analysis_request is not None:
+                owner = self.database.strategy_for_job(analysis_request.job_id)["public_id"]
+                self.responding_strategy = owner
+                value = await self.analyze_report(analysis_request)
+                self.last_action = {"action": "report_analysis", "id": value.id}
+                yield analysis_markdown(value)
                 return
             query = natural_report_query(text)
             if query is not None:

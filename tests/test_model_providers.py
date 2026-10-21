@@ -414,3 +414,83 @@ async def test_same_validated_research_contract_across_providers(
 def test_invalid_header_credentials_rejected_before_network(provider, key):
     with pytest.raises(ValidationError):
         ModelSettings(provider=provider, model=DEFAULT_MODELS[provider], api_key=SecretStr(key))
+
+
+@pytest.mark.parametrize(
+    "provider_name,body,context_error",
+    [
+        (
+            "ollama",
+            {
+                "error": {
+                    "message": "request (11281 tokens) exceeds the available context size "
+                    "(4096 tokens), try increasing it"
+                }
+            },
+            True,
+        ),
+        (
+            "ollama",
+            {
+                "error": "request (11281 tokens) exceeds the available context size "
+                "(4096 tokens), try increasing it"
+            },
+            True,
+        ),
+        ("ollama", {"error": {"message": KEY}}, False),
+        (
+            "ollama",
+            {
+                "error": {
+                    "message": "request (1 tokens) exceeds the available context size "
+                    "(4096 tokens), try increasing it"
+                }
+            },
+            False,
+        ),
+        ("ollama", {"error": {"message": "X" * 20000}}, False),
+        ("ollama", ["unsupported error format"], False),
+        (
+            "openai",
+            {
+                "error": {
+                    "message": "request (11281 tokens) exceeds the available context size "
+                    "(4096 tokens), try increasing it"
+                }
+            },
+            False,
+        ),
+    ],
+)
+async def test_local_ollama_context_error_is_actionable_without_echo_or_retry(
+    provider_name, body, context_error
+):
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(400, json=body)
+
+    provider = CompatibleChat(settings(provider_name), transport=httpx.MockTransport(handler))
+    with pytest.raises(ModelError) as caught:
+        _ = [part async for part in provider.stream([{"role": "user", "content": "Authored test"}])]
+    message = str(caught.value)
+    assert ("larger num_ctx" in message) == context_error
+    assert KEY not in message and "11281" not in message and "4096" not in message
+    assert len(requests) == 1
+
+
+@pytest.mark.parametrize("provider_name,expected_read", [("ollama", 180), ("openai", 60)])
+async def test_local_prefill_uses_existing_total_budget_without_shorter_read_timeout(
+    provider_name, expected_read
+):
+    requests = []
+    provider, _ = client(
+        provider_name, [frame("Hello"), frame(finish="stop"), "data: [DONE]\n\n"], requests=requests
+    )
+    assert (
+        "".join([part async for part in provider.stream([{"role": "user", "content": "Hello"}])])
+        == "Hello"
+    )
+    assert requests[0].extensions["timeout"]["read"] == expected_read
+    assert requests[0].extensions["timeout"]["connect"] == 15

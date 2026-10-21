@@ -141,17 +141,17 @@ class ReportInspector:
                 "Report evidence is inconsistent or unavailable; no test was run."
             ) from None
 
-    async def _open(self, q, strategy_id):
-        owner = self.database.strategy_for_job(q.job_id)
+    async def _verified(self, job_id, strategy_id):
+        owner = self.database.strategy_for_job(job_id)
         if owner["public_id"] != strategy_id:
             raise ResearchError("This report belongs to a different strategy agent.")
-        study_dir = self.studies.store.directory(q.job_id)
-        research_dir = self.research.store.directory(q.job_id)
+        study_dir = self.studies.store.directory(job_id)
+        research_dir = self.research.store.directory(job_id)
         if study_dir.exists() and research_dir.exists():
             raise ResearchError("Ambiguous research/study job identity.")
         study = study_dir.exists()
         service = self.studies if study else self.research
-        store, directory = service.store, service.store.directory(q.job_id)
+        store, directory = service.store, service.store.directory(job_id)
         if (
             store.root.is_symlink()
             or directory.is_symlink()
@@ -159,10 +159,10 @@ class ReportInspector:
         ):
             raise ResearchError("Report evidence paths cannot be symbolic links.")
         # The existing operation checks online access, completion and the full artifact seal.
-        report = await service.open_report(q.job_id)
+        report = await service.open_report(job_id)
         if (directory / "artifact_manifest.json").is_symlink():
             raise ResearchError("Report evidence paths cannot be symbolic links.")
-        manifest = store.read(q.job_id, "artifact_manifest.json")
+        manifest = store.read(job_id, "artifact_manifest.json")
 
         def read(name):
             path = directory / name
@@ -187,11 +187,11 @@ class ReportInspector:
             or report["implementation_sha256"] != plan.implementation_sha256
         ):
             raise ResearchError("Report references do not match the exact strategy and plan.")
-        job = next(j for j in self.database.jobs(strategy_id) if j["job_id"] == q.job_id)
+        job = next(j for j in self.database.jobs(strategy_id) if j["job_id"] == job_id)
         if job["plan_sha256"] != plan.digest:
             raise ResearchError("Report plan differs from its registered job.")
         for retained in self.database.reports(strategy_id):
-            if retained["job_id"] == q.job_id and retained["report"] != report:
+            if retained["job_id"] == job_id and retained["report"] != report:
                 raise ResearchError("Report differs from its immutable registry projection.")
         context = {
             "kind": "study" if study else "research",
@@ -201,6 +201,39 @@ class ReportInspector:
             "assumptions": report["assumptions"],
             "limitations": report["limitations"],
         }
+        return report, plan, read, context, manifest, study
+
+    async def snapshot(self, job_id, *, strategy_id):
+        """Validate every retained cell once and capture the complete report for app-owned facts."""
+        try:
+            report, plan, read, context, manifest, study = await self._verified(job_id, strategy_id)
+            query = ReportQuery(job_id=job_id)
+            if study:
+                self._study(query, report, plan, read, dict(context))
+                cells = [
+                    f"c{attempt['index']}:{key.replace('_', ':')}"
+                    for attempt in report["attempts"]
+                    for key in attempt["cells"]
+                ] + [f"holdout:{key}" for key in report["holdout"]]
+            else:
+                cells = ["base", "stress"]
+            for cell in cells:
+                query = ReportQuery(job_id=job_id, section="metrics", cell=cell)
+                reader = self._study if study else self._research
+                reader(query, report, plan, read, dict(context))
+            return {
+                "report": report,
+                "report_sha256": manifest["report.json"],
+                "plan_sha256": plan.digest,
+                "context": context,
+            }
+        except ResearchError:
+            raise
+        except ValueError, KeyError, TypeError, IndexError, OSError:
+            raise ResearchError("Report evidence is inconsistent or unavailable.") from None
+
+    async def _open(self, q, strategy_id):
+        report, plan, read, context, manifest, study = await self._verified(q.job_id, strategy_id)
         if study:
             rows = self._study(q, report, plan, read, context)
         else:

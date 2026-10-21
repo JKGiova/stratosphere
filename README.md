@@ -18,6 +18,8 @@ The app uses the terminal’s existing window size; automatic maximization and t
 
 Use `/new` in chat to review the first research profile: BTC/USDT spot, hourly SMA crossover, a pinned January 2025 dataset, editable simulated costs and one approval for base/stress backtests. `/jobs`, `/show` and `/report` expose actual local evidence; `/pause` and `/resume` retain completed checkpoints. This is an internal increment, not a completed phase or release. See [Phase 2 run instructions and limits](docs/phase2.md).
 
+[Measured report analyses](docs/report-analysis.md) now let the owning strategy agent interpret sealed research/study results through `/analyze-report <job-id>`. Reports retains the advisory narrative and all frozen fact references; model interpretations remain unverified and cannot approve or start operations.
+
 ## Confirmed direction
 
 - **Permanent terminal interface:** a TUI with a chief-agent chat and slash commands; no planned migration to a web UI.
@@ -75,6 +77,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
 | [Registry-anchored studies](docs/phase3-registry-studies.md) | Approved studies of existing definitions and variants without a standalone parent job |
 | [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |
+| [Measured report analysis](docs/report-analysis.md) | Strategy-owned interpretations of frozen measurements, fact inspection and explicit limitations |
 | [Source reviews](docs/source-reviews.md) | Strategy-owned interpretations, validated source references and private reports |
 | [Data capabilities](docs/market-data-capabilities.md) | Exact profile/purpose matching, freshness and unresolved provider requirements |
 | [Source conformance](docs/source-conformance.md) | Rule mapping, numerical blockers and limits on converted execution |

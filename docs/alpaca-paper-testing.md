@@ -1,6 +1,6 @@
 # Alpaca paper development
 
-Status: **paper account/asset diagnostic implemented and locally verified; actual account, feed, adapter and runtime pending**. The user selected Alpaca first for Bitcoin spot and Liquid later for perpetuals. This supersedes Liquid as the first real-feed paper route, not the full [Phase 3–5 requirements](phase3-5.md).
+Status: **paper account/asset diagnostic implemented, locally verified and a user-performed account check inspected; feed, adapter and runtime pending**. The user selected Alpaca first for Bitcoin spot and Liquid later for perpetuals. This supersedes Liquid as the first real-feed paper route, not the full [Phase 3–5 requirements](phase3-5.md).
 
 ## Setup and fixed reads
 
@@ -16,7 +16,7 @@ The second account read must match the first projected identity, currency, statu
 
 ## Market, fees and remaining integration
 
-[Alpaca documents crypto spot simulation](https://docs.alpaca.markets/us/docs/paper-trading) and [BTC/USD crypto asset metadata](https://docs.alpaca.markets/us/docs/crypto-trading). Actual account/asset availability, jurisdiction restrictions and data permissions still require verification for this account. No paper key has been exercised during development yet. Free paper access is not a blanket commercial data or redistribution license.
+[Alpaca documents crypto spot simulation](https://docs.alpaca.markets/us/docs/paper-trading) and [BTC/USD crypto asset metadata](https://docs.alpaca.markets/us/docs/crypto-trading). The dated user-performed check below reports account/asset availability; jurisdiction restrictions, legal account control and data permissions remain unverified. Free paper access is not a blanket commercial data or redistribution license.
 
 BTC/USD at Alpaca is distinct from the prior Binance BTC/USDT source, exact strategy identity, dataset and measured results. A future plan must pin the actual venue, quote currency, interval, native quantity/price increments and timing; existing spot results must not be relabeled. No price read, dataset acquisition, strategy registration or native test starts merely by checking account metadata.
 
@@ -30,4 +30,14 @@ The checks cover the fixed paper host despite live-base/proxy environment settin
 
 An independently installed wheel passed two fresh interpreters and two captured checks at 180×48 and 45×12. It cleared both input fields, preserved their masked screenshots, retained exact native increments, saved/reopened identical checks with private permissions and disconnected without another HTTP request or restoring keys on restart. It used six local HTTP-fixture GETs and **zero actual provider, model, native-start or order calls**. Source equality, archive exclusion and configured-credential scans passed. Setup/results previews were rendered and inspected.
 
-The user is creating a free Paper Only account; the actual account/asset check is pending. An installed account is not connected merely because a fixture passes. Account eligibility, feed entitlement, commercial data permission and execution remain separate from software verification. The [Liquid diagnostic](liquid-account-diagnostics.md) and its real provider observation remain separate from Alpaca.
+The user subsequently supplied an actual retained check; its inspection is recorded below separately from the fixture acceptance. Account eligibility beyond the reported fields, feed entitlement, commercial data permission and execution remain separate from software verification. The [Liquid diagnostic](liquid-account-diagnostics.md) and its real provider observation remain separate from Alpaca.
+
+## User-performed paper check — 21 October 2026
+
+The supplied `01a15f3e8b41742183e74f5d5bf234cd/check.json` was reopened through the current strict historical reader without configuring credentials or making a network request. Its manifest matched the exact file bytes, its directory was 0700 and both files were 0600. The capture requested at `2026-10-21T16:14:55.969875+00:00` and received at `2026-10-21T16:14:56.833226+00:00` retains the fixed paper endpoint and the three expected account/assets/account references. First and last raw account-response digests match. Account IDs, asset IDs and request IDs remain in the private local export; they are not copied into this repository or model histories.
+
+The retained account reports `ACTIVE` status, `ACTIVE` crypto status, USD currency and false account/trading blocking flags. BTC/USD reports class `crypto`, exchange `CRYPTO`, active status, tradable and fractionable. Its exact reported minimum order size is `0.000012055`, quantity increment `0.000000001` and price increment `0.000000001`. These are dated observations, not permanent constants, approval or evidence that a rounded fixture account can represent provider economics.
+
+The `check.json` file SHA-256 is `2f1e8d916f805741603b1c7e2af7e8d1ead6b414e4873defd65d8bcbaac1c02f`; its typed contract digest is `6d88ca83f49254a81d4f17e32d8d3704053402c30d9b1a7db2fbb08f5aca5d9f`. These verify local consistency against the retained manifest, not independent provider authorship or reconstruction of omitted response bodies. Reopening restored no keys, active connection or cached current check. No further API, model, native-start or order operation was performed during inspection.
+
+No blockers appear in the limited reported fields. Legal account control, present eligibility, jurisdiction restrictions, price/feed access and entitlement, commercial data rights, strategy approval, native execution identity, paper order transport and reconciliation remain unverified. The saved check grants no execution authority. The next feed and paper-adapter work must keep BTC/USD separate from prior BTC/USDT evidence and preserve the observed native precision and actual fee currencies.

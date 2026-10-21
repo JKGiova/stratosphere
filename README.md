@@ -22,7 +22,7 @@ Use `/new` in chat to review the first research profile: BTC/USDT spot, hourly S
 
 [Authored account inspection](docs/paper-inspection.md) connects `/paper` and `/portfolio` to an existing journal's positions, orders, fills and health. Views retain exact fill economics, reservations and capture timestamps without account mutation or model disclosure. A missing journal stays unavailable; no broker, feed or paper service is connected by inspection.
 
-[Alpaca is now the first paper route](docs/alpaca-paper-testing.md) for Bitcoin spot; Liquid perpetual support follows later. `/alpaca-connect` opens masked inline credentials for a fixed paper-host account/BTC/USD asset check, and `/alpaca-save` exports that diagnostic privately. Feed entitlement, order execution and reconciliation remain unimplemented/unverified. The user's actual Liquid address diagnostic and unchanged current read catalog were inspected separately; neither grants paper authority.
+[Alpaca is now the first paper route](docs/alpaca-paper-testing.md) for Bitcoin spot; Liquid perpetual support follows later. `/alpaca-connect` opens masked inline credentials for a fixed paper-host account/BTC/USD asset check, and `/alpaca-save` exports that diagnostic privately. The user's retained check reports an active USD crypto account and tradable fractional BTC/USD; its manifest and native precision were inspected. Feed entitlement, order execution and reconciliation remain unimplemented/unverified. The user's actual Liquid address diagnostic and unchanged current read catalog were inspected separately; neither grants paper authority.
 
 ## Confirmed direction
 

@@ -4635,3 +4635,39 @@ Alpaca is now the first paper route, with masked setup and read-only account/BTC
 Published code, docs, AGENTS.md and transcript privately. Actual Alpaca account verification, feed and paper execution remain pending.
 
 ---
+
+### 540 — User
+
+Question: When your Alpaca Paper Only account is ready, restart the TUI from the project with `.venv/bin/python -m stratosphere`, dismiss model setup with Escape if needed, and run `/alpaca-connect`. Enter the paper keys in the masked form, then run `/alpaca-save`. What check.json path or safe error appears? Share only the path/error, never either key.
+
+Answer: /Users/giovanni/Library/ApplicationSupport/stratosphere/research/alpaca-checks/01a15f3e8b41742183e74f5d5bf234cd/check.json
+
+---
+
+### 541 — Assistant (progress update)
+
+I’ll verify the saved Alpaca check and inspect what the account and BTC/USD metadata establish for the next step.
+
+---
+
+### 542 — Assistant (progress update)
+
+The saved check is intact. It reports an active USD paper account, active crypto access and tradable, fractional BTC/USD, with no account or trading blocks. It also retains native increments at nine decimal places. I’ll record this as a dated account check; prices, feed access and order execution remain unverified.
+
+---
+
+### 543 — Assistant (progress update)
+
+The export also passed its manifest and private-permission checks, and the first and last account-response digests match. Reopening it restored no credentials or connection. I’m publishing the dated findings and transcript without account or request identifiers.
+
+---
+
+### 544 — Assistant
+
+Your saved check passed: **ACTIVE USD account**, crypto enabled, and **BTC/USD tradable and fractional**, with no reported blocks.
+
+Integrity and private permissions checks passed. I recorded the result in the private GitHub repo without publishing account identifiers.
+
+Next is the real-time feed and paper adapter; both remain pending. This inspection made no API requests or orders.
+
+---

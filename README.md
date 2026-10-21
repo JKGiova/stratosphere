@@ -24,6 +24,8 @@ Use `/new` in chat to review the first research profile: BTC/USDT spot, hourly S
 
 [Alpaca is now the first paper route](docs/alpaca-paper-testing.md) for Bitcoin spot; Liquid perpetual support follows later. `/alpaca-connect` opens masked inline credentials for a fixed paper-host account/BTC/USD asset check, and `/alpaca-save` exports that diagnostic privately. The user's retained check reports an active USD crypto account and tradable fractional BTC/USD; its manifest and native precision were inspected. Feed entitlement, order execution and reconciliation remain unimplemented/unverified. The user's actual Liquid address diagnostic and unchanged current read catalog were inspected separately; neither grants paper authority.
 
+The standalone [authored observation worker](docs/observation-service.md) adds reviewed single-process ownership, durable delivery/crash recovery and per-stream silence/heartbeat stops. `/paper health` can inspect its dated state and actual lock ownership without model disclosure. This development service has no real feed, broker transport or automatic TUI lifecycle controls.
+
 ## Confirmed direction
 
 - **Permanent terminal interface:** a TUI with a chief-agent chat and slash commands; no planned migration to a web UI.

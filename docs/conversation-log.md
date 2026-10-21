@@ -4671,3 +4671,79 @@ Integrity and private permissions checks passed. I recorded the result in the pr
 Next is the real-time feed and paper adapter; both remain pending. This inspection made no API requests or orders.
 
 ---
+
+### 545 — Assistant (progress update)
+
+I’ll work on the persistent runtime next: single-worker ownership and restart-safe processing of retained observations. This is needed before connecting a real feed to paper execution.
+
+---
+
+### 546 — Assistant (progress update)
+
+The closed-bar processor already commits candles and crossings atomically, but it has no process owner, durable delivery queue or silence monitor. I’ll add those around the existing reviewed processor, with explicit startup approval and durable halts. This will not add order authority.
+
+---
+
+### 547 — Assistant (progress update)
+
+The worker will keep one durable queue per account and check each stream for silence. After a crash between candle commit and queue acknowledgement, it will replay the delivery through the existing duplicate check. Restarting will preserve silence deadlines and halt states.
+
+---
+
+### 548 — Assistant (progress update)
+
+The first 23 checks passed, including two real processes competing for ownership and recovery after a forced crash. The recovered worker acknowledged the already-committed candle as a duplicate. I’ll now test per-stream silence, clean shutdown and preservation of pending reservations during a halt.
+
+---
+
+### 549 — Assistant (progress update)
+
+The expanded checks passed for per-stream silence, stop handling, pending reservations and read-only health display. I also added guards against an online check swallowing its timeout and against recreating a removed account file. The full regression suite is running; I’ll verify the installed package next.
+
+---
+
+### 550 — Assistant (progress update)
+
+The installed wheel passed crash recovery, live ownership checks and clean shutdown. Its health view also worked at 180×48 and 45×12 while the worker ran independently. These checks used authored observations and a fixture connectivity check; no provider, model, native simulation or order calls were made.
+
+---
+
+### 551 — Assistant (progress update)
+
+I inspected the rendered health views at both terminal sizes. They show queue progress, interrupted runs and a current lock probe, while still identifying the input as authored data. Historical heartbeat records are kept separate from current ownership. The full suite is still running.
+
+---
+
+### 552 — Assistant (progress update)
+
+The full suite is near the end. A final code audit found two cases to tighten: an empty service journal should be rejected explicitly, and malformed registry data should produce a retained halt. I’ll also keep the standalone status command behind the application’s online check.
+
+---
+
+### 553 — Assistant (progress update)
+
+The regression run finished with 1,289 passing checks. The remaining Liquid OAuth test could not bind its localhost listener under the sandbox; I’ll rerun that test with listener permission. The final journal, registry-error and online-status fixes are in place for targeted verification.
+
+---
+
+### 554 — Assistant (progress update)
+
+The localhost test passed with listener permission, and the 132-check targeted run passed. I’ve also guarded direct worker startup against inherited credential variables, alongside the launcher’s sanitized environment. The final targeted run and package check will verify that addition.
+
+---
+
+### 555 — Assistant (progress update)
+
+The final 133-check run and rebuilt-package acceptance passed. Verified behavior now includes single-worker ownership, crash replay without duplicate crossings, durable stops and inspectable health. I’m publishing the implementation, documentation, AGENTS.md rules and transcript. Real feeds and broker paper execution remain unfinished.
+
+---
+
+### 556 — Assistant
+
+Added a reviewed worker for authored observations: one owner per account, durable queues, crash recovery and heartbeat/silence halts. `/paper health` shows its state.
+
+**Checks:** 1,289 regression passes, the localhost test passed separately, and 133 final targeted checks passed. Installed-package recovery and responsive UI checks passed.
+
+Published privately with docs, AGENTS.md and transcript updated. Real feeds, broker paper execution and broader Phase 3–5 work remain pending.
+
+---

@@ -244,6 +244,44 @@ class JournalInspector:
                 context.prec = 100
                 state, chain = PaperLedger._load(database)
                 view = _projection(state, chain, at.astimezone(UTC))
+            service_directory = path.with_name(path.name + ".service")
+            if service_directory.exists() or service_directory.is_symlink():
+                from stratosphere.paper.service import ServiceJournal, probe_owner
+
+                try:
+                    service = ServiceJournal(service_directory).snapshot()
+                    if service["plan"].account != view.account:
+                        raise PaperError("The service belongs to a different authored account")
+                    service_rows = [
+                        {
+                            "kind": "authored_observation_service",
+                            "plan_sha256": service["plan"].digest,
+                            "journal_sha256": service["journal_sha256"],
+                            "approved": service["approved"],
+                            "halted": bool(service["faults"]),
+                            "owner_lock_held_at_capture": probe_owner(service["plan"]),
+                            "last_heartbeat_ns": service["last_heartbeat_ns"],
+                            "stream_progress_ns": service["progress"],
+                            "max_silence_ns": service["plan"].max_silence_ns,
+                            "queued": len(service["queue"]),
+                            "acknowledged": len(service["results"]),
+                            "interrupted_runs": service["interrupted_runs"],
+                            "authority": service["plan"].authority,
+                            "feed": "authored delivery queue; no provider feed",
+                        }
+                    ]
+                    service_rows.extend(
+                        {"kind": "authored_service_fault", "event": event}
+                        for event in service["faults"]
+                    )
+                except PaperError, OSError, sqlite3.Error:
+                    service_rows = [
+                        {
+                            "kind": "authored_observation_service_unavailable",
+                            "detail": "Service evidence could not be verified; no health inferred.",
+                        }
+                    ]
+                view = view.model_copy(update={"health": (*view.health, *service_rows)})
             serialized = view.model_dump_json()
             values = [serialized]
 

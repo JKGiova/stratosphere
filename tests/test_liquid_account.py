@@ -105,6 +105,22 @@ async def test_explicit_read_preserves_rpc_binding_private_record_and_no_link(re
     assert len(provider.calls) == 1
 
 
+async def test_address_with_plain_confirmation_remains_a_private_review_candidate(reader):
+    service, provider = reader
+    confirmation = f"Your trading account address is {ACCOUNT['tradingAccountAddress']}."
+    provider.account_result["content"] = [{"type": "text", "text": confirmation}]
+    await provider.connection.connect()
+    value = await service.read()
+    assert value.status == "requires_review" and value.unhandled_content
+    assert value.reported_account.model_dump() == ACCOUNT and not value.provider_error
+    assert value.provider_text == (confirmation,)
+    assert value.execution_authority == "none" and not value.ownership_verified
+    provider.connection.disconnect()
+    restored = LiquidAccountReader(LiquidConnection(), service.store, online_check=online)
+    assert await restored.open(value.id) == value and restored.connection.session is None
+    assert len(provider.calls) == 1
+
+
 @pytest.mark.parametrize(
     "bad",
     [

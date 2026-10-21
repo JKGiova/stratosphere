@@ -4411,3 +4411,227 @@ Added `/paper [positions|orders|fills|health] [page]` and connected Positions to
 Published code, docs, AGENTS.md and transcript to the private repository. Real-feed paper execution and the remaining Phase 3–5 requirements are still in progress.
 
 ---
+
+### 510 — Assistant (progress update)
+
+I’ll check the remaining runtime gaps and build the next missing piece.
+
+---
+
+### 511 — Assistant (question)
+
+To continue the real-feed paper integration, run `/liquid-connect` and then `/liquid-account` in the same stratosphere TUI session. What saved `observation.json` path or safe error does it show? Share only the path/error, never a token or key. Stop if Liquid asks for funding or trading access.
+
+---
+
+### 512 — Assistant (progress update)
+
+The Ollama metadata shows that the installed 4B model cannot disable thinking, so I’m leaving its timeout results unresolved. While the Liquid check is pending, I’ll work on single-worker ownership and restart-safe observation delivery.
+
+---
+
+### 513 — User
+
+Question: To continue the real-feed paper integration, run `/liquid-connect` and then `/liquid-account` in the same stratosphere TUI session. What saved `observation.json` path or safe error does it show? Share only the path/error, never a token or key. Stop if Liquid asks for funding or trading access.
+
+Answer: /Users/giovanni/Library/ApplicationSupport/stratosphere/research/liquid-accounts/01a15ebe6b4b7342bac20c800ef4c542/observation.json.
+
+---
+
+### 514 — Assistant (progress update)
+
+I’ll verify the saved Liquid diagnostic and its integrity, then check what it establishes for the paper integration.
+
+---
+
+### 515 — Assistant (progress update)
+
+The diagnostic is intact: Liquid returned an account address and a short confirmation, with no provider error. It remains `requires_review`; ownership, paper isolation and feed entitlement are unverified. Its catalog digest also differs from the earlier export.
+
+---
+
+### 516 — Assistant (question)
+
+In that same connected TUI session, run `/liquid-catalog-save`. What catalog.json path does it show? The diagnostic references a newer catalog, so I need that export to inspect the current feed and paper schemas. Share only the path, never credentials.
+
+---
+
+### 517 — Assistant (progress update)
+
+The retained `get_account` definition matches the earlier export exactly. The different catalog digest includes capture time and does not prove a schema change. I’ll record the successful read and test the returned address-plus-prose pattern without relaxing its review status.
+
+---
+
+### 518 — User
+
+Question: In that same connected TUI session, run `/liquid-catalog-save`. What catalog.json path does it show? The diagnostic references a newer catalog, so I need that export to inspect the current feed and paper schemas. Share only the path, never credentials.
+
+Answer: /Users/giovanni/Library/ApplicationSupport/stratosphere/research/liquid-catalogs/01a15ec2237d74708f4375fcacaf8e71/catalog-json
+
+---
+
+### 519 — Assistant (progress update)
+
+The new export matches the diagnostic, and all 38 tool definitions are unchanged. I also found a market mismatch: [Liquid’s paper documentation](https://docs.liquid.trade/trading/paper-trading) excludes spot markets, while our verified SMA profile uses BTC/USDT spot. A perpetual test needs a separate strategy and funding/margin profile.
+
+---
+
+### 520 — Assistant (question)
+
+Liquid paper excludes spot markets. Which implementation path should come next? Existing spot strategy identities and results will stay separate in either case.
+
+Options:
+- Add a separate BTC perpetual profile for Liquid paper
+- Keep BTC/USDT spot and choose another paper adapter
+
+---
+
+### 521 — User
+
+Question: Liquid paper excludes spot markets. Which implementation path should come next? Existing spot strategy identities and results will stay separate in either case.
+
+Answer: what arespot markets?
+
+---
+
+### 522 — Assistant (progress update)
+
+**Spot trading means buying or selling the asset itself.** For example, you spend USDT to buy 0.01 BTC, hold that BTC, then sell it later.
+
+A **perpetual** is a contract tracking Bitcoin’s price—you don’t own the Bitcoin. It uses margin and can involve leverage, funding payments and liquidation. [Explanation](https://www.coinbase.com/en-gb/learn/perpetual-futures/what-are-perpetual-futures).
+
+Our current tested strategy uses spot. Liquid’s paper simulator excludes spot, so keeping Liquid means building a separate perpetual version and testing its different costs and rules. [Liquid documentation](https://docs.liquid.trade/trading/paper-trading).
+
+---
+
+### 523 — Assistant (question)
+
+For our first simulated trading integration, which should we build?
+
+Options:
+- Keep Liquid and add a separate Bitcoin perpetual strategy
+- Keep buying/selling Bitcoin itself and use another paper adapter
+
+---
+
+### 524 — User
+
+Question: For our first simulated trading integration, which should we build?
+
+Answer: what do u suggest? what about alpaca?
+
+---
+
+### 525 — Assistant (progress update)
+
+**I suggest Alpaca for our first paper-trading integration**, with Liquid kept for later perpetual support.
+
+Alpaca fits the current strategy better:
+
+- It supports **crypto spot paper trading**, so we can test buying and selling Bitcoin without adding perpetual funding and margin rules. [Crypto docs](https://docs.alpaca.markets/us/docs/crypto-trading)
+- Paper trading uses **separate credentials and a separate API endpoint**, which gives us a clearer boundary from live trading. [Authentication docs](https://docs.alpaca.markets/us/v1.1/docs/authentication-1)
+- Its paper environment is free and simulates orders against real-time prices. [Paper trading docs](https://docs.alpaca.markets/us/docs/paper-trading)
+
+I’d start with BTC/USD, verify the account’s supported assets and data access, then build restart, partial-fill and reconciliation tests. BTC/USD would get its own identity and evidence; we wouldn’t reuse BTC/USDT results.
+
+---
+
+### 526 — Assistant (question)
+
+Which route should I record for the first real-feed paper integration?
+
+Options:
+- Alpaca first for Bitcoin spot; Liquid later for perpetuals
+- Keep Liquid first and build the perpetual profile
+
+---
+
+### 527 — User
+
+Question: Which route should I record for the first real-feed paper integration?
+
+Answer: Alpaca first for Bitcoin spot; Liquid later for perpetuals
+
+---
+
+### 528 — Assistant (progress update)
+
+I’ll record Alpaca as the first paper route and keep Liquid for later perpetual support. I’ll start with paper-account and asset checks before adding any order submission path.
+
+---
+
+### 529 — Assistant (question)
+
+Do you already have an Alpaca Paper Only account? Please don’t paste API keys here.
+
+Options:
+- Not yet; I’ll create a free Paper Only account
+- Yes; I can provide paper credentials through local configuration
+
+---
+
+### 530 — User
+
+Question: Do you already have an Alpaca Paper Only account? Please don’t paste API keys here.
+
+Answer: Not yet; I’ll create a free Paper Only account
+
+---
+
+### 531 — Assistant (progress update)
+
+You can create the Paper Only account through [Alpaca’s dashboard](https://app.alpaca.markets/account/login). Generate the keys in the paper account and keep both private. I’m adding a masked setup form in stratosphere for them.
+
+---
+
+### 532 — Assistant (progress update)
+
+The Alpaca read path is in place: it uses the fixed paper host, checks BTC/USD metadata and rechecks the account afterward. It has no price or order calls. I’m testing masking, cancellation, changed-account responses and exact native increments.
+
+---
+
+### 533 — Assistant (progress update)
+
+Cancellation testing caught a case where a transport could swallow cancellation and continue. The connector now checks before each request and before accepting a result; that regression passes.
+
+---
+
+### 534 — Assistant (progress update)
+
+The focused checks passed: 265 for the new connector and affected UI/model paths, plus 123 Liquid regressions. I’m checking the installed package and full suite next. The Alpaca connection is still read-only; order execution remains pending.
+
+---
+
+### 535 — Assistant (progress update)
+
+The installed package passed setup, masking, export and restart checks at 180×48 and 45×12. You can now test your paper account with `/alpaca-connect`; it checks metadata only and cannot submit orders.
+
+---
+
+### 536 — Assistant (question)
+
+When your Alpaca Paper Only account is ready, restart the TUI from the project with `.venv/bin/python -m stratosphere`, dismiss model setup with Escape if needed, and run `/alpaca-connect`. Enter the paper keys in the masked form, then run `/alpaca-save`. What check.json path or safe error appears? Share only the path/error, never either key.
+
+---
+
+### 537 — Assistant (progress update)
+
+The regression run passed 1,255 tests. Final targeted checks passed 267 tests, including the two added export and credential guards. I’m syncing the Alpaca-first decision, code and docs; your account check remains the next external verification.
+
+---
+
+### 538 — Assistant (progress update)
+
+The final source and export scans passed, including checks for configured credentials and the private Liquid address. I’m publishing the Alpaca setup, route decision and transcript.
+
+---
+
+### 539 — Assistant
+
+Alpaca is now the first paper route, with masked setup and read-only account/BTC/USD checks. Use `/alpaca-connect`, then `/alpaca-save` and share the resulting path.
+
+**1,255 regression tests passed**; **267 final targeted checks** and package/restart verification passed.
+
+Published code, docs, AGENTS.md and transcript privately. Actual Alpaca account verification, feed and paper execution remain pending.
+
+---

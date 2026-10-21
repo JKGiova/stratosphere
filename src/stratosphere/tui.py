@@ -35,6 +35,8 @@ from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.catalog.contracts import AssessmentTarget
 from stratosphere.catalog.service import assessment_markdown, recommendations_markdown
 from stratosphere.commands import PANELS, route_command
+from stratosphere.connectors.alpaca import AlpacaPaperConnection
+from stratosphere.connectors.alpaca_widgets import AlpacaSetup
 from stratosphere.connectors.liquid import LiquidConnection
 from stratosphere.connectors.liquid_account import LiquidAccountReader, account_markdown
 from stratosphere.market_data.routing import capabilities_markdown
@@ -162,7 +164,8 @@ class ModelSetup(Vertical):
             "to this model provider and retains its advisory report locally. "
             "Research sources/results are saved privately on this computer. "
             "Future registered strategies will be shared automatically; chat is "
-            "separate. Login and trading setup come later."
+            "separate. Optional paper-account checks use /alpaca-connect. "
+            "Application login and execution come later."
         )
 
     def compose(self) -> ComposeResult:
@@ -314,6 +317,7 @@ class StratosphereApp(App[None]):
         liquid_connection=None,
         paper_review_service=None,
         paper_inspector=None,
+        alpaca_connection=None,
     ):
         super().__init__()
         self.console.push_theme(
@@ -333,6 +337,9 @@ class StratosphereApp(App[None]):
             )
         )
         self.provider_factory = provider_factory
+        self.alpaca = alpaca_connection or AlpacaPaperConnection()
+        self.alpaca.secret_check = self.contains_session_credential
+        self.alpaca_worker: Worker | None = None
         self.liquid = liquid_connection or LiquidConnection()
         self.liquid.catalog_secret_check = self.contains_session_credential
         self.liquid_worker: Worker | None = None
@@ -392,7 +399,7 @@ class StratosphereApp(App[None]):
         self.layout_mode = choose_layout(*self.viewport)
         self.activity_view = "jobs"
         self.companion_view = "library"
-        self.setup: ModelSetup | None = None
+        self.setup: ModelSetup | AlpacaSetup | None = None
         self.request_state = "MODEL NOT SET"
         self.register_theme(
             Theme(
@@ -610,7 +617,9 @@ class StratosphereApp(App[None]):
             if form:
                 if not form.has_focus_within:
                     target = (
-                        "#model-id"
+                        "#alpaca-key-id"
+                        if isinstance(self.setup, AlpacaSetup)
+                        else "#model-id"
                         if self.setup
                         else (
                             "#study-hypothesis"
@@ -637,7 +646,9 @@ class StratosphereApp(App[None]):
         if action == "cancel_response":
             return (
                 True
-                if self.request_state in {"CONNECTING", "RESPONDING"} or self.research_busy
+                if self.request_state in {"CONNECTING", "RESPONDING"}
+                or self.research_busy
+                or (self.alpaca_worker and not self.alpaca_worker.is_finished)
                 else None
             )
         if action == "command":
@@ -742,11 +753,14 @@ class StratosphereApp(App[None]):
                 or json.dumps(key, ensure_ascii=False)[1:-1].encode() in content
             )
 
-        if self.liquid.contains_credential(content):
+        if self.liquid.contains_credential(content) or self.alpaca.contains_credential(content):
             return True
         if self.settings and matches(self.settings.api_key.get_secret_value()):
             return True
-        return any(matches(os.getenv(name)) for name in set(KEY_ENVIRONMENTS.values()))
+        return any(
+            matches(os.getenv(name))
+            for name in set(KEY_ENVIRONMENTS.values()) | {"APCA_API_KEY_ID", "APCA_API_SECRET_KEY"}
+        )
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id != "prompt":
@@ -813,6 +827,8 @@ class StratosphereApp(App[None]):
                     await self.add_message(str(error))
                 except ValueError:
                     await self.add_message("Use a listed data profile and purpose; inspect /data.")
+            elif command.action in {"alpaca", "alpaca-connect", "alpaca-disconnect", "alpaca-save"}:
+                await self.handle_alpaca_command(command.action)
             elif command.action in {"paper", "portfolio"}:
                 await self.handle_paper_inspection(command.args)
             elif command.action in {"paper-review", "paper-reviews", "paper-review-show"}:
@@ -1265,6 +1281,60 @@ class StratosphereApp(App[None]):
                 "Check the full job ID, approval hash and job state. "
                 "Use /jobs or /show <job-id>; a running operation must be paused or canceled first."
             )
+
+    async def handle_alpaca_command(self, action):
+        if action == "alpaca-disconnect":
+            self.alpaca.disconnect()
+            if self.alpaca_worker and not self.alpaca_worker.is_finished:
+                self.alpaca_worker.cancel()
+            await self.add_message("Alpaca paper access disconnected for this process.")
+        elif self.alpaca_worker and not self.alpaca_worker.is_finished:
+            await self.add_message("An Alpaca check is running; use /alpaca-disconnect to cancel.")
+        elif action == "alpaca-save":
+            try:
+                await self.research.require_online()
+                path = self.alpaca.save_check(self.research.store.root / "alpaca-checks")
+                await self.add_message("Private Alpaca paper check: " + str(path))
+            except (ResearchError, OSError) as error:
+                await self.add_message(
+                    str(error) if isinstance(error, ResearchError) else "Paper export unavailable."
+                )
+        elif action == "alpaca-connect":
+            if self.setup or self.research_form:
+                await self.add_message("Finish or cancel the current inline form first.")
+                return
+            self.setup = AlpacaSetup()
+            self.query_one("#prompt", Input).disabled = True
+            self.query_one("#composer").display = False
+            await self.query_one("#conversation", VerticalScroll).mount(self.setup)
+            self.action_select_view("chat")
+        else:
+            self.alpaca_worker = self.check_alpaca()
+
+    async def on_alpaca_setup_finished(self, event: AlpacaSetup.Finished):
+        event.stop()
+        if not isinstance(self.setup, AlpacaSetup):
+            return
+        setup, self.setup = self.setup, None
+        await setup.remove()
+        self.query_one("#prompt", Input).disabled = False
+        self.query_one("#composer").display = True
+        if event.credentials is not None:
+            self.alpaca.configure(event.credentials)
+            self.alpaca_worker = self.check_alpaca()
+        self.action_select_view("chat")
+
+    @work(group="alpaca", exclusive=True)
+    async def check_alpaca(self):
+        try:
+            value = await self.alpaca.inspect()
+            view = self.query_one("#focus-body", VerticalScroll)
+            await view.remove_children()
+            await view.mount(Static(Markdown(safe_text(value.markdown()), hyperlinks=False)))
+            self.action_select_view("focus")
+            await self.add_message("Opened the Alpaca paper account/asset diagnostic in Focus.")
+        except ResearchError as error:
+            await self.add_message(str(error))
 
     async def handle_paper_inspection(self, args):
         try:
@@ -2142,7 +2212,12 @@ class StratosphereApp(App[None]):
 
         if self.active_research_service.active_job:
             self.active_research_service.stop_state = "paused"
-        for worker in (self.response_worker, self.research_worker, self.liquid_worker):
+        for worker in (
+            self.response_worker,
+            self.research_worker,
+            self.liquid_worker,
+            self.alpaca_worker,
+        ):
             if worker and not worker.is_finished:
                 worker.cancel()
                 try:
@@ -2150,6 +2225,7 @@ class StratosphereApp(App[None]):
                 except WorkerCancelled, WorkerFailed:
                     pass
         self.liquid.disconnect()
+        self.alpaca.disconnect()
         self.exit()
 
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
@@ -2162,6 +2238,8 @@ class StratosphereApp(App[None]):
             self.update_status(self.request_state)
 
     def action_cancel_response(self) -> None:
+        if self.alpaca_worker and not self.alpaca_worker.is_finished:
+            self.alpaca_worker.cancel()
         if self.liquid_worker and not self.liquid_worker.is_finished:
             self.liquid_worker.cancel()
         if self.research_busy:

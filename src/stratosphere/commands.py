@@ -23,6 +23,10 @@ HELP = """/help — Show commands
 /liquid-account — Explicitly read the provider's reported trading-account address
 /liquid-account-reads — List private account diagnostic attempts
 /liquid-account-show <read-id> — Inspect a retained historical diagnostic online
+/alpaca-connect — Enter masked paper credentials and check account/asset metadata
+/alpaca — Refresh the fixed paper account and BTC/USD asset check
+/alpaca-disconnect — Forget active paper credentials; no account action
+/alpaca-save — Export the last paper check privately; no credentials
 /paper-review — Ask budget/risk agents for an advisory authored-account review
 /paper-reviews — List paper-review attempts
 /paper-review-show <review-id> — Open a retained advisory report
@@ -79,6 +83,8 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name in {"/alpaca", "/alpaca-connect", "/alpaca-disconnect", "/alpaca-save"}:
+        return Command(name[1:]) if len(words) == 1 else Command("message", f"Usage: {name}")
     if name == "/paper":
         if (
             len(words) <= 3

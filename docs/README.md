@@ -69,3 +69,5 @@ See [Liquid account diagnostics](liquid-account-diagnostics.md) for the explicit
 See [measured report analysis](report-analysis.md) for owning-agent interpretation of frozen simulation facts, complete evidence paging, immutable private Reports and local-model context/reliability limits.
 
 See [authored account inspection](paper-inspection.md) for explicit read-only positions, orders, fills and health, exact retained economics, dated pagination and responsive navigation without model disclosure or account creation.
+
+See [Alpaca paper development](alpaca-paper-testing.md) for the selected first Bitcoin-spot paper route, masked inline credentials and fixed paper account/asset diagnostics. The Liquid provider observation/current-catalog check remains separate from future perpetual support and account/execution authority.

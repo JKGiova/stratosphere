@@ -22,6 +22,8 @@ Use `/new` in chat to review the first research profile: BTC/USDT spot, hourly S
 
 [Authored account inspection](docs/paper-inspection.md) connects `/paper` and `/portfolio` to an existing journal's positions, orders, fills and health. Views retain exact fill economics, reservations and capture timestamps without account mutation or model disclosure. A missing journal stays unavailable; no broker, feed or paper service is connected by inspection.
 
+[Alpaca is now the first paper route](docs/alpaca-paper-testing.md) for Bitcoin spot; Liquid perpetual support follows later. `/alpaca-connect` opens masked inline credentials for a fixed paper-host account/BTC/USD asset check, and `/alpaca-save` exports that diagnostic privately. Feed entitlement, order execution and reconciliation remain unimplemented/unverified. The user's actual Liquid address diagnostic and unchanged current read catalog were inspected separately; neither grants paper authority.
+
 ## Confirmed direction
 
 - **Permanent terminal interface:** a TUI with a chief-agent chat and slash commands; no planned migration to a web UI.
@@ -81,6 +83,7 @@ Backtest results and claims made by a source do not guarantee future returns.
 | [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |
 | [Measured report analysis](docs/report-analysis.md) | Strategy-owned interpretations of frozen measurements, fact inspection and explicit limitations |
 | [Authored account inspection](docs/paper-inspection.md) | Captured positions, orders, fills and health from an existing read-only journal |
+| [Alpaca paper development](docs/alpaca-paper-testing.md) | Fixed paper account/asset checks, masked setup and the remaining feed/execution requirements |
 | [Source reviews](docs/source-reviews.md) | Strategy-owned interpretations, validated source references and private reports |
 | [Data capabilities](docs/market-data-capabilities.md) | Exact profile/purpose matching, freshness and unresolved provider requirements |
 | [Source conformance](docs/source-conformance.md) | Rule mapping, numerical blockers and limits on converted execution |

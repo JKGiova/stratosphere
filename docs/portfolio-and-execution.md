@@ -66,4 +66,4 @@ Exact Alpaca/Liquid API integration, native versus custom NautilusTrader adapter
 
 ## Latest confirmed operating decisions
 
-Liquid is the first connector. Execution uses configuration or explicit permission, subject to provider confirmations. The runtime operates on the user's computer. On TUI exit, users choose retaining positions or requesting closure of all positions; this user-facing choice is settled and must not be reopened. A computer shutdown stops local runtime logic. Specify and test pending-order handling and actual residual exposure rather than treating exit as guaranteed liquidation.
+Alpaca is first for Bitcoin-spot paper integration; Liquid follows for perpetuals, as confirmed on 21 October 2026. Execution uses configuration or explicit permission, subject to provider confirmations. The runtime operates on the user's computer. On TUI exit, users choose retaining positions or requesting closure of all positions; this user-facing choice is settled and must not be reopened. A computer shutdown stops local runtime logic. Specify and test pending-order handling and actual residual exposure rather than treating exit as guaranteed liquidation.

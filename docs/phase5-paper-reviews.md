@@ -10,6 +10,8 @@ Status: **private advisory increment over existing internal authored journals**.
 
 The default journal is `<research-state>/paper/account.sqlite3`; private reports live in `<research-state>/paper-reviews`. These commands do not accept arbitrary journal paths. There is no account-creation/onboarding command in this increment. If that internal journal does not exist, review fails before creating an account or making a model request. An ordinary installation without an authored development account will therefore report that no journal is configured.
 
+The separate [account inspection](paper-inspection.md) operation can display this same journal's captured positions, orders, actual reported fills and health through `/paper` without a model request. Reading a journal or advisory review does not change its capital, risk state or execution authority.
+
 ## Frozen application observations
 
 The journal is opened using a SQLite read-only URI and query-only transaction. Its event chain is replayed with the same exact decimal precision as the ledger. Current journal versions 1–3 are supported without construction, migration, funding or writes. A snapshot retains the authored account origin, complete journal digest, capture time, each instance's IDs/cap/cash/base/reservations/pending orders, stream review/fault status, indexed application facts and available deterministic diagnostic metrics. Authored quote recency is evaluated at capture and cannot precede its retained receipt time; it remains a caller-declared observation, not authenticated price, clock or executable liquidity evidence. Missing quotes remain missing. Execution eligibility is always false.

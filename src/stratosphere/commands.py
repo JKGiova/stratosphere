@@ -26,6 +26,8 @@ HELP = """/help — Show commands
 /paper-review — Ask budget/risk agents for an advisory authored-account review
 /paper-reviews — List paper-review attempts
 /paper-review-show <review-id> — Open a retained advisory report
+/paper [positions|orders|fills|health] [page] — Inspect the existing authored account online
+/portfolio — Refresh authored positions; no provider account is connected
 /source <url> [github-ref] — Acquire a read-only source snapshot; inspect access limits
 /sources — List retained source attempts
 /source-show <source-id> — Inspect a retained source snapshot online
@@ -77,6 +79,14 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name == "/paper":
+        if (
+            len(words) <= 3
+            and (len(words) == 1 or words[1] in {"positions", "orders", "fills", "health"})
+            and (len(words) < 3 or re.fullmatch(r"[1-9][0-9]{0,8}", words[2]))
+        ):
+            return Command("paper", args=tuple(words[1:]))
+        return Command("message", "Usage: /paper [positions|orders|fills|health] [page]")
     if name in {
         "/liquid",
         "/liquid-connect",

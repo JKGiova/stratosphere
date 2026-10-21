@@ -4341,3 +4341,73 @@ Added `/analyze-report <job-id>`: the owning strategy agent analyzes retained te
 Local Ollama still timed out, so live-model reliability remains unverified. Code, docs, AGENTS.md and transcript are published to the private repository. Phases 3–5 remain in progress.
 
 ---
+
+### 499 — Assistant (progress update)
+
+I’ll review the remaining Phase 3–5 gaps and continue from the published report-analysis work.
+
+---
+
+### 500 — Assistant (progress update)
+
+The Positions panel still shows a placeholder despite the retained account journal. I’ll connect it to read-only positions, orders and health views, clearly labeled as authored account evidence.
+
+---
+
+### 501 — Assistant (progress update)
+
+The views will show retained balances, fill economics, pending reservations and stream faults, with capture timestamps and complete pagination. Reading them will leave the journal unchanged.
+
+---
+
+### 502 — Assistant (progress update)
+
+The first 31 checks passed, including partial and late fills, cancellation uncertainty, credential filtering and small-terminal navigation. I’m now checking the broader suite and installed package.
+
+---
+
+### 503 — Assistant (progress update)
+
+The wider checks caught a navigation regression. I’ve restored empty-panel focus behavior and added an explicit chat request that opens the same account view without a model call.
+
+---
+
+### 504 — Assistant (progress update)
+
+The installed package passed read-only and restart checks with two retained instances and one pending order. It made no model, provider or trading calls. The full regression run is still running.
+
+---
+
+### 505 — Assistant (progress update)
+
+Visual inspection caught another issue: the table crowded out details at 45×12. I’m making short panels prioritize the scrollable evidence and putting balances first in the wider table.
+
+---
+
+### 506 — Assistant (progress update)
+
+All 71 final reader and UI checks passed. The installed screenshots now show readable details at 45×12; I’m finishing regression verification and documentation.
+
+---
+
+### 507 — Assistant (progress update)
+
+The final package preserved the journal bytes and pending reservation across two fresh interpreters. Docs and AGENTS.md now describe the read-only boundary; regression tests are finishing.
+
+---
+
+### 508 — Assistant (progress update)
+
+The regression run passed 1,218 tests. Final reader/UI and installed-package checks also passed; I’m publishing the code, docs and transcript.
+
+---
+
+### 509 — Assistant
+
+Added `/paper [positions|orders|fills|health] [page]` and connected Positions to retained journal data, with exact balances, reservations and dated evidence.
+
+**1,218 regression tests passed**, plus **71 final reader/UI checks** and installed-package/restart verification.
+
+Published code, docs, AGENTS.md and transcript to the private repository. Real-feed paper execution and the remaining Phase 3–5 requirements are still in progress.
+
+---

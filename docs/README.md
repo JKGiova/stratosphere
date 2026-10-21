@@ -67,3 +67,5 @@ See [reviewed authored signal decisions](phase5-signal-decisions.md) for positio
 See [Liquid account diagnostics](liquid-account-diagnostics.md) for the explicit fixed address-read operation, private historical evidence and remaining actual-provider/ownership/environment verification. Catalog inspection stays non-invoking.
 
 See [measured report analysis](report-analysis.md) for owning-agent interpretation of frozen simulation facts, complete evidence paging, immutable private Reports and local-model context/reliability limits.
+
+See [authored account inspection](paper-inspection.md) for explicit read-only positions, orders, fills and health, exact retained economics, dated pagination and responsive navigation without model disclosure or account creation.

@@ -13,6 +13,7 @@ from stratosphere.catalog.service import AssessmentService, assessment_markdown
 from stratosphere.chat import ChatSession
 from stratosphere.models.streaming import ModelError
 from stratosphere.models.structured import structured_response
+from stratosphere.paper.inspection import natural_account_inspection
 from stratosphere.phase0.contracts import Contract
 from stratosphere.registry.workspace import RegistryError, WorkspaceDatabase
 from stratosphere.report_analysis import (
@@ -855,6 +856,11 @@ class Orchestrator:
         self.responding_strategy = None
         try:
             original_strategy = self.active_strategy
+            inspection = natural_account_inspection(text)
+            if inspection is not None:
+                self.last_action = {"action": "paper_inspection", "args": inspection}
+                yield "Opening the retained authored account view with its capture time."
+                return
             registration = re.fullmatch(
                 r"\s*(?:please\s+)?register\s+source\s+([a-f0-9]{32})\s*",
                 text,

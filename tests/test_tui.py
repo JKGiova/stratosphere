@@ -258,7 +258,7 @@ async def test_responsive_panels_fit_without_overlap_and_keep_truthful_states(si
             assert len(shown(app)) == count
         await send(app, pilot, "/portfolio")
         heading = app.query_one("#portfolio-pane .empty-heading", Static)
-        assert heading.content == "Positions unknown" and heading.region.height > 0
+        assert heading.content == "Positions unavailable" and heading.region.height > 0
         assert app.session.provider.requests == []
 
 

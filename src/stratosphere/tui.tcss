@@ -129,6 +129,11 @@ Footer .footer-key--description {
     display: none;
 }
 
+#portfolio-pane.short-portfolio #positions,
+#portfolio-pane.short-portfolio #portfolio-status {
+    display: none;
+}
+
 DataTable {
     height: 1;
     margin-top: 1;

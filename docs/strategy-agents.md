@@ -43,3 +43,7 @@ An explicit [native source registration](native-source-registration.md) binds a 
 ## Specialist measured report analysis
 
 `/analyze-report <job-id>` and explicit `Analyze report <job-id>` requests now delegate to the exact report owner’s stable specialist. The model receives a frozen complete set of measured facts with explicit candidate/window/cost scopes, not other agents’ histories or raw simulation tables. It returns categorized interpretations and fact references; the application validates references and rechecks the sealed evidence before publishing a separate private analysis in Reports. Interpretations remain unverified and cannot approve or start operations. `/report-analyses` lists attempts and `/report-analysis-show <analysis-id> [fact-page]` opens a verified narrative or all frozen facts. See [report analysis](report-analysis.md) for retention, cancellation, local model context and verification limits.
+
+## Account inspection
+
+Explicit `Inspect the authored paper account positions` requests bridge to the same read-only operation as `/paper positions`; orders, fills and health are also supported. These deterministic requests make no model call, disclose no account state to strategy agents and preserve active selection/private histories. The existing Positions panel shows captured authored balances and reservations, while detailed order/fill/health pages open in Focus. No connected provider account, current P/L or running paper service is inferred. See [account inspection](paper-inspection.md).

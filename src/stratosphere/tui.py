@@ -48,6 +48,7 @@ from stratosphere.models.settings import (
     ModelSettings,
 )
 from stratosphere.models.streaming import ModelError, safe_text
+from stratosphere.paper.inspection import JournalInspector
 from stratosphere.paper.reviews import PaperReviewService
 from stratosphere.paper.reviews import review_markdown as paper_review_markdown
 from stratosphere.registry.workspace import WorkspaceDatabase
@@ -312,6 +313,7 @@ class StratosphereApp(App[None]):
         source_service=None,
         liquid_connection=None,
         paper_review_service=None,
+        paper_inspector=None,
     ):
         super().__init__()
         self.console.push_theme(
@@ -362,6 +364,15 @@ class StratosphereApp(App[None]):
             online_check=self.research.require_online,
         )
         self.sources.store.session_secret_check = self.contains_session_credential
+        self.paper_inspector = paper_inspector or JournalInspector(
+            self.paper_reviews.journal,
+            online_check=self.research.require_online,
+        )
+        inspection_secret_check = self.paper_inspector.secret_check
+        self.paper_inspector.secret_check = lambda data: (
+            inspection_secret_check(data) or self.sources.store.has_secret(data)
+        )
+        self.paper_view_loaded = False
         self.workspace_bridge = Orchestrator(
             None, self.database, self.research, studies=self.studies, sources=self.sources
         )
@@ -459,11 +470,11 @@ class StratosphereApp(App[None]):
                     yield Static(PANELS["jobs"], classes="muted", markup=False)
             with WorkspacePane(id="portfolio-pane", classes="pane"):
                 yield Static("POSITIONS", classes="pane-title")
-                yield Static("Account / not connected", classes="eyebrow")
+                yield Static("Account / not connected", classes="eyebrow", id="portfolio-status")
                 yield DataTable(id="positions", zebra_stripes=True, cursor_type="row")
-                with VerticalScroll(classes="pane-body"):
-                    yield Static("Positions unknown", classes="empty-heading")
-                    yield Static(PANELS["portfolio"], classes="muted", markup=False)
+                with VerticalScroll(classes="pane-body", id="portfolio-body"):
+                    yield Static("Positions unknown", classes="empty-heading", id="positions-empty")
+                    yield Static(PANELS["portfolio"], id="portfolio-preview", markup=False)
             with WorkspacePane(id="reports-pane", classes="pane"):
                 yield Static("REPORTS", classes="pane-title")
                 yield Static("Retained evidence · verified again when opened", classes="eyebrow")
@@ -486,7 +497,9 @@ class StratosphereApp(App[None]):
         self.query_one("#strategies", DataTable).add_columns("Strategy", "Public ID", "State")
         self.query_one("#tests", DataTable).add_columns("Run", "Strategy", "State")
         self.query_one("#reports", DataTable).add_columns("Strategy", "Report", "Created")
-        self.query_one("#positions", DataTable).add_columns("Symbol", "Quantity", "P/L")
+        self.query_one("#positions", DataTable).add_columns(
+            "BTC", "Settled USDT", "Reserved USDT", "Strategy", "Instance"
+        )
         self.research.recover()
         self.studies.recover()
         self.refresh_research_views()
@@ -534,6 +547,11 @@ class StratosphereApp(App[None]):
             pane.set_class(view == self.active_pane, "active")
         self.sync_navigation()
         self.call_after_refresh(self.size_report_list)
+        self.call_after_refresh(self.size_account_view)
+
+    def size_account_view(self):
+        pane = self.query_one("#portfolio-pane")
+        pane.set_class(self.paper_view_loaded and pane.size.height < 15, "short-portfolio")
 
     @property
     def active_view(self) -> str:
@@ -605,6 +623,8 @@ class StratosphereApp(App[None]):
                 self.query_one("#prompt", Input).focus()
         elif self.active_pane == "focus":
             self.query_one("#focus-body", VerticalScroll).focus()
+        elif self.active_pane == "portfolio" and self.paper_view_loaded:
+            self.query_one("#portfolio-body", VerticalScroll).focus()
         else:
             self.query_one(f"#{self.active_pane}-pane").focus()
 
@@ -793,6 +813,8 @@ class StratosphereApp(App[None]):
                     await self.add_message(str(error))
                 except ValueError:
                     await self.add_message("Use a listed data profile and purpose; inspect /data.")
+            elif command.action in {"paper", "portfolio"}:
+                await self.handle_paper_inspection(command.args)
             elif command.action in {"paper-review", "paper-reviews", "paper-review-show"}:
                 await self.handle_paper_review_command(command.action, command.args)
             elif command.action in {"analyze-report", "report-analyses", "report-analysis-show"}:
@@ -981,6 +1003,8 @@ class StratosphereApp(App[None]):
                 )
             elif action and action["action"] == "resume":
                 self.call_after_refresh(self.handle_research_command, "resume", (action["job_id"],))
+            elif action and action["action"] == "paper_inspection":
+                await self.handle_paper_inspection(action["args"])
             elif action and action["action"] == "paper_review":
                 if self.research_busy:
                     raise ResearchError(
@@ -1240,6 +1264,64 @@ class StratosphereApp(App[None]):
                 "Research operation unavailable. "
                 "Check the full job ID, approval hash and job state. "
                 "Use /jobs or /show <job-id>; a running operation must be paused or canceled first."
+            )
+
+    async def handle_paper_inspection(self, args):
+        try:
+            section = args[0] if args else "positions"
+            number = int(args[1]) if len(args) > 1 else 1
+            value = await self.paper_inspector.capture()
+            value.page(section, number)
+            positions, _ = value.page("positions", number if section == "positions" else 1)
+            table = self.query_one("#positions", DataTable)
+            table.clear()
+            for row in positions:
+                table.add_row(
+                    row["base"],
+                    row["cash"],
+                    row["reserved_cash"],
+                    row["mandate"]["strategy_id"],
+                    row["mandate"]["instance_id"],
+                    key=row["mandate"]["instance_id"],
+                )
+            table.styles.height = min(5, table.row_count + 1)
+            self.query_one("#positions-empty").display = not positions
+            self.query_one("#positions-empty", Static).update("No allocated authored instances")
+            self.query_one("#portfolio-status", Static).update(
+                "Authored account · captured " + value.captured_at.isoformat()
+            )
+            self.query_one("#portfolio-preview", Static).update(
+                Markdown(
+                    safe_text(value.markdown("positions", number if section == "positions" else 1)),
+                    hyperlinks=False,
+                )
+            )
+            self.query_one("#portfolio-body", VerticalScroll).scroll_home(animate=False)
+            self.paper_view_loaded = True
+            if section == "positions":
+                self.action_select_view("portfolio")
+            else:
+                view = self.query_one("#focus-body", VerticalScroll)
+                await view.remove_children()
+                await view.mount(
+                    Static(Markdown(safe_text(value.markdown(section, number)), hyperlinks=False))
+                )
+                view.scroll_home(animate=False)
+                self.action_select_view("focus")
+        except (ResearchError, ValueError, OSError) as error:
+            self.paper_view_loaded = False
+            self.query_one("#positions", DataTable).clear()
+            self.query_one("#positions-empty").display = True
+            self.query_one("#positions-empty", Static).update("Positions unavailable")
+            self.query_one("#portfolio-status", Static).update("Account / refresh unavailable")
+            self.query_one("#portfolio-preview", Static).update(
+                "No verified account snapshot displayed. Use /paper to retry online."
+            )
+            self.action_select_view("portfolio")
+            await self.add_message(
+                str(error)
+                if isinstance(error, ResearchError)
+                else "Account inspection unavailable."
             )
 
     async def handle_paper_review_command(self, action, args):

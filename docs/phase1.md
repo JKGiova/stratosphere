@@ -6,6 +6,8 @@ Status: **in progress**, October 17, 2026. Phase 0 remains complete. The user au
 
 ## Increment 1 — terminal client and conversational model workflow
 
+Credential-retention override: D59 adds the [native OS credential store](credentials.md) for selected model settings/keys and the Liquid read-only OAuth grant. Historical memory-only/session-only descriptions below retain their dated increment scope; they do not describe current retention.
+
 Implemented:
 
 - Launch the English Textual client with `python -m stratosphere`.

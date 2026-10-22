@@ -144,3 +144,32 @@ def research_provider(research_draft):
 def isolate_workspace_database(tmp_path, monkeypatch):
     """Product startup now persists strategy records; tests must never touch user state."""
     monkeypatch.setenv("STRATOSPHERE_RESEARCH_DIR", str(tmp_path / "research"))
+
+
+class MemoryCredentialBackend:
+    """Explicit test double; never selected by the product's native backend selector."""
+
+    def __init__(self):
+        self.values = {}
+
+    def get_password(self, service, name):
+        return self.values.get((service, name))
+
+    def set_password(self, service, name, value):
+        self.values[service, name] = value
+
+    def delete_password(self, service, name):
+        self.values.pop((service, name), None)
+
+
+@pytest.fixture(autouse=True)
+def isolate_native_credentials(tmp_path, monkeypatch):
+    """Legacy UI cases cannot read or overwrite the user's OS credential store."""
+    from stratosphere.credentials import CredentialStore
+
+    monkeypatch.setattr(
+        "stratosphere.tui.CredentialStore",
+        lambda: CredentialStore(
+            backend=MemoryCredentialBackend(), lock_root=tmp_path / "credential-locks"
+        ),
+    )

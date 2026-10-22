@@ -34,6 +34,8 @@ Research runs separately from operational processing. The reviewed [authored obs
 
 ## Storage and privacy
 
+The selected model configuration and optional fixed-resource Liquid read grant use the [native credential store](credentials.md). They are not SQLite/profile records. Restoring a model sends no prompt; Liquid restores a fresh read-only MCP session/catalog and can renew a supported rotating grant without browser interaction. This grants no account or order authority.
+
 - Local SQLite: canonical strategies, provenance, stable agents, separate histories, jobs and report references.
 - Private artifacts: source snapshots, immutable approvals, native results, reports and review receipts.
 - Account/service journals: observations, reservations, actual reported economics, faults and processing state.

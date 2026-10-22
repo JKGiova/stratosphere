@@ -24,7 +24,7 @@ From the configured repository environment:
 .venv/bin/python -m stratosphere
 ```
 
-Select the model/provider in the inline form, or dismiss it with Escape to inspect supported non-model operations. Use /help for implemented commands. See [Phase 1 setup](docs/phase1.md#try-it), [Phase 2 research](docs/phase2.md) and [Intel macOS verification](docs/intel-macos.md) for dependencies and limits. Do not paste keys into chat.
+Select the model/provider in the inline form once; its settings/key are saved in the OS credential store and restored on future launches. `/liquid-connect` similarly remembers the read-only login when secure storage and provider refresh are available. See [remembered credentials](docs/credentials.md) for one-time setup and forgetting access. Dismiss setup with Escape to inspect supported non-model operations. Use /help for implemented commands. See [Phase 1 setup](docs/phase1.md#try-it), [Phase 2 research](docs/phase2.md) and [Intel macOS verification](docs/intel-macos.md) for dependencies and limits. Do not paste keys into chat.
 
 Research and reporting retain online gates. Local storage and the explicitly supported Ollama model do not introduce a general offline application mode. No Supabase/application account is required by the TUI.
 

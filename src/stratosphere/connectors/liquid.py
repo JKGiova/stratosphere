@@ -14,6 +14,8 @@ import httpx
 from pydantic import SecretStr
 
 from stratosphere.connectors.catalog import CatalogError, LiquidCatalog, canonical, strict_json
+from stratosphere.connectors.liquid_login import SavedReadGrant
+from stratosphere.credentials import CredentialError, credential_io
 from stratosphere.research.store import ResearchError
 
 ORIGIN = "https://coinvest.liquid.trade"
@@ -24,6 +26,10 @@ MAX_MESSAGE = 2 * 1024 * 1024  # Protocol metadata, not a user upload quota.
 
 class LiquidError(ResearchError):
     """Safe connector error; never includes provider bodies, codes or tokens."""
+
+
+class LiquidLoginExpired(LiquidError):
+    """The fixed server rejected the current authorization."""
 
 
 def required(condition, message):
@@ -53,6 +59,7 @@ class Discovery:
     authorize: str = ORIGIN + "/oauth/authorize"
     token: str = ORIGIN + "/oauth/token"
     registration: str = ORIGIN + "/oauth/register"
+    refresh_supported: bool = False
 
 
 @dataclass(repr=False)
@@ -163,15 +170,26 @@ class LoopbackCallback:
 
 
 class LiquidConnection:
-    """Explicit read-only connection, held in memory for the current process only."""
+    """Read-only sessions with optional native-keyring login and bounded renewal."""
 
-    def __init__(self, *, transport=None, open_browser=None, callback_factory=LoopbackCallback):
+    def __init__(
+        self,
+        *,
+        transport=None,
+        open_browser=None,
+        callback_factory=LoopbackCallback,
+        credential_store=None,
+    ):
         self.transport = transport
         self.open_browser = open_browser or self._open_browser
         self.callback_factory = callback_factory
         self.session = None
         self._busy = False
         self.catalog_secret_check = None
+        self.credential_store = credential_store
+        self.persistence_notice = None
+        self._generation = 0
+        self._credential_guards = ()
 
     @staticmethod
     async def _open_browser(url):
@@ -181,14 +199,16 @@ class LiquidConnection:
         # The caller cancels any active connection worker. This erases local credentials;
         # provider-side OAuth consent must be revoked in the Liquid account separately.
         self.session = None
+        self._generation += 1
+        self._credential_guards = ()
 
     def contains_credential(self, content: bytes) -> bool:
-        if self.session is None:
-            return False
-        session = self.session
-        values = (session.token, *session.redactions)
-        if session.mcp_session_id is not None:
-            values += (session.mcp_session_id,)
+        values = self._credential_guards
+        if self.session is not None:
+            session = self.session
+            values += (session.token, *session.redactions)
+            if session.mcp_session_id is not None:
+                values += (session.mcp_session_id,)
         return any(
             value.get_secret_value().encode() in content
             or canonical(value.get_secret_value())[1:-1].encode() in content
@@ -215,6 +235,10 @@ class LiquidConnection:
         )
         try:
             async with asyncio.timeout(25), client.stream(method, url, **kwargs) as response:
+                if response.status_code in {401, 403} or (
+                    url == ORIGIN + "/oauth/token" and response.status_code == 400
+                ):
+                    raise LiquidLoginExpired("Liquid login expired or was revoked; sign in again.")
                 required(
                     response.status_code in {200, 201, 202, 204},
                     "Liquid rejected the connection request; reconnect or check provider access.",
@@ -294,7 +318,9 @@ class LiquidConnection:
             and advertised(server, "scopes_supported", "read"),
             "Liquid does not advertise the required public-client read flow.",
         )
-        return expected
+        return Discovery(
+            refresh_supported=advertised(server, "grant_types_supported", "refresh_token")
+        )
 
     async def connect(self, *, timeout=240):
         required(not self._busy, "Liquid authorization is already running.")
@@ -302,108 +328,262 @@ class LiquidConnection:
             self.session is None, "Disconnect the existing Liquid session before reconnecting."
         )
         self._busy = True
+        generation = self._generation
         try:
-            metadata = await self.discover()
-            state, verifier = secrets.token_urlsafe(32), secrets.token_urlsafe(64)
-            challenge = (
-                base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest())
-                .decode()
-                .rstrip("=")
-            )
-            async with self.callback_factory(state) as callback, self.client() as client:
-                registration, _ = await self._request(
-                    client,
-                    "POST",
-                    metadata.registration,
-                    json={
-                        "client_name": "stratosphere read-only inspection",
-                        "application_type": "native",
-                        "redirect_uris": [callback.redirect],
-                        "token_endpoint_auth_method": "none",
-                        "grant_types": ["authorization_code"],
-                        "response_types": ["code"],
-                        "scope": "read",
-                    },
-                )
-                client_id = registration.get("client_id")
-                required(
-                    opaque(client_id)
-                    and registration.get("token_endpoint_auth_method") == "none"
-                    and registration.get("redirect_uris") == [callback.redirect],
-                    "Liquid did not accept the public loopback client; no sign-in was opened.",
-                )
-                query = urlencode(
-                    {
-                        "response_type": "code",
-                        "client_id": client_id,
-                        "redirect_uri": callback.redirect,
-                        "scope": "read",
-                        "state": state,
-                        "code_challenge": challenge,
-                        "code_challenge_method": "S256",
-                        "resource": RESOURCE,
-                    }
-                )
-                try:
-                    opened = await self.open_browser(metadata.authorize + "?" + query)
-                except Exception:
-                    raise LiquidError("Cannot open the Liquid sign-in browser.") from None
-                required(opened, "Cannot open the Liquid sign-in browser.")
-                try:
-                    code = await asyncio.wait_for(callback.result, timeout)
-                except TimeoutError:
-                    raise LiquidError(
-                        "Liquid sign-in timed out; the local callback was closed."
-                    ) from None
-                required(code is not None, "Liquid authorization was declined.")
-                requested_at = time.monotonic()
-                tokens, _ = await self._request(
-                    client,
-                    "POST",
-                    metadata.token,
-                    data={
-                        "grant_type": "authorization_code",
-                        "client_id": client_id,
-                        "code": code,
-                        "redirect_uri": callback.redirect,
-                        "code_verifier": verifier,
-                        "resource": RESOURCE,
-                    },
-                )
-                required(
-                    tokens.get("scope") == "read"
-                    and isinstance(tokens.get("token_type"), str)
-                    and tokens["token_type"].lower() == "bearer"
-                    and opaque(tokens.get("access_token"))
-                    and type(tokens.get("expires_in")) is int
-                    and 0 < tokens["expires_in"] < 2**31,
-                    "Liquid did not confirm a bounded read-only token; connection was discarded.",
-                )
-                session = ReadSession(
-                    SecretStr(tokens["access_token"]), requested_at + tokens["expires_in"]
-                )
-                # Grant values are memory-only redaction guards, never refresh credentials in use.
-                session.catalog = await self._catalog(
-                    client,
-                    session,
-                    known_secrets=tuple(
-                        value
-                        for value in (
-                            tokens["access_token"],
-                            tokens.get("refresh_token"),
-                            code,
-                            verifier,
-                            state,
-                            registration.get("client_secret"),
-                            registration.get("registration_access_token"),
-                        )
-                        if isinstance(value, str) and value
-                    ),
-                )
-                self.session = session
-                return self.status_markdown()
+            if self.credential_store is not None:
+                with self.credential_store.lease("liquid"):
+                    return await self._connect(timeout, generation)
+            return await self._connect(timeout, generation)
         finally:
             self._busy = False
+
+    async def _connect(self, timeout, generation):
+        metadata = await self.discover()
+        state, verifier = secrets.token_urlsafe(32), secrets.token_urlsafe(64)
+        challenge = (
+            base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest())
+            .decode()
+            .rstrip("=")
+        )
+        async with self.callback_factory(state) as callback, self.client() as client:
+            registration, _ = await self._request(
+                client,
+                "POST",
+                metadata.registration,
+                json={
+                    "client_name": "stratosphere read-only inspection",
+                    "application_type": "native",
+                    "redirect_uris": [callback.redirect],
+                    "token_endpoint_auth_method": "none",
+                    "grant_types": ["authorization_code", "refresh_token"]
+                    if metadata.refresh_supported
+                    else ["authorization_code"],
+                    "response_types": ["code"],
+                    "scope": "read",
+                },
+            )
+            client_id = registration.get("client_id")
+            required(
+                opaque(client_id)
+                and registration.get("token_endpoint_auth_method") == "none"
+                and registration.get("redirect_uris") == [callback.redirect],
+                "Liquid did not accept the public loopback client; no sign-in was opened.",
+            )
+            query = urlencode(
+                {
+                    "response_type": "code",
+                    "client_id": client_id,
+                    "redirect_uri": callback.redirect,
+                    "scope": "read",
+                    "state": state,
+                    "code_challenge": challenge,
+                    "code_challenge_method": "S256",
+                    "resource": RESOURCE,
+                }
+            )
+            try:
+                opened = await self.open_browser(metadata.authorize + "?" + query)
+            except Exception:
+                raise LiquidError("Cannot open the Liquid sign-in browser.") from None
+            required(opened, "Cannot open the Liquid sign-in browser.")
+            try:
+                code = await asyncio.wait_for(callback.result, timeout)
+            except TimeoutError:
+                raise LiquidError(
+                    "Liquid sign-in timed out; the local callback was closed."
+                ) from None
+            required(code is not None, "Liquid authorization was declined.")
+            requested_at = time.monotonic()
+            issued_at = time.time()
+            tokens, _ = await self._request(
+                client,
+                "POST",
+                metadata.token,
+                data={
+                    "grant_type": "authorization_code",
+                    "client_id": client_id,
+                    "code": code,
+                    "redirect_uri": callback.redirect,
+                    "code_verifier": verifier,
+                    "resource": RESOURCE,
+                },
+            )
+            required(
+                tokens.get("scope") == "read"
+                and isinstance(tokens.get("token_type"), str)
+                and tokens["token_type"].lower() == "bearer"
+                and opaque(tokens.get("access_token"))
+                and type(tokens.get("expires_in")) is int
+                and 0 < tokens["expires_in"] < 2**31,
+                "Liquid did not confirm a bounded read-only token; connection was discarded.",
+            )
+            session = ReadSession(
+                SecretStr(tokens["access_token"]), requested_at + tokens["expires_in"]
+            )
+            grant = self._make_grant(tokens, client_id, issued_at)
+            self._guard(grant)
+            session.catalog = await self._catalog(
+                client,
+                session,
+                known_secrets=tuple(
+                    value
+                    for value in (
+                        tokens["access_token"],
+                        tokens.get("refresh_token"),
+                        code,
+                        verifier,
+                        state,
+                        registration.get("client_secret"),
+                        registration.get("registration_access_token"),
+                    )
+                    if isinstance(value, str) and value
+                ),
+            )
+            required(generation == self._generation, "Liquid connection was canceled.")
+            await self._save_grant(grant)
+            required(generation == self._generation, "Liquid connection was canceled.")
+            self.session = session
+            return self.status_markdown()
+
+    @staticmethod
+    def _make_grant(tokens, client_id, issued_at):
+        required(
+            tokens.get("scope") == "read"
+            and isinstance(tokens.get("token_type"), str)
+            and tokens["token_type"].lower() == "bearer"
+            and opaque(tokens.get("access_token"))
+            and type(tokens.get("expires_in")) is int
+            and 0 < tokens["expires_in"] < 2**31
+            and (tokens.get("refresh_token") is None or opaque(tokens["refresh_token"])),
+            "Liquid did not confirm a bounded read-only token; sign in again.",
+        )
+        return SavedReadGrant(
+            client_id=client_id,
+            access_token=SecretStr(tokens["access_token"]),
+            refresh_token=SecretStr(tokens["refresh_token"])
+            if tokens.get("refresh_token")
+            else None,
+            issued_at=issued_at,
+            expires_at=issued_at + tokens["expires_in"],
+        )
+
+    def _guard(self, grant):
+        self._credential_guards += (grant.access_token,)
+        if grant.refresh_token is not None:
+            self._credential_guards += (grant.refresh_token,)
+
+    async def _save_grant(self, grant):
+        if self.credential_store is None:
+            return
+        try:
+            await credential_io(self.credential_store.put, "liquid", grant.payload())
+            self.persistence_notice = "Read-only login saved in the OS credential store."
+            if grant.refresh_token is None:
+                self.persistence_notice += (
+                    " Liquid supplied no refresh token; sign-in may be needed after expiry."
+                )
+        except CredentialError:
+            self.persistence_notice = "Login is session-only: secure storage could not save it."
+
+    async def forget(self):
+        self.disconnect()
+        if self.credential_store is not None:
+            required(not self._busy, "Cancel the Liquid connection before forgetting its login.")
+            with self.credential_store.lease("liquid"):
+                await credential_io(self.credential_store.delete, "liquid")
+        self.persistence_notice = None
+
+    async def resume(self):
+        """Restore only a grant; obtain a fresh protocol session/catalog, never an account."""
+        if self.credential_store is None:
+            return False
+        required(not self._busy, "Liquid authorization is already running.")
+        required(
+            self.session is None or not self.session.account_read_busy,
+            "Finish the account diagnostic before renewing Liquid access.",
+        )
+        if self.session is not None and self.session.expires_at > time.monotonic() + 30:
+            return True
+        self._busy = True
+        generation = self._generation
+        self.session = None
+        try:
+            with self.credential_store.lease("liquid"):
+                value = await credential_io(self.credential_store.read, "liquid")
+                if value is None:
+                    return False
+                try:
+                    grant = SavedReadGrant.model_validate(value)
+                    required(
+                        time.time() >= grant.issued_at, "System clock predates the saved login."
+                    )
+                except ValueError, LiquidError:
+                    await credential_io(self.credential_store.delete, "liquid")
+                    raise LiquidError(
+                        "Saved Liquid login is invalid; use /liquid-connect again."
+                    ) from None
+                self._guard(grant)
+                metadata = await self.discover()
+                async with self.client() as client:
+                    if grant.expires_at <= time.time() + 30:
+                        if not metadata.refresh_supported or grant.refresh_token is None:
+                            await credential_io(self.credential_store.delete, "liquid")
+                            return False
+                        # Consume before dispatch. Timeout/cancellation cannot replay an
+                        # ambiguously consumed rotating refresh token after a restart.
+                        await credential_io(self.credential_store.delete, "liquid")
+                        issued_at = time.time()
+                        tokens, _ = await self._request(
+                            client,
+                            "POST",
+                            metadata.token,
+                            data={
+                                "grant_type": "refresh_token",
+                                "client_id": grant.client_id,
+                                "refresh_token": grant.refresh_token.get_secret_value(),
+                                "scope": "read",
+                                "resource": RESOURCE,
+                            },
+                        )
+                        renewed = self._make_grant(tokens, grant.client_id, issued_at)
+                        required(
+                            renewed.refresh_token is not None
+                            and renewed.refresh_token != grant.refresh_token,
+                            "Liquid did not rotate its refresh token; sign in again.",
+                        )
+                        required(generation == self._generation, "Liquid renewal was canceled.")
+                        self._guard(renewed)
+                        grant = renewed
+                        # Retain rotated credentials even if catalog negotiation fails.
+                        await self._save_grant(grant)
+                    session = ReadSession(
+                        grant.access_token,
+                        time.monotonic() + max(0, grant.expires_at - time.time()),
+                    )
+                    try:
+                        session.catalog = await self._catalog(
+                            client,
+                            session,
+                            known_secrets=tuple(
+                                v.get_secret_value() for v in self._credential_guards
+                            ),
+                        )
+                    except LiquidLoginExpired:
+                        await credential_io(self.credential_store.delete, "liquid")
+                        return False
+                required(generation == self._generation, "Liquid renewal was canceled.")
+                self.session = session
+                self.persistence_notice = (
+                    self.persistence_notice
+                    or "Read-only login restored from the OS credential store."
+                )
+                return True
+        finally:
+            self._busy = False
+
+    async def ensure_session(self):
+        if self.credential_store is not None:
+            await self.resume()
 
     async def _catalog(self, client, session, *, known_secrets=()):
         headers = {
@@ -525,8 +705,9 @@ class LiquidConnection:
             "A tool catalog is not account or paper-trading verification. "
             "Metadata/catalog inspection calls no tool; orders remain blocked. "
             "Only `/liquid-account` explicitly requests the reviewed address read.\n\n"
-            "Use `/liquid-disconnect` to forget this process's credentials. "
-            "Revoke provider consent separately in Liquid. No token is saved across restart.\n\n"
+            "Use `/liquid-disconnect` to forget the session and saved login. "
+            "Quitting retains a saved read-only login; revoke provider consent in Liquid.\n\n"
+            + ((self.persistence_notice + "\n\n") if self.persistence_notice else "")
             + (
                 f"Catalog tool count: {len(self.session.tools)}. "
                 "Use `/liquid-tools` to inspect names and `/liquid-tool <name>` for definitions. "

@@ -4933,3 +4933,64 @@ Removed Alpaca’s code, credential UI, commands, data profile and dedicated tes
 Updated docs and AGENTS.md; verified tests, package contents and upgrades. Pushed privately. Liquid’s real-feed and paper execution remain unfinished.
 
 ---
+
+### 584 — User
+
+i need stable credential (dont wanna do the liquid signing each time and the model api key)
+
+---
+
+### 585 — Assistant (progress update)
+
+I’ll add persistent credential storage so model keys survive restarts, and check how Liquid supports renewing a saved login. I’ll use the operating system’s secure credential store where available and keep secrets out of project files and chat history.
+
+---
+
+### 586 — Assistant (progress update)
+
+I’m using the read-docs guidance to verify secure storage and Liquid’s OAuth refresh contract before changing how sessions are retained. Saving a Liquid login must preserve its current read-only scope.
+
+---
+
+### 587 — Assistant (progress update)
+
+Liquid advertises a refresh-token grant, so I can add saved-login renewal without opening the browser on every restart. I’ll store model settings and Liquid tokens in the OS credential store, refresh only the read-only grant, and make `/liquid-disconnect` forget the saved login. Expired or revoked refresh access may still require sign-in. [Liquid metadata](https://coinvest.liquid.trade/.well-known/oauth-authorization-server)
+
+---
+
+### 588 — Assistant (progress update)
+
+The implementation now restores the selected model on startup and can renew a saved Liquid read-only grant. I’m testing restart behavior, rejected refreshes, and forgetting credentials—including cancellation during a save, so a late write cannot restore a login you just removed.
+
+---
+
+### 589 — Assistant (progress update)
+
+The macOS Keychain check passed with a temporary synthetic credential: write, read and delete all worked. The restart tests also restore model settings and Liquid access without reopening the browser. I’m running regression checks and updating the credential-retention rules and user docs.
+
+---
+
+### 590 — Assistant (progress update)
+
+The installed-package test passed across two fresh processes using synthetic credentials in macOS Keychain. It restored the model, renewed the fixture Liquid grant without opening a browser, and removed both saved entries through the forget commands. Real Liquid renewal still needs verification after your one-time sign-in with this version.
+
+---
+
+### 591 — Assistant (progress update)
+
+Verification is complete: 1,289 regression tests passed, the localhost callback passed separately, and 39 final affected checks passed. Saved credentials stay outside project files, histories, reports and worker environments. I’m publishing the changes; you’ll need to enter the model key and sign in to Liquid once with this version.
+
+---
+
+### 592 — Assistant
+
+Implemented and pushed privately.
+
+- Model settings/key are saved in macOS Keychain (Linux: Secret Service).
+- Liquid remembers its read-only login and supports token renewal.
+
+Restart the TUI and enter your model key/sign in to Liquid **once** with this version. Revoked access may require signing in again. Use `/model-forget` or `/liquid-disconnect` to erase saved credentials.
+
+Keychain and restart tests passed; actual Liquid renewal still needs verification after that login.
+
+---

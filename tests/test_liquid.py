@@ -123,7 +123,8 @@ class Provider:
             assert params["redirect_uri"] == auth["redirect_uri"]
             assert "authorization" not in request.headers
             return httpx.Response(200, json=self.tokens)
-        assert path == "/mcp" and request.headers["authorization"] == "Bearer " + TOKEN
+        assert path == "/mcp"
+        assert request.headers["authorization"] == "Bearer " + self.tokens["access_token"]
         payload = json.loads(request.content)
         method = payload["method"]
         assert method in {"initialize", "notifications/initialized", "tools/list"}

@@ -6,6 +6,8 @@ This directory contains the current personal-use plan and historical development
 
 ## Reading order
 
+See [remembered credentials](credentials.md) for secure model settings, saved Liquid read-only login, renewal and explicit forgetting under D59.
+
 1. [Product vision and plan](product-plan.md): what the platform should enable.
 2. [Architecture and agents](architecture.md): how to separate research, testing, management, and execution.
 3. [Sources and strategy lifecycle](strategy-lifecycle.md): how to turn content into versioned strategies.

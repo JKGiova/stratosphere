@@ -4,6 +4,8 @@ Status: **in progress**, under the user's personal-only scope in D57. The user a
 
 ## Agent workflow and interface
 
+D59 adds [native credential retention](credentials.md) for the selected model and Liquid read-only grant. This is persistence/renewal, not application login, feed entitlement or execution authority; frozen account reads remain non-refreshing.
+
 D58 keeps Liquid as the only trading connector and removes the former alternative diagnostic implementation. Historical verification below remains dated evidence, not an active integration claim. The existing spot research and authored-account foundations do not become Liquid perpetual support.
 
 - [x] The orchestrator routes user requests to a stable agent for each exact strategy identity; it does not replace specialist analysis with a single shared chat context.

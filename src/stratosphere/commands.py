@@ -16,7 +16,7 @@ HELP = """/help — Show commands
 /data [provider-profile] [purpose] — Inspect data capabilities and unresolved requirements
 /liquid — Check public connection metadata; no account or tool access
 /liquid-connect — Open browser for read-only MCP catalog authorization
-/liquid-disconnect — Cancel connection and forget session credentials
+/liquid-disconnect — Cancel connection and forget session and saved login
 /liquid-tools — Inspect the connected tool catalog; no tool calls
 /liquid-tool <name> — Inspect one exact tool definition
 /liquid-catalog-save — Save a private catalog snapshot; no credentials
@@ -58,7 +58,8 @@ HELP = """/help — Show commands
 /report-data <job-id> [section] [cell|-] [page] — Inspect sealed simulation rows
 /agent [strategy-id] — List or select a dedicated strategy agent
 /reports — Open retained reports panel
-/model — Choose a model provider, API address and session key
+/model — Choose a model provider and save its settings/key securely
+/model-forget — Forget saved model settings/key and clear the active model
 /strategies — Open strategies panel
 /jobs — Open ongoing/completed tests panel
 /portfolio — Open positions panel
@@ -218,7 +219,7 @@ def route_command(text: str) -> Command:
         return Command(name[1:], args=tuple(words[1:]))
     if name == "/cancel" and len(words) == 2:
         return Command("cancel", args=(words[1],))
-    if name not in {"/help", "/model", "/cancel", "/clear", "/quit"} | {
+    if name not in {"/help", "/model", "/model-forget", "/cancel", "/clear", "/quit"} | {
         f"/{panel}" for panel in PANELS
     }:
         return Command("message", "Unknown command. Use /help for available commands.")

@@ -37,6 +37,7 @@ from stratosphere.catalog.service import assessment_markdown, recommendations_ma
 from stratosphere.commands import PANELS, route_command
 from stratosphere.connectors.liquid import LiquidConnection
 from stratosphere.connectors.liquid_account import LiquidAccountReader, account_markdown
+from stratosphere.credentials import CredentialError, CredentialStore, credential_io
 from stratosphere.market_data.routing import capabilities_markdown
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
@@ -156,7 +157,9 @@ class ModelSetup(Vertical):
         return (
             f"Chat is sent to {destination} at the API address below. "
             + cost
-            + "Keys stay in memory. General chat is session-only; strategy-agent conversations "
+            + "Model settings and keys are remembered in the OS credential store. "
+            "Use /model-forget to remove them. General chat is session-only; "
+            "strategy-agent conversations "
             "and evidence are retained privately on this computer. "
             "An explicit paper budget/risk review sends the authored account snapshot "
             "to this model provider and retains its advisory report locally. "
@@ -192,7 +195,7 @@ class ModelSetup(Vertical):
         yield Static("API BASE URL · official address; local Ollama allowed", classes="field-label")
         yield Input(value=self.default_base_url(), id="base-url", compact=True)
         yield Static(
-            "API KEY · masked, session only; optional for local Ollama", classes="field-label"
+            "API KEY · masked, saved securely; optional for local Ollama", classes="field-label"
         )
         yield Input(
             value=self.defaults(self.selected_provider)[1],
@@ -260,6 +263,21 @@ class ModelSetup(Vertical):
         self.post_message(self.Finished(None))
 
 
+class CredentialAwareResearchForm(ResearchForm):
+    """Keep hashed legacy widget sources stable while presenting current retention."""
+
+    def compose(self):
+        for widget in super().compose():
+            if isinstance(widget, Static) and widget.has_class("research-help"):
+                widget.update(
+                    str(widget.content).replace(
+                        "the model key stays session-only.",
+                        "model settings and keys use the OS credential store.",
+                    )
+                )
+            yield widget
+
+
 class Conversation(VerticalScroll):
     """Keep a focused inline setup field visible when the chat viewport changes."""
 
@@ -316,6 +334,7 @@ class StratosphereApp(App[None]):
         liquid_connection=None,
         paper_review_service=None,
         paper_inspector=None,
+        credential_store=None,
     ):
         super().__init__()
         self.console.push_theme(
@@ -335,7 +354,8 @@ class StratosphereApp(App[None]):
             )
         )
         self.provider_factory = provider_factory
-        self.liquid = liquid_connection or LiquidConnection()
+        self.credentials = credential_store if credential_store is not None else CredentialStore()
+        self.liquid = liquid_connection or LiquidConnection(credential_store=self.credentials)
         self.liquid.catalog_secret_check = self.contains_session_credential
         self.liquid_worker: Worker | None = None
         self.settings: ModelSettings | None = None
@@ -507,7 +527,18 @@ class StratosphereApp(App[None]):
         self.refresh_research_views()
         self.update_status(self.request_state)
         self.update_layout()
-        await self.open_model_setup()
+        try:
+            saved = await credential_io(self.credentials.load_model)
+        except CredentialError as error:
+            saved = None
+            await self.add_message(str(error))
+        if saved is not None:
+            self.set_model(saved)
+            await self.add_message("Saved model loaded from secure storage; not yet verified.")
+        else:
+            await self.open_model_setup()
+        if self.liquid.credential_store is not None:
+            self.liquid_worker = self.restore_liquid()
 
     def on_resize(self, event: Resize) -> None:
         self.viewport = (event.size.width, event.size.height)
@@ -708,20 +739,39 @@ class StratosphereApp(App[None]):
         self.query_one("#prompt", Input).disabled = False
         self.query_one("#composer").display = True
         if event.settings:
-            self.settings = event.settings
-            self.session = Orchestrator(
-                self.provider_factory(event.settings),
-                self.database,
-                self.research,
-                f"{event.settings.provider}/{event.settings.model}",
-                studies=self.studies,
-                assessments=self.assessments,
-                sources=self.sources,
-            )
-            self.session.sync_research()
-            self.update_status("MODEL SET · NOT YET VERIFIED")
-            await self.add_message("Model connected for this session. Send a message to test it.")
+            self.set_model(event.settings)
+            try:
+                await credential_io(self.credentials.save_model, event.settings)
+                await self.add_message(
+                    "Model saved securely for future launches. Send a message to test it."
+                )
+            except CredentialError as error:
+                await self.add_message(str(error) + " Using the model for this session only.")
         self.action_focus_pane("chat")
+
+    def set_model(self, settings):
+        self.settings = settings
+        self.session = Orchestrator(
+            self.provider_factory(settings),
+            self.database,
+            self.research,
+            f"{settings.provider}/{settings.model}",
+            studies=self.studies,
+            assessments=self.assessments,
+            sources=self.sources,
+        )
+        self.session.sync_research()
+        self.update_status("MODEL SET · NOT YET VERIFIED")
+
+    @work(group="liquid", exclusive=True)
+    async def restore_liquid(self):
+        try:
+            if await self.liquid.resume():
+                await self.add_message(
+                    "Saved Liquid read-only login restored; trading remains unavailable."
+                )
+        except ResearchError as error:
+            await self.add_message(str(error))
 
     async def add_message(self, text: str) -> Static:
         role = (
@@ -792,11 +842,20 @@ class StratosphereApp(App[None]):
                 if command.action == "liquid-disconnect":
                     if self.liquid_worker and not self.liquid_worker.is_finished:
                         self.liquid_worker.cancel()
-                    self.liquid.disconnect()
-                    await self.add_message(
-                        "Liquid credentials forgotten for this process. Revoke provider consent "
-                        "separately in Liquid. No order was submitted."
-                    )
+                        from textual.worker import WorkerCancelled, WorkerFailed
+
+                        try:
+                            await self.liquid_worker.wait()
+                        except WorkerCancelled, WorkerFailed:
+                            pass
+                    try:
+                        await self.liquid.forget()
+                        await self.add_message(
+                            "Liquid session and saved login forgotten. Revoke provider consent "
+                            "separately in Liquid. No order was submitted."
+                        )
+                    except ResearchError as error:
+                        await self.add_message(str(error))
                 elif self.liquid_worker and not self.liquid_worker.is_finished:
                     await self.add_message(
                         "Liquid connection is running. Use /liquid-disconnect to cancel."
@@ -870,6 +929,25 @@ class StratosphereApp(App[None]):
                 self.response_worker and not self.response_worker.is_finished
             ) or self.research_busy:
                 await self.add_message("Use /cancel before clearing chat or changing models.")
+            elif command.action == "model-forget":
+                if self.research_busy or (
+                    self.response_worker and not self.response_worker.is_finished
+                ):
+                    await self.add_message(
+                        "Stop the current operation before forgetting the model."
+                    )
+                else:
+                    try:
+                        await credential_io(self.credentials.delete, "model")
+                        self.session = None
+                        self.settings = None
+                        self.update_status("MODEL NOT SET")
+                        await self.add_message(
+                            "Saved model settings and key forgotten. "
+                            "Use /model to configure another."
+                        )
+                    except CredentialError as error:
+                        await self.add_message(str(error))
             elif command.action == "model":
                 await self.open_model_setup()
             elif command.action == "clear":
@@ -901,13 +979,17 @@ class StratosphereApp(App[None]):
     async def inspect_liquid(self, action: str, args=()):
         try:
             if action == "liquid-connect":
-                await self.add_message(
-                    "Opening Liquid browser authorization for read-only catalog inspection. "
-                    "Approve only read access. No tool or order will be called. "
-                    "Use /liquid-disconnect to cancel; sign-in expires after four minutes."
-                )
-                text = await self.liquid.connect()
+                if await self.liquid.resume():
+                    text = self.liquid.status_markdown()
+                else:
+                    await self.add_message(
+                        "Opening Liquid browser authorization for read-only catalog inspection. "
+                        "Approve only read access. No tool or order will be called. "
+                        "Use /liquid-disconnect to cancel; sign-in expires after four minutes."
+                    )
+                    text = await self.liquid.connect()
             elif action == "liquid-account":
+                await self.liquid.ensure_session()
                 await self.add_message(
                     "Requesting only Liquid get_account with read access. "
                     "The result stays in private diagnostics; it cannot link or activate trading."
@@ -935,6 +1017,7 @@ class StratosphereApp(App[None]):
                 )
             elif action in {"liquid-tools", "liquid-tool", "liquid-catalog-save"}:
                 await self.research.require_online()
+                await self.liquid.ensure_session()
                 catalog = self.liquid.catalog_snapshot()
                 if catalog.contains_secret(self.contains_session_credential):
                     raise ResearchError("Credential-bearing Liquid catalog was rejected.")
@@ -1229,7 +1312,7 @@ class StratosphereApp(App[None]):
                     )
                 self.action_select_view("chat")
                 if self.research_form is None:
-                    self.research_form = ResearchForm(args[0] if args else "")
+                    self.research_form = CredentialAwareResearchForm(args[0] if args else "")
                     self.query_one("#prompt", Input).disabled = True
                     self.query_one("#composer").display = False
                     await self.query_one("#conversation", VerticalScroll).mount(self.research_form)

@@ -6,7 +6,7 @@ Current scope: **personal use only**, confirmed in [D57](decisions.md). stratosp
 
 The TUI opens the user's private local workspace for strategies, isolated agent histories, sources, jobs and report references. It does not obtain or distribute a database service key. Local storage is not authentication to a broker or permission to trade.
 
-First-run setup configures the selected model/provider. Active model keys stay in memory; local Ollama needs its own running server/installed model. Model pricing and connectivity are provider-specific. Online research/reporting gates remain in place.
+First-run setup configures the selected model/provider. D59 remembers the selected model settings/key and Liquid read-only OAuth grant in the native OS credential store; active requests still use in-memory credentials. Local Ollama needs its own running server/installed model. Model pricing and connectivity are provider-specific. Online research/reporting gates remain in place.
 
 ## Optional provider connections
 
@@ -16,7 +16,7 @@ First-run setup configures the selected model/provider. Active model keys stay i
 
 Liquid is the only trading connector. Research can run without a Liquid connection. Connecting, inspecting or reopening a diagnostic never activates trading. Provider OAuth/browser consent may still be necessary even though application login has been removed.
 
-The [Liquid observations](liquid-account-diagnostics.md) remain review-required and do not establish account control or paper mode. Historical exports cannot restore credentials, link an account or grant authority.
+The [Liquid observations](liquid-account-diagnostics.md) remain review-required and do not establish account control or paper mode. Historical exports cannot restore credentials, link an account or grant authority. The separate [native credential store](credentials.md) can restore only a pinned read grant and obtain a fresh protocol catalog; it does not restore account ownership or trading permission.
 
 ## Credential and execution boundaries
 

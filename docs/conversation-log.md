@@ -4747,3 +4747,79 @@ Added a reviewed worker for authored observations: one owner per account, durabl
 Published privately with docs, AGENTS.md and transcript updated. Real feeds, broker paper execution and broader Phase 3–5 work remain pending.
 
 ---
+
+### 557 — Assistant (progress update)
+
+I’ll work on the Alpaca data path next. I’ll check its current feed contracts and access requirements, then keep BTC/USD observations separate from the existing BTC/USDT authored runtime.
+
+---
+
+### 558 — Assistant (progress update)
+
+Alpaca’s docs describe location-specific crypto feeds and bars that can include quote midpoints and arrive with later revisions. Those details need their own handling. Its terms also restrict commercial use, so actual price acquisition remains subject to the repository’s data-rights rule. [Feed docs](https://docs.alpaca.markets/us/docs/real-time-crypto-pricing-data), [terms](https://files.alpaca.markets/disclosures/library/TermsAndConditions.pdf).
+
+---
+
+### 559 — Assistant (question)
+
+Do you have written Alpaca permission covering stratosphere’s intended commercial market-data use? AGENTS.md requires authored fixtures while entitlement is unresolved. If you have permission, share only its local document path, never credentials.
+
+Options:
+- Not yet; continue with authored fixtures
+- Yes; I can provide the permission document path
+
+---
+
+### 560 — Assistant (progress update)
+
+While permission is unresolved, I’ll build the stream validator and recording format with authored messages. It will retain exact decimal values, receipt order, revisions and gaps. Any hourly aggregates will remain provisional and outside the existing trading runtime.
+
+---
+
+### 561 — User
+
+Question: Do you have written Alpaca permission covering stratosphere’s intended commercial market-data use? AGENTS.md requires authored fixtures while entitlement is unresolved. If you have permission, share only its local document path, never credentials.
+
+Answer: i dont wanna commercialise the software anymore, so its just for me (no need of user databases and things like that)
+
+---
+
+### 562 — Assistant (progress update)
+
+Understood—stratosphere is now a personal tool for you. I’ll remove the commercial, billing, hosted-login and shared-user requirements from the active plan, while keeping the local database used for strategies, agent histories and reports. I’ll keep the repo private and check which Supabase assumptions still affect the code.
+
+---
+
+### 563 — Assistant (progress update)
+
+The TUI already uses local SQLite; it has no hosted login or user-database connection to remove. The stale pieces are mainly the plan and a few messages promising future sharing, login or fees. I’ll update those and preserve the historical contracts and reports.
+
+I’m using the Supabase guidance to distinguish retiring those requirements from deleting the previously provisioned project.
+
+---
+
+### 564 — User
+
+at what point is it?
+
+---
+
+### 565 — Assistant (progress update)
+
+I’ll check the repo so I can separate what’s implemented from the personal-use changes still pending.
+
+---
+
+### 566 — Assistant
+
+We have a **working research prototype**, with Phases 3–5 still in progress.
+
+- **Working:** responsive TUI, model chat, dedicated strategy agents, local histories, approved SMA backtests/studies and inspectable reports.
+- **Partial:** external-source ingestion, strategy conversion and broader strategy/model workflows.
+- **Paper trading:** your Alpaca metadata check passed. Worker ownership, crash recovery and risk/accounting foundations are tested with authored data. **Real feeds, Alpaca paper orders and broker reconciliation are still missing.**
+
+Your personal-only decision is recorded, but the roadmap/UI cleanup hasn’t been applied yet. Local SQLite stays for strategies and history; no hosted database has been deleted.
+
+Next: finish that cleanup, then implement and verify the BTC/USD feed and paper-trading workflow.
+
+---

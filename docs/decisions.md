@@ -1,6 +1,8 @@
 # Decisions and alignment
 
-Last updated: October 17, 2026. Product decisions and Phase 0 implementation selections are separate below. Measured scope/limits are recorded in phase0.md; selections alone do not establish product or live readiness.
+Last updated: October 22, 2026. Product decisions and Phase 0 implementation selections are separate below. Measured scope/limits are recorded in phase0.md; selections alone do not establish product or live readiness.
+
+Current scope: **personal use only**, confirmed in D57. Earlier commercial, hosted-login and multi-user catalog decisions below are historical where superseded. Updating the remaining roadmap, UI notices and acceptance criteria to this scope is still pending; no hosted resource deletion is implied.
 
 ## Confirmed decisions
 
@@ -62,6 +64,7 @@ Last updated: October 17, 2026. Product decisions and Phase 0 implementation sel
 | D54 | Create a new Supabase organization named tradingsphere | Supersedes Matti Barbershop as the project target. The organization and stratosphere project were created on the quoted $0 allowance, retaining Frankfurt. The old unrelated project remains untouched |
 | D55 | Use Liquid paper mode for the first real-feed paper test | Superseded by D56 after actual catalog inspection and the documented absence of spot paper trading. The original selection did not verify an account, authorize funding or grant trading scope; see [Liquid paper testing](liquid-paper-testing.md) |
 | D56 | Alpaca first for Bitcoin spot; Liquid later for perpetuals | Confirmed on 21 October 2026. Start with a free Alpaca Paper Only account; the user's retained account/asset check was subsequently inspected and reports an active USD crypto account and tradable fractional BTC/USD. This dated diagnostic does not verify legal control, prices/feed entitlement or execution. BTC/USD is a separate identity/evidence path from prior BTC/USDT studies. Liquid remains read-only while its perpetual integration is pending. This does not authorize live orders, paid capacity or broader commercial data use. See [Alpaca paper development](alpaca-paper-testing.md) |
+| D57 | stratosphere is for the user's personal use, without commercialization or multi-user databases | Supersedes commercial pricing/billing, hosted application login, automatic community publication and hosted user-database requirements in D09, D13–D14, D17, D21, D27–D28, D33–D35, D38, D41 and D54 where they depend on a commercial/shared service. Keep the private repository, local strategy/agent/history/report storage, provider credentials and deterministic testing/trading gates. Model keys and optional broker connections remain necessary for their respective operations. Local SQLite is not a hosted user database. This decision does not delete existing local evidence or Supabase resources, change repository visibility/licensing, or establish provider data/execution entitlement. |
 
 
 

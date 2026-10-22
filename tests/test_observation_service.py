@@ -470,7 +470,7 @@ def test_journal_tampering_and_private_paths(service, tmp_path):
 def test_launcher_excludes_all_parent_credentials_and_detaches(service, monkeypatch):
     journal, plan, *_ = service
     monkeypatch.setenv("NVIDIA_API_KEY", "must-not-enter-worker")
-    monkeypatch.setenv("APCA_API_SECRET_KEY", "paper-key-must-not-enter-worker")
+    monkeypatch.setenv("LIQUID_ACCESS_TOKEN", "paper-key-must-not-enter-worker")
     monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-key-must-not-enter-worker")
     calls = []
     monkeypatch.setattr(
@@ -497,7 +497,7 @@ def test_direct_worker_cli_rejects_inherited_credentials_before_starting(
 ):
     journal, plan, *_ = service
     before = journal.path.read_bytes()
-    monkeypatch.setenv("APCA_API_SECRET_KEY", "must-not-start-a-worker")
+    monkeypatch.setenv("LIQUID_ACCESS_TOKEN", "must-not-start-a-worker")
     monkeypatch.setattr(sys, "argv", ["service", "run", str(plan.directory)])
 
     def forbidden(*args):

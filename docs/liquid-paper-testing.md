@@ -1,18 +1,24 @@
 # Liquid paper testing and connection status
 
-Status: **read-only connection and a user-performed address diagnostic inspected; ownership and paper execution unverified**. On 21 October 2026 the user selected [Alpaca first for Bitcoin spot](alpaca-paper-testing.md), with Liquid later for perpetuals. This supersedes the earlier Liquid-first paper selection. Application login and fee collection remain deferred.
+Status: **read-only connection and a user-performed address diagnostic inspected; ownership and paper execution unverified**. Liquid is the only trading connector under [D58](decisions.md), superseding the previous alternative-provider route. Application login and platform fees are retired under D57.
 
 ## Testing choices
+
+D58 removes the alternative broker's adapter, credential form, command handlers/help, data profile, dedicated tests and active setup guide. Liquid remains the only trading connector. Historical diagnostic files and the transcript/decision history remain evidence of earlier work, without a runtime reader or connection-restoration path for the removed connector.
 
 | Route | Useful evidence | Requirements and limits |
 | --- | --- | --- |
 | Liquid paper mode, selected | First-provider connection, account state and eventually simulated orders against real prices | Liquid account and explicit OAuth consent; custom-client identity, paper isolation, confirmations, instruments and reconciliation must still be verified |
-| Alpaca Paper Only, optional later | Separate paper API/account tests | Free paper account and distinct paper credentials/endpoint; free stock data is IEX-only, not consolidated exchange coverage; this would be a separate connector |
 | Authored local fixtures, available now | Native execution behavior, deterministic controls, failure/restart tests | No broker account or acquired market dataset; cannot establish real-feed integration or market performance |
 
 Provider documentation describes [Liquid's paper mode](https://www.liquid.trade/coinvest-docs) with simulated capital and live prices. Its mode persists across conversations and can be changed by another connected client. A pre-order status read therefore does **not** prove that a subsequent operation is confined to paper. Per-request simulation binding, applicable confirmations and event/reconciliation behavior must be verified before enabling an external action. Liquid perpetuals are distinct from spot BTC/USDT and owned stocks or currencies; no historical spot results or fixture fills transfer to them.
 
-[Alpaca's paper documentation](https://docs.alpaca.markets/us/docs/paper-trading) describes globally available email-based Paper Only accounts, separate paper credentials and `https://paper-api.alpaca.markets`. Its documented fill model and [free IEX coverage](https://docs.alpaca.markets/us/docs/about-market-data-api) differ from a real execution venue. No Alpaca account was created or linked.
+
+## Liquid-only removal verification — 22 October 2026
+
+The full sandbox regression passed **1,255 tests** with 40 upstream Pandas warnings. Two checks initially failed: the localhost OAuth listener could not bind inside the sandbox, and the capability test still expected the removed IEX profile. The listener passed in an isolated permission-enabled run; the corrected final market-data group passed **40 tests**, including rejection of the removed profile. The **1,257-case collection** is verified across those runs, not as a single green full-suite run. The new TUI regression confirms that all four removed commands remain local unknown commands, without model requests or connector work, while Liquid metadata inspection still works. Ruff, formatting and whitespace checks passed.
+
+An independently installed wheel in two fresh processes passed inline onboarding, historical library/report reads, retired-command rejection and fixture-backed Liquid metadata/connect/disconnect flows at 180×48 and 45×12. The wheel contains neither removed module; upgrading from the prior wheel also removes the old module. Source/archive/credential exclusion checks passed, and historical artifact bytes, strategy/agent identities and all five research/study/runtime/decision/service implementation pins were preserved. Package acceptance used authored connectivity/provider fixtures with zero actual provider/model/native-start/order calls; the regression separately exercised native accounting. No additional real-provider access or perpetual feed/paper functionality is claimed.
 
 ## Implemented operations
 
@@ -39,7 +45,7 @@ Tokens, client-registration responses, authorization codes and refresh tokens ar
 
 ## Required next verification
 
-The supplied catalog/schema check is complete; independently verify an explicit [account diagnostic](liquid-account-diagnostics.md) in the actual TUI next. Verify provider account identity and environment explicitly. OAuth success/catalog access alone must not mark an account as verified, claim a feed entitlement, activate a personal instance or expose trading controls.
+The supplied catalog/schema and user-performed [account diagnostic](liquid-account-diagnostics.md) have been inspected. The returned address/prose still requires review; independently verify provider account control and environment before further integration. OAuth success/catalog access alone must not mark an account as verified, claim a feed entitlement, activate a personal instance or expose trading controls.
 
 The persistent paper runtime, native adapter, complete mandate/budget/risk controls, provider-connected order reconciliation, sustained-feed checks and keep/close exit behavior remain pending in the [full Phase 3–5 acceptance ledger](phase3-5.md). The [authored-paper ledger foundation](phase5-paper-ledger.md) adds local reservations/attribution and native fixture checks, not that production runtime or a Liquid paper adapter.
 

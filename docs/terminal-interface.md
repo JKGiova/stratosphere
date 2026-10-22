@@ -64,7 +64,7 @@ Local complete drafts populate Library with stable strategy IDs and dedicated ag
 
 Application login is retired under D57. Inline onboarding configures the model, and local SQLite retains the personal library/histories. The notice explains local retention, model disclosure and the absence of automatic publication or a platform fee.
 
-Research does not require an Alpaca or Liquid connection. Optional provider authorization has its own consent, permissions, environment and status. A browser may still be required for provider OAuth; it is not application login. Disconnecting a provider does not delete local strategies/history or close positions. Trading activation requires a separate verified mandate and integration.
+Research does not require a Liquid connection. Optional provider authorization has its own consent, permissions, environment and status. A browser may still be required for provider OAuth; it is not application login. Disconnecting a provider does not delete local strategies/history or close positions. Trading activation requires a separate verified mandate and integration.
 
 There are no planned /login or /logout operations. Actual provider diagnostic commands are listed in /help; they cannot activate trading. Distinguish provider disconnection, runtime shutdown and position closure.
 

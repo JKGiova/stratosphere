@@ -12,7 +12,7 @@ The local SQLite library retains exact strategy identities, provenance, one stab
 
 [Authored account inspection](docs/paper-inspection.md) and the [reviewed observation worker](docs/observation-service.md) expose retained accounting, reservations, queue recovery, ownership and heartbeat/silence stops. They are fixture/account-processing foundations, not a broker paper service.
 
-The user's [Alpaca account/asset check](docs/alpaca-paper-testing.md#user-performed-paper-check--21-october-2026) was inspected and reports an active USD crypto account and tradable fractional BTC/USD. A real feed, Alpaca paper order transport, complete broker reconciliation and the operational keep/close exit workflow remain unfinished. Liquid perpetual integration follows later. Connecting or inspecting a provider does not grant trading authority.
+Liquid is the only trading connector: read-scope browser authorization, catalog inspection and a separate address diagnostic are implemented. Ownership, real feeds, perpetual paper execution, complete reconciliation and the operational keep/close exit workflow remain unfinished. Prior spot research cannot be relabeled as perpetual evidence. Connecting or inspecting a provider does not grant trading authority.
 
 **Phase 0 is complete within its stated scope. Phases 1–5 remain partial/in progress.** The full personal research/source/paper objective is tracked in [Phases 3–5](docs/phase3-5.md); this cleanup does not mark those phases complete.
 
@@ -53,7 +53,7 @@ Broker fees, spreads, slippage, funding and native rounding remain trading costs
 | [Report inspection](docs/report-evidence.md) / [analysis](docs/report-analysis.md) | Complete sealed measurements and advisory specialist interpretation |
 | [Local storage](docs/database-model.md) / [personal library](docs/community-catalog.md) | Strategy identity, provenance and local candidate evidence |
 | [Provider connections](docs/authentication-and-connectors.md) | Model/broker access without application login |
-| [Alpaca development](docs/alpaca-paper-testing.md) / [Liquid testing](docs/liquid-paper-testing.md) | Current diagnostics and remaining integration requirements |
+| [Liquid testing](docs/liquid-paper-testing.md) | Current read-only diagnostics and remaining integration requirements |
 | [Observation worker](docs/observation-service.md) / [account inspection](docs/paper-inspection.md) | Authored queue/lifecycle and read-only health |
 | [Data rights](docs/data-source-rights.md) / [capabilities](docs/market-data-capabilities.md) | Permitted purpose, actual profiles and verification limits |
 | [Terminal interface](docs/terminal-interface.md) | Responsive panels, onboarding and keyboard interaction |

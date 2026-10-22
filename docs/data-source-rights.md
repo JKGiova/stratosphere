@@ -2,7 +2,7 @@
 
 Current scope, October 22, 2026: **personal use only** under D57. Commercialization permission is no longer a general prerequisite. Actual provider/account eligibility, permitted purpose, storage and redistribution restrictions remain separate from technical access and code licensing. No provider prices or data were acquired during this cleanup, and no existing acquisition/quality gate was loosened.
 
-Alpaca's [published terms](https://files.alpaca.markets/disclosures/library/TermsAndConditions.pdf) describe personal non-commercial use and separate restrictions for commercial/third-party distribution. The selected personal account/feed still needs actual eligibility and protocol checks; an active account diagnostic is not feed entitlement. Its [crypto stream](https://docs.alpaca.markets/us/docs/real-time-crypto-pricing-data) has location-specific routes, trade/quote-midpoint bars and late revisions, which remain unimplemented here.
+Liquid is the only trading connector under [D58](decisions.md). Read-only catalog/address access does not establish market-data entitlement, a structured feed, paper isolation or execution permission. See [Liquid testing](liquid-paper-testing.md) for the inspected contracts and remaining perpetual-specific verification.
 
 The [Binance Vision terms](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md) describe personal non-production historical backtesting among permitted non-commercial uses, while excluding live proprietary execution. Do not transfer a research allowance into paper/live/feed rights. Authored fixtures remain appropriate for deterministic software/native tests and establish no market performance.
 

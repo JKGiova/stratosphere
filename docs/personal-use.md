@@ -32,6 +32,8 @@ Historical verification paragraphs retain what was tested at that time. They do 
 
 ## Bug-fixing checkpoint
 
+The subsequent D58 request removes Alpaca and keeps only Liquid. Its prior diagnostic/source references below describe the completed cleanup's historical context; they do not restore that connector. Liquid feed/paper implementation remains unfinished, and spot research evidence stays distinct from perpetuals.
+
 The user's current instruction is to finish in-progress work and then start an intermediate bug-fixing session. This personal-use transition closes that in-progress work; verification is recorded below. The reviewed authored-worker increment is already committed and verified. Alpaca stream validation/acquisition was investigated but no implementation was started; real feeds and broker paper execution remain future feature work. New feature increments stop at this checkpoint for the user-led bug-fixing session.
 
 ## Cleanup verification — October 22, 2026

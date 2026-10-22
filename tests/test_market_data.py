@@ -250,7 +250,7 @@ def test_same_looking_symbols_cannot_transfer_market_or_currency_capabilities(ch
     assert not value.technical_match and not value.eligible
 
 
-@pytest.mark.parametrize("provider", ["kraken-public", "alpaca-iex", "unknown-provider"])
+@pytest.mark.parametrize("provider", ["kraken-public", "unknown-provider"])
 def test_documentation_or_endpoint_access_does_not_implement_a_provider(provider):
     value = decide(DataRequest(identity=identity(), purpose="paper", provider=provider))
     assert (
@@ -302,8 +302,9 @@ def test_capability_view_reports_bounded_purposes_without_claiming_a_paper_adapt
         assert value.action == "data" and value.args == args
     view = capabilities_markdown()
     assert "not implemented" in view and "fixture only" in view and "ECB_REFERENCE" in view
-    assert "prior permission" in view.lower() and "IEX" in view
+    assert "prior permission" in view.lower() and "IEX" not in view
     paper = capabilities_markdown("authored-fixture", "paper")
     assert "Eligible for this bounded purpose: **no**" in paper
-    with pytest.raises(ResearchError):
-        capabilities_markdown("unknown")
+    for removed_or_unknown in ("alpaca-iex", "unknown"):
+        with pytest.raises(ResearchError):
+            capabilities_markdown(removed_or_unknown)

@@ -70,6 +70,6 @@ See [measured report analysis](report-analysis.md) for owning-agent interpretati
 
 See [authored account inspection](paper-inspection.md) for explicit read-only positions, orders, fills and health, exact retained economics, dated pagination and responsive navigation without model disclosure or account creation.
 
-See [Alpaca paper development](alpaca-paper-testing.md) for the selected first Bitcoin-spot paper route, masked inline credentials and fixed paper account/asset diagnostics. The Liquid provider observation/current-catalog check remains separate from future perpetual support and account/execution authority.
+Liquid is the only trading connector under [D58](decisions.md). Its [read-only connection](liquid-paper-testing.md) and [address diagnostics](liquid-account-diagnostics.md) remain distinct from future perpetual feed/paper work and account/execution authority.
 
 See [authored observation service](observation-service.md) for reviewed standalone process ownership, durable delivery/crash recovery, silence/heartbeat stops and read-only health. This service has no provider feed or order transport.

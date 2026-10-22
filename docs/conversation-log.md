@@ -4883,3 +4883,53 @@ Finished the in-progress personal-use cleanup and pushed it privately.
 No new feature increment was started. Ready for the bug-fixing session.
 
 ---
+
+### 576 — User
+
+remove entirely the alpaca implementation, lets keep only the liquid integration
+
+---
+
+### 577 — Assistant (progress update)
+
+I’ll remove the Alpaca code, commands and tests, then update the plan to keep Liquid as the only trading connector. Historical records will stay clearly marked as retired.
+
+---
+
+### 578 — Assistant (progress update)
+
+Alpaca is limited to account diagnostics, an inline credential form, commands and an unimplemented data profile. I’ll remove those paths. Liquid’s read-only connection and account diagnostic will remain; its real-feed and paper-order work is still unfinished.
+
+---
+
+### 579 — Assistant (progress update)
+
+The Alpaca code and UI paths are removed, and the full regression suite is running. The roadmap and AGENTS.md now specify Liquid only. I’m also checking that removed commands are rejected locally and that the built package contains no Alpaca modules.
+
+---
+
+### 580 — Assistant (progress update)
+
+The installed-package checks passed in two fresh processes: Alpaca modules are absent, retired commands are rejected, and Liquid’s fixture-backed connect/inspect/disconnect flow works at wide and small terminal sizes. Research and runtime approval hashes are unchanged. These checks made no real provider calls.
+
+---
+
+### 581 — Assistant (progress update)
+
+Upgrading from the previous wheel also removes the old Alpaca module. The full test run is still finishing; one test needed its obsolete IEX-profile expectation updated, and Liquid’s localhost OAuth test passed separately with permission to bind its listener.
+
+---
+
+### 582 — Assistant (progress update)
+
+Removal verification is complete. The full run passed 1,255 tests; the two remaining checks passed after updating the obsolete profile expectation and allowing the localhost listener. Package and upgrade checks also passed. I’ll publish the changes and stop here for the bug-fixing session.
+
+---
+
+### 583 — Assistant
+
+Removed Alpaca’s code, credential UI, commands, data profile and dedicated tests. Liquid is now the only trading connector.
+
+Updated docs and AGENTS.md; verified tests, package contents and upgrades. Pushed privately. Liquid’s real-feed and paper execution remain unfinished.
+
+---

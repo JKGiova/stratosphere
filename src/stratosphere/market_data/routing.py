@@ -128,16 +128,6 @@ def decide(request: DataRequest) -> CapabilityDecision:
             "https://docs.kraken.com/api-reference/market-data/get-ohlc-data",
             "https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc",
         ]
-    elif provider == "alpaca-iex":
-        blockers += [
-            "No verified Alpaca data adapter, linked account, entitlement or "
-            "exchange-calendar/action evidence is available."
-        ]
-        limitations += [
-            "The documented Basic stock feed covers IEX, not consolidated US market coverage; "
-            "actual account/feed access remains unverified."
-        ]
-        references += ["https://docs.alpaca.markets/us/docs/about-market-data-api"]
     else:
         blockers.append("No implemented verified adapter matches this provider request.")
     if not technical and not blockers:
@@ -174,7 +164,6 @@ PROFILES = (
     "binance-archive",
     "authored-fixture",
     "kraken-public",
-    "alpaca-iex",
 )
 
 
@@ -206,16 +195,6 @@ def profile_request(provider, purpose=None):
         default = "software_verification"
     elif provider == "kraken-public":
         values.update(venue="KRAKEN")
-        default = "paper"
-    elif provider == "alpaca-iex":
-        values.update(
-            asset_class="equity",
-            symbol="AAPL",
-            venue="IEX",
-            base_asset="AAPL",
-            quote_currency="USD",
-            interval_seconds=60,
-        )
         default = "paper"
     elif provider != "binance-archive":
         raise ResearchError("Unknown data profile. Use /data to inspect the supported scope.")

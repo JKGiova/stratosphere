@@ -13,6 +13,28 @@ from stratosphere.commands import route_command
 from stratosphere.tui import StratosphereApp
 
 
+async def test_removed_broker_commands_cannot_reach_models_or_start_connector_work(
+    ui_service, research_provider
+):
+    provider = Provider()
+    app = StratosphereApp(
+        provider_factory=lambda settings: research_provider,
+        research_service=ui_service,
+        liquid_connection=provider.connection,
+    )
+    async with app.run_test(size=(100, 30)) as pilot:
+        await connect(app, pilot)
+        for command in ("/alpaca", "/alpaca-connect", "/alpaca-save", "/alpaca-disconnect"):
+            assert route_command(command).message.startswith("Unknown command.")
+            await send(app, pilot, command)
+        assert not research_provider.requests and not provider.browser_urls
+        assert app.liquid_worker is None and provider.connection.session is None
+        assert app.setup is None and not app.research.store.jobs()
+        await send(app, pilot, "/liquid")
+        await app.liquid_worker.wait()
+        assert app.active_view == "focus" and not research_provider.requests
+
+
 @pytest.mark.parametrize("command", ["/liquid", "/liquid-connect", "/liquid-disconnect"])
 def test_liquid_commands_cannot_accept_pasted_tokens_or_account_arguments(command):
     assert route_command(command).action == command[1:]

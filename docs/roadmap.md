@@ -29,7 +29,7 @@ The current authorization covers Phases 3–5, not live orders. Retiring commerc
 - Preserve immutable specifications, exact duplicate reuse, provenance and variant lineage in the local library.
 - First-run setup selects a model; provider keys and optional broker connections remain separate. No application account, hosted login or user-profile database is required.
 - Keep online operation and the selected local Ollama exception. Local storage does not introduce a general offline product mode.
-- Alpaca is first for Bitcoin spot paper development; Liquid perpetuals follow later. BTC/USD remains separate from prior BTC/USDT evidence.
+- Liquid is the only trading connector under [D58](decisions.md). Perpetual paper/feed work remains unfinished; existing BTC/USDT spot studies stay separate.
 - No stratosphere service commission is planned. Broker/exchange fees, spreads, slippage and funding still belong in tests and execution accounting.
 - Preserve the settled TUI exit choice: keep positions or request closure of all, with actual outcomes and residual exposure visible.
 - Keep credentials outside models, acquired source execution and native worker environments.

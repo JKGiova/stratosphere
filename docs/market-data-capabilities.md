@@ -4,6 +4,8 @@ Status: **local inspection and quality checks implemented**. This increment adds
 
 ## Inspect current scope
 
+D58 removes the former alternative-broker data profile. Liquid is the only trading connector, but its read-only catalog/address diagnostics are not an eligible price-feed profile. The reference/archive/fixture profiles below remain research or software-verification tools, not additional trading integrations.
+
 Use `/data`, `/data <provider-profile>` or `/data <provider-profile> <purpose>`. The read-only result opens in Focus and scrolls with Page Up/Page Down, including at 45 × 12. It requires online access and makes no model request, price download, registration, account link or order. Profiles are explicit requested examples, not discovered account instruments.
 
 | Profile | Verified/implemented scope | Eligible purpose in this inspector |
@@ -12,7 +14,6 @@ Use `/data`, `/data <provider-profile>` or `/data <provider-profile> <purpose>`.
 | `binance-archive` | Existing BTCUSDT spot hourly archive research profile and separately reviewed studies | No new entitlement granted; commercial usage remains blocked by this routing policy |
 | `authored-fixture` | Development fixtures, subject to exact-byte binding by the caller | `software_verification` only; no market/performance/real-paper claim |
 | `kraken-public` | Documentation reviewed; no implemented/verified adapter or commercial permission | None |
-| `alpaca-iex` | Documentation reviewed; no linked/verified account/feed/calendar/action adapter | None |
 
 No profile is eligible for `paper` in this increment. A technically matching symbol does not establish entitlement, liquidity, venue filters, a current observation or execution readiness. The routing function recomputes eligibility from packaged policy; model output does not supply it. Market, venue, symbol, base asset, quote currency, interval and price kind must match the bounded profile. Spot/perpetual, USD/USDT and cross-venue aliases cannot transfer capability.
 
@@ -35,10 +36,11 @@ A passing structural/chronological result does **not** verify that a digest matc
 - [Binance dataset terms](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md) and the existing [rights record](data-source-rights.md) keep technical archive access separate from commercial entitlement.
 - [Kraken's official API notice](https://docs-legacy.kraken.com/api/docs/guides/global-intro/#notices) requires prior permission for non-personal commercial use of public endpoint data, including market/status data. No permission has been supplied and no new Kraken market/status probe was performed.
 - [Kraken OHLC REST](https://docs.kraken.com/api-reference/market-data/get-ohlc-data) documents the newest-720-entry limit and final uncommitted candle. [WebSocket OHLC](https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc) updates are trade-driven. Those facts do not implement closed-bar/reconnect/catch-up behavior in stratosphere.
-- [Alpaca's market-data documentation](https://docs.alpaca.markets/us/docs/about-market-data-api) distinguishes Basic IEX coverage from consolidated US market coverage. No account/feed permissions, calendar or corporate-action semantics were verified for stratosphere.
 
 No data license was purchased, paid capacity enabled or provider contacted. Further native/software validation continues on authored fixtures. Entitlement and actual real-time/account verification remain required work, not silently waived release criteria.
 
 ## Verification
+
+The results below describe the earlier profile matrix. D58 removes the alternative-broker profile and its current provider references; requesting that former profile now fails as unknown. This does not turn Liquid diagnostics or any research profile into a real paper feed.
 
 The focused data/TUI suite passed **55 checks**: exact profile/currency/venue separation, purpose isolation, strict numeric/timestamp types, quality/freshness/availability failures, unsupported market semantics and model-free online inspection. The full regression passed **617 tests**, zero skips, including nine native-engine tests (33 upstream Pandas deprecation warnings). The first full run exposed a flaky Reports assertion that assumed nonzero scrolling despite equal-timestamp hash ordering; the corrected check verifies that the selected row is actually visible. A subsequent **54-check source/TUI group** passed after making Markdown headings explicitly light in monochrome mode. Ruff/whitespace checks passed. Rebuilt wheel/sdist inspection matched Python/CSS sources and excluded configured credentials/private state/caches; the packaged capability view was inspected at 180 × 48 and 45 × 12 with keyboard scrolling and an injected online fixture gate only for rendering. No real feed or new provider capability is claimed by these fixtures.

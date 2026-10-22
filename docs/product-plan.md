@@ -30,7 +30,7 @@ Chat and slash commands use the same validated operations. Models cannot grant a
 
 Crypto, equities/ETFs and forex remain the intended progressive scope; each market/provider needs verification. Short-term positions may last minutes, hours, days or about a week; there is no universal end-of-day liquidation.
 
-Alpaca is the first Bitcoin-spot paper route; Liquid perpetual support comes later. Provider authentication, actual account eligibility, feed permission and order authority remain separate. Connecting a broker is optional for research and never activates trading.
+Liquid is the only trading connector under D58. Its perpetual feed/paper implementation remains unfinished. Provider authentication, actual account eligibility, feed permission and order authority remain separate. Connecting a provider is optional for research and never activates trading.
 
 The withdrawn 0.5%/$1 stratosphere fee is not a current requirement. Actual broker fees, spreads, slippage, funding, currencies and rounding still matter. Personal use does not grant unrestricted data redistribution or waive account/provider restrictions.
 

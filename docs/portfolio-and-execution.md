@@ -13,7 +13,7 @@ The mandate includes the account, permitted instruments, capital, active strateg
 3. The portfolio coordinator identifies candidate exposure changes; the budget management agent proposes capital allocation and sizing.
 4. The risk valuation agent assesses portfolio impact, concentration, liquidity, and the assumptions behind each intent.
 5. Deterministic checks validate the resulting intent, state freshness, available capital, permissions, and mandate limits. An agent's approval cannot override these checks.
-6. The execution gateway and operational runtime submit approved intents through the selected optional Alpaca or Liquid connector, after any provider-required confirmation.
+6. The future execution gateway and operational runtime submit approved intents through Liquid, after any provider-required confirmation and verified adapter/isolation. Current diagnostics cannot submit orders.
 7. Fills and reconciliation update the ledger; the portfolio is reevaluated against actual state.
 
 Signals from different strategies on the same instrument must not create incompatible independent orders. Define a policy for netting, opposing signals, capital attribution, and priority. Maintain virtual positions per strategy and aggregate account positions, with fill and P&L attribution.
@@ -56,14 +56,14 @@ The private local SQLite library holds strategy definitions; personal instances 
 
 ## Optional provider authorization
 
-The personal application has no hosted login or users database. Alpaca and Liquid provide optional account authorization; actual feed/execution capabilities require separate verification. No broker account is required for research or backtesting. Broker scopes/tokens are distinct from a stratosphere execution mandate.
+The personal application has no hosted login or users database. Liquid is the only trading connector and its connection is optional for research. Actual feed/execution capabilities require separate verification. No broker account is required for research or backtesting. Broker scopes/tokens are distinct from a stratosphere execution mandate.
 
 Budget management and risk valuation run before execution. Keep a single authoritative order/reconciliation path per account; neither the chief agent nor a provider-side assistant may independently bypass the gateway. Risk controls must account for reserved capital and pending orders as well as filled positions. Define concurrency, netting, and failure policies before live use.
 
 Liquid perpetual exposure to an equity/FX reference is not ownership of the underlying security or currency and is not interchangeable with an equity/ETF broker instrument. Verify funding, margin, liquidation, sessions, and historical price semantics for the actual instrument. Provider capability and confirmation requirements are hard constraints, not prompts agents can override.
 
-Exact Alpaca/Liquid API integration, native versus custom NautilusTrader adapters, paper support, and unattended execution compatibility remain to be verified. Selecting these connectors in the plan does not configure them or authorize orders. See [authentication and connectors](authentication-and-connectors.md).
+Exact Liquid execution integration, native versus custom NautilusTrader adapters, per-request paper isolation and unattended execution compatibility remain to be verified. Selecting Liquid in the plan does not authorize orders. See [authentication and connectors](authentication-and-connectors.md).
 
 ## Latest confirmed operating decisions
 
-Alpaca is first for Bitcoin-spot paper integration; Liquid follows for perpetuals, as confirmed on 21 October 2026. Execution uses configuration or explicit permission, subject to provider confirmations. The runtime operates on the user's computer. On TUI exit, users choose retaining positions or requesting closure of all positions; this user-facing choice is settled and must not be reopened. A computer shutdown stops local runtime logic. Specify and test pending-order handling and actual residual exposure rather than treating exit as guaranteed liquidation.
+Liquid is the only trading connector under D58. Perpetuals need their own strategy/instrument, funding/margin and fee evidence; existing spot studies cannot transfer to them. Execution uses configuration or explicit permission, subject to provider confirmations. The runtime operates on the user's computer. On TUI exit, users choose retaining positions or requesting closure of all positions; this user-facing choice is settled and must not be reopened. A computer shutdown stops local runtime logic. Specify and test pending-order handling and actual residual exposure rather than treating exit as guaranteed liquidation.

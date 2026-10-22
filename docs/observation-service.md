@@ -1,6 +1,6 @@
 # Authored observation worker
 
-Status: **implemented local process ownership, durable delivery and monitoring for reviewed authored streams**. This is a standalone development service, not an Alpaca feed, paper order adapter or completed production runtime. The complete [Phase 3–5 acceptance ledger](phase3-5.md) remains in progress. The [actual Alpaca account check](alpaca-paper-testing.md#user-performed-paper-check--21-october-2026) does not authorize this worker to acquire prices or trade.
+Status: **implemented local process ownership, durable delivery and monitoring for reviewed authored streams**. This is a standalone development service, not a Liquid feed, paper order adapter or completed production runtime. The complete [Phase 3–5 acceptance ledger](phase3-5.md) remains in progress. A provider diagnostic does not authorize this worker to acquire prices or trade.
 
 ## Reviewed boundary
 

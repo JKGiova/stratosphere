@@ -45,7 +45,7 @@ The application has no multi-user profile, app-login or public-publication requi
 
 Model adapters remain explicit and selectable, including local Ollama; no paid/model/provider fallback is inferred. Online gates for research/reporting remain. Linux/macOS and English are the initial client targets.
 
-Alpaca is first for personal Bitcoin spot paper development; Liquid perpetual support follows later. Optional provider authentication and permissions remain separate from strategy approval. Account metadata does not establish feed access, paper isolation, native precision/fee handling or order authority. Match each actual venue/instrument/quote/timing profile and permitted personal use.
+Liquid is the only trading connector. Optional provider authentication and permissions remain separate from strategy approval. Account metadata does not establish feed access, paper isolation, perpetual precision/funding/fee handling or order authority. Match each actual venue/instrument/quote/timing profile and permitted personal use.
 
 There is no stratosphere service fee or billing ledger requirement. Broker/exchange commissions, spread, slippage, funding and currency rounding still belong in simulation and operational accounting.
 

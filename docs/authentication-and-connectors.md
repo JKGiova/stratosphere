@@ -12,12 +12,11 @@ First-run setup configures the selected model/provider. Active model keys stay i
 
 | Provider | Current implementation | Remaining verification |
 | --- | --- | --- |
-| Alpaca | Masked in-memory paper credentials, fixed paper-host account/crypto-asset GETs and private exports | Eligible actual feed, native BTC/USD semantics/fees, paper transport and reconciliation |
 | Liquid | Browser read-scope catalog authorization and a separate reviewed address-read diagnostic | Ownership/environment, feed access, per-request paper isolation and a perpetual adapter |
 
-Alpaca is the first Bitcoin-spot paper route; Liquid perpetual support comes later. Research can run without either connection. Connecting, inspecting or reopening a diagnostic never activates trading. Provider OAuth/browser consent may still be necessary even though application login has been removed.
+Liquid is the only trading connector. Research can run without a Liquid connection. Connecting, inspecting or reopening a diagnostic never activates trading. Provider OAuth/browser consent may still be necessary even though application login has been removed.
 
-The [Alpaca user-performed check](alpaca-paper-testing.md#user-performed-paper-check--21-october-2026) reports an active USD crypto account and tradable fractional BTC/USD. The [Liquid observations](liquid-account-diagnostics.md) remain review-required and do not establish account control or paper mode. Historical exports cannot restore credentials, link an account or grant authority.
+The [Liquid observations](liquid-account-diagnostics.md) remain review-required and do not establish account control or paper mode. Historical exports cannot restore credentials, link an account or grant authority.
 
 ## Credential and execution boundaries
 
@@ -33,4 +32,4 @@ Disconnecting credentials, stopping a worker, revoking a mandate and requesting 
 
 The [Supabase provisioning record](supabase-setup.md), migrations and access-boundary proofs are retained historical work. Hosted login/synchronization is not a remaining dependency for the personal application. This cleanup does not delete or inspect the current hosted project, modify permissions or expose its data.
 
-See [personal-use scope](personal-use.md), [architecture](architecture.md), [Alpaca development](alpaca-paper-testing.md) and [Liquid testing](liquid-paper-testing.md).
+See [personal-use scope](personal-use.md), [architecture](architecture.md) and [Liquid testing](liquid-paper-testing.md).

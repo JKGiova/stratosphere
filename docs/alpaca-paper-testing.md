@@ -1,5 +1,7 @@
 # Alpaca paper development
 
+Current-scope override: D57 selects personal use. Commercial data licensing is no longer a general project prerequisite, but actual account/feed eligibility, provider-purpose restrictions and execution verification remain required. Historical test records below are unchanged. This cleanup starts no feed/adapter work and performs no new provider request.
+
 Status: **paper account/asset diagnostic implemented, locally verified and a user-performed account check inspected; feed, adapter and runtime pending**. The user selected Alpaca first for Bitcoin spot and Liquid later for perpetuals. This supersedes Liquid as the first real-feed paper route, not the full [Phase 3–5 requirements](phase3-5.md).
 
 ## Setup and fixed reads

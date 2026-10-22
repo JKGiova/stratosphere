@@ -1,5 +1,7 @@
 # Phase 1 — online terminal client, registry and sources
 
+Current-scope override: D57 makes the local SQLite registry the personal store and retires hosted login, automatic sharing and multi-user synchronization. Historical increment/CI records below preserve what was implemented/tested at their dates; their old hosted/commercial remaining-work lists are superseded by the current [roadmap](roadmap.md). This does not mark source/agent scope complete.
+
 Status: **in progress**, October 17, 2026. Phase 0 remains complete. The user authorized Phase 1 after reviewing the native Intel verification. Work proceeds in sequential, tested increments; this document does not declare the full phase or a release complete.
 
 ## Increment 1 — terminal client and conversational model workflow

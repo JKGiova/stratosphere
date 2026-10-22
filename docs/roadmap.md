@@ -1,95 +1,54 @@
-# Roadmap and open implementation decisions
+# Roadmap and completion criteria
 
-Last updated: October 21, 2026. Phases describe dependencies and verifiable outcomes, not delivery dates. [Phase 0 compatibility/contract proofs](phase0.md) are **complete within their stated scope**. [Phase 1](phase1.md) is **in progress**, beginning with terminal/model chat; [Phase 2](phase2.md) is **in progress** with its first reviewed text-to-native-backtest workflow; The user has authorized **Phases 3–5**, now in progress under the [full acceptance ledger](phase3-5.md). Their agent/database foundation and bounded local SMA study increment are implemented; local dated applicability/candidate operations are implemented; authenticated community recommendations, broader iteration, source/data maturation and paper runtime remain pending. Commercial market-data rights are unresolved; see [data-source rights](data-source-rights.md). Phases 6–7 remain not implemented. An internal proof is not a release.
+Last updated: October 22, 2026. stratosphere is now a **personal tool**, as confirmed in [D57](decisions.md). The repository stays private. Local SQLite stores strategies, provenance, agent histories and report references; private files/account journals retain evidence and operational state. Hosted user databases, application login, automatic publication and platform billing are retired requirements.
 
-## Selected foundation
+## Current checkpoint
 
-Python, LangGraph, Supabase-managed PostgreSQL, Supabase Auth OAuth login, NautilusTrader, and the permanent terminal TUI are confirmed. Alpaca and Liquid are optional operational connectors. Crypto, equities/ETFs, and forex are product scope, with short-term strategies that may hold positions overnight or for days/a week. Registered strategy definitions are automatically shared.
+Phase 0 is complete within its [verified scope](phase0.md). Phases 1–5 have implemented increments, not complete phases. The [Phase 3–5 ledger](phase3-5.md) retains the full personal research/source/paper requirements and distinguishes software fixtures from provider verification.
 
-See the [decision log](decisions.md) for confirmed requirements and remaining proposals. Do not treat interface, framework, database, authentication platform, optional connector choices, or automatic sharing as undecided.
+The personal-use documentation/UI cleanup is complete within its [verified scope](personal-use.md#cleanup-verification--october-22-2026). The next session is the user-led intermediate bug-fixing session. Do not start a new feed, order adapter, strategy family or other feature increment at this checkpoint.
 
-## Proposed phases
+## Active phases
 
 | Phase | Scope | Completion criterion |
 | --- | --- | --- |
-| 0 — Compatibility and contracts | Select runtime/engine versions, first test adapters/data, TUI library, canonical spec, and access boundary | Verified compatibility matrix and example strategy/data protocol |
-| 1 — Online TUI, onboarding, registry and sources | English Linux/macOS TUI, chief-agent chat, slash commands and panels; selectable model setup; registry contracts and internal development harness; YouTube, Instagram, X, TradingView and GitHub acquisition | Model setup, private ownership contracts, exact deduplication, source accumulation, distinct variants and catalog projection in controlled development tests and all five source integrations tested against accessible examples; unavailable material explicitly reported |
-| [2 — Research MVP](phase2.md), in progress | Text/article → specification → conforming implementation → NautilusTrader backtest → report | Reproducible end-to-end case with costs, rule evidence, immutable references, and user intervention |
-| 3 — Iteration and recommendations | Bounded variants, out-of-sample validation, evidence-aware catalog recommendations, dated applicability | All attempts retained; recommendations distinguish compatibility, empirical evidence, and current context |
-| 4 — Source maturity and market coverage | Improve the Phase 1 source integrations and conversion conformance; progressively verify crypto/equity/ETF/forex data integrations | Source provenance, format/provider failure cases, behavioral conversion and capability-based routing tested |
-| 5 — Live data and paper | Feed/runtime, budget and risk agents, optional account linking, verified paper adapter, personal instances | Sustained operation with restart/reconciliation tests and overnight/multi-day holding checks |
-| 6 — Live execution and commercial billing | Stable verified Alpaca/Liquid adapters, mandate, deterministic checks, single order gateway and commission accounting/collection | Explicit activation plus idempotency, partial-fill, outage, risk and shutdown tests; approved opening-trade fee rules, cap, collection and ledger reconciliation tested before commercial release |
-| 7 — Operational evolution | Broader adapters, attribution, drift monitoring, controlled implementation promotion | Consistent aggregate portfolio and no silent changes to pinned user deployments |
+| 0 — Compatibility and contracts | Pinned Python/engine, Textual, canonical identities and bounded proofs | Measured platform/contract evidence within the documented limits |
+| 1 — TUI, local library and sources | English Linux/macOS TUI, model setup, chief-agent chat, slash commands, local strategy identities and all five source integrations | Persistent local deduplication/provenance/agent isolation and verified source access/failure behavior; no application login |
+| [2 — Research](phase2.md) | Source or idea → specification → conforming implementation → NautilusTrader backtest → report | Reproducible costs, exact rules, immutable references and user approval |
+| 3 — Iteration and local recommendations | Bounded variants, validation-only selection, holdout discipline and dated local candidates | All attempts retained; compatibility, empirical evidence and current context remain distinct |
+| 4 — Source maturity and market coverage | YouTube, Instagram, X, TradingView and GitHub acquisition/conversion; progressive market adapters | Exact source provenance, behavioral conformance, provider failures and permitted personal data use verified |
+| 5 — Live data and paper | Eligible feed, persistent runtime, budget/risk proposals, deterministic controls and broker paper adapter | Sustained operation, native accounting, restart/reconciliation, concurrent-strategy attribution and keep/close exit workflow verified |
+| 6 — Personal live execution | Verified provider adapter, mandate, one order gateway and deterministic controls | New explicit activation authorization plus partial-fill, outage, risk, reconciliation and shutdown checks; no platform billing |
+| 7 — Operational evolution | Broader adapters, drift monitoring and controlled implementation changes | Consistent portfolio attribution and no silent changes to pinned instances |
 
-An initial integration verifies the workflow; it does not restrict product scope to that market. Do not claim all markets are live-ready until their data, instruments, and broker adapters are verified.
+The current authorization covers Phases 3–5, not live orders. Retiring commercial features does not complete source conversion, feed entitlement, paper execution or the rest of those phases.
 
-## Internal development increment
+## Personal application boundaries
 
-The research proof uses one textual source, a complete specification, a verified historical dataset integration, isolated code execution and a reproducible report. This narrow proof is not a release and does not defer the confirmed Phase 1 scope: all five external source integrations, Linux/macOS English TUI panels, onboarding and shared registry must also be delivered and tested.
+- Keep the responsive TUI, one stable agent per exact strategy, separate histories and inspectable Reports.
+- Preserve immutable specifications, exact duplicate reuse, provenance and variant lineage in the local library.
+- First-run setup selects a model; provider keys and optional broker connections remain separate. No application account, hosted login or user-profile database is required.
+- Keep online operation and the selected local Ollama exception. Local storage does not introduce a general offline product mode.
+- Alpaca is first for Bitcoin spot paper development; Liquid perpetuals follow later. BTC/USD remains separate from prior BTC/USDT evidence.
+- No stratosphere service commission is planned. Broker/exchange fees, spreads, slippage and funding still belong in tests and execution accounting.
+- Preserve the settled TUI exit choice: keep positions or request closure of all, with actual outcomes and residual exposure visible.
+- Keep credentials outside models, acquired source execution and native worker environments.
 
-The example strategy should have explicit entry/exit rules and limited parameters. Test specification/code alignment, signal timing, costs, missing data, repeatability, exact deduplication, small variants, source accumulation, and job intervention. Profitability is not a completion requirement.
-
-Recommended dependency order: register identities and provenance before community ranking; validate paper operations before real orders. Detailed scheduling is a proposal and may be refined.
-
-## Proposed code areas
-
-| Area | Responsibility |
-| --- | --- |
-| tui / commands | Permanent terminal interface, chat, forms, and slash command routing |
-| operations | Shared validated actions used by agents and manual commands |
-| agents / workflows | LangGraph chief agent, specialist roles, checkpoints, and budgets |
-| sources | Acquisition, snapshots, and evidence maps |
-| registry | Supabase PostgreSQL identities, canonicalization, provenance, and submissions |
-| catalog | Shared discovery, recommendations, and publication projections |
-| strategies | Formal specs, conforming implementations, and signal logic |
-| data / research | Data quality, snapshots, workers, NautilusTrader tests, and reports |
-| portfolio / risk | Allocation, personal instances, deterministic controls, and attribution |
-| auth / connections | Supabase OAuth session/ownership and separate optional Alpaca/Liquid consent |
-| execution | Selected connector/engine adapters, order handling, reconciliation, and lifecycle |
-| tests / examples | Conformance, integration, restart, deduplication, and reproducible cases |
-
-## Open details
+## Remaining implementation decisions
 
 | Detail | Required before |
 | --- | --- |
-| Tradable-data and operational engine adapters beyond the verified Phase 0 proof | Corresponding research/paper/live integration |
-| Additional instruments/data profiles and Alpaca/Liquid account capabilities/adapters beyond the selected BTC/USDT hourly Binance research profile | Corresponding data/paper/live phase |
-| LLM providers/structured output and user-approved job budgets (meaning explained; values unconfirmed); Textual is selected | TUI/research implementation |
-| Physical schema/migrations, canonical extensions and transactional constraints; IDs/canonical v1 selected in Phase 0 | Registry implementation |
-| Supabase provisioning and project plan (organization/Frankfurt region selected), OAuth provider/callback/session configuration, API access, RLS, hosting, secure session storage and online outage handling | Shared service release |
-| Generated-code isolation and resource/network restrictions | Executing user/model code |
-| Ranking weights, verified evidence, moderation and source-use policy | Community recommendation release |
-| Private/public evidence projection and deletion/retention | Catalog release |
-| Validation thresholds, portfolio allocation, netting and risk mandate | Experiments/paper/live as applicable |
-| Activation confirmations, permissions and emergency behavior | Live execution |
-| Fee basis, USD/currency policy, opening event grouping, partial fills, retries, collection and disputes | Billing implementation/commercial release |
-| Measurable extensive-testing gates, scale and operating budget | Public/commercial release |
-| APIs to other tradingsphere components | First suite integration |
+| Actual account/feed eligibility, native increments, provenance and permitted personal use | New market-data or broker integration |
+| Wider strategy families and faithful external-code/media conversion | Advertising supported conversion or execution |
+| Model interpretation quality and bounded research budgets | Broader agent-operated experiments |
+| Persistent runtime/portfolio reconciliation and sustained tests | Complete paper operation |
+| Risk limits, netting, allocation and emergency policies | Paper/live operation as applicable |
+| Generated-code isolation and executable identity | Running externally acquired/generated implementations |
+| Local evidence backup/recovery and secure provider credential lifecycle | Personal operational readiness |
+| Verified suite interfaces | Any future tradingsphere component integration |
 
-## Deferred login and collection
+## Testing and readiness
 
-Login implementation/configuration and fee-collection selection are deferred to later pre-release work. Google/GitHub, browser-hosted login and the opening-order fee rules remain confirmed. They do not block the current compatibility, TUI, research, source-acquisition or backtesting proof. The planned Phase 1 registry uses a controlled development harness, not an unauthenticated public deployment; real shared-user access still requires verified authentication and ownership controls before release. Final onboarding continues to include login and optional trading connections. Do not reopen payment-collection or login questions during the current planning pass.
+There is no deadline. Extensive testing remains required for personal operation, including source/conversion fidelity, reproducibility, agent isolation, broker accounting, risk gates, outages, restart and shutdown behavior. A high return or a green fixture suite alone is not readiness.
 
-## Next step
-
-The [Phase 0 audit](phase0.md) is complete. Runtime/version matrix, Textual, canonical v1 contracts, ECB historical integration/native-engine proof and hosted catalog access boundary have been selected and tested within their stated scope. The user authorized Phase 1 and subsequently [Phase 2](phase2.md). Phase 1 remains unfinished: its [increment record](phase1.md) distinguishes implemented client behavior from pending shared registry, source and broader agent-operation work. Phase 2 begins with a reviewed BTC/USDT hourly SMA research path using a pinned Binance archive; this does not defer or claim completion of the five Phase 1 content adapters.
-
-Quiver remains a possible optional alternative-data integration. VectorBT remains a possible optional research accelerator. Neither is required for the first usable increment.
-
-## Roadmap refinement
-
-The [planning questionnaire](planning-questions.md) covers remaining product, runtime, agent, authentication, source, data, catalog, execution, operational and development decisions. Record confirmed answers in decisions.md, retain deferred choices with the phase they block and expand each phase into tasks/dependencies/acceptance criteria. Runtime and provider capabilities require verification; do not treat unanswered product questions as approved defaults. Phase 0 engineering selections/evidence are tracked separately; Phase 1 has started; Phase 2 has begun within the verified scope in its increment record; Phases 3–5 are authorized and in progress; their full completion requires the acceptance ledger. Phases 6–7 remain unimplemented. AGENTS.md rules remain in force.
-
-## Release policy and confirmed experience
-
-There is no target release date. Release follows extensive testing rather than the completion of a narrow MVP. Define release gates after the remaining questionnaire answers: user acceptance, security/ownership, source acquisition/conversion, reproducibility, paper stability, operational recovery and commercial fee reconciliation. Duration, sample sizes, scale and thresholds are not yet approved. Internal testing may proceed incrementally; a commercial trading release depends on validated execution and billing.
-
-The product is online-only, English-only and private-source. Start client support with Linux and macOS; retain eventual support for all OSes. Use an agent chat and explicit slash commands with strategy, ongoing/completed test and actual-position panels. Onboarding covers model selection/configuration, browser-based hosted login and optional trading connections. Use OpenRouter `cohere/north-mini-code:free` during development/testing, selected through the user-authorized live free-model comparison. NVIDIA NIM remains an explicit alternative; model selection must not silently fall back to a paid variant.
-
-The service fee target is 0.5% per opening trade with a $1 cap. The basis is opening-order trade value, with one cap per opening order and reinforcement exempt; execution edge cases remain to be specified. Collection is deferred and no billing is implemented. See [commercial requirements](commercial-model.md) and [Supabase setup](supabase-setup.md) for outstanding dependencies.
-
-## Local-runtime and commercial refinements
-
-Research/trading compute runs on users' computers; shared auth/catalog/billing remains online. Users bring model API keys. Google and GitHub login are selected, but hosted-login deployment/domain is not. Alpaca is first for Bitcoin-spot paper integration; Liquid follows later for perpetuals, as confirmed on October 21. Research follows one plan approval with ambiguity questions; live operation follows its own configuration/permission and provider restrictions. TUI exit has the confirmed choice to keep positions open or close them all. This user-facing decision is settled; internal lifecycle implementation must honor it without asking the user to redefine the choice. Opening-order fees exclude reinforcement of existing positions.
-
-See [research and release proposals](research-and-release-proposals.md) for first data options, job-budget explanations and proposed testing gates. Payment alternatives in that document are deferred. These proposals are not confirmed defaults.
+Historical commercial pricing, hosted access proofs and Supabase provisioning records are retained as retired material. They are not deferred prerequisites. See [personal-use scope](personal-use.md), the [decision history](decisions.md) and [provider data rights](data-source-rights.md).

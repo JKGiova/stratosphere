@@ -1,3 +1,11 @@
+# Historical Supabase setup
+
+Status: **retired as an application requirement by D57**. The personal TUI uses local SQLite and needs no hosted users database, application login or synchronization. The provisioning/tests below describe historical evidence; this cleanup does not recheck current project health or delete/modify the hosted resources.
+
+See [personal-use scope](personal-use.md). Do not treat historical quoted costs, status or provider settings as a fresh inspection.
+
+## Historical provisioning record
+
 # Supabase setup
 
 Status: **project and private registry foundation provisioned and verified**, October 18, 2026. The TUI's hosted application-service synchronization and login remain unimplemented.

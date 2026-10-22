@@ -4,11 +4,11 @@
 
 **Confirmed:** the TUI is the permanent main interface. Its center is a chat with a chief agent, plus slash commands inspired by terminal coding assistants. There is no planned migration to a browser dashboard. Textual is selected. The current visual direction follows [Gloomberb](https://github.com/gloom-sh/gloomberb)'s default monochrome terminal style, adapted to stratosphere’s responsive workspace.
 
-The user can supply strategy ideas and external sources, inspect recommendations, review formal rules, select experiments, intervene in ongoing workflows, and inspect portfolio state without leaving the terminal.
+The user can supply strategy ideas and external sources, inspect local-library recommendations, review formal rules, select experiments, intervene in ongoing workflows, and inspect portfolio state without leaving the terminal. Under D57 this is a personal application: no hosted login, user database, automatic sharing or platform billing.
 
 ## Current implementation
 
-[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. The [first Phase 2 increment](phase2.md) adds local research plans, approved native backtests, job controls and reports from pasted text. The strategy-agent/local-registry foundation and bounded study controls are implemented; hosted registry synchronization and trading execution remain unimplemented. Limited [source readers](phase4-sources.md) and a read-only [Liquid connection](liquid-paper-testing.md) are implemented within their stated limits. The command vocabulary below describes the wider planned interface; implemented commands are listed in phase1.md and phase2.md.
+[Phase 1 increment 1](phase1.md) implements model onboarding, streaming conversational chat, deterministic navigation commands and capability panels. The [first Phase 2 increment](phase2.md) adds local research plans, approved native backtests, job controls and reports from pasted text. The strategy-agent/local-registry foundation and bounded study controls are implemented; trading execution remains unimplemented. Hosted registry synchronization is retired. Limited [source readers](phase4-sources.md) and a read-only [Liquid connection](liquid-paper-testing.md) are implemented within their stated limits. The command vocabulary below describes the wider planned interface; implemented commands are listed in phase1.md and phase2.md.
 
 ### Workspace layout and navigation
 
@@ -38,7 +38,7 @@ First-run model setup appears as an inline form in the agent conversation. There
 
 Assistant replies render Markdown while streaming: headings, emphasis, lists, fenced code blocks with syntax coloring, inline code and tables. Unfinished Markdown is rerendered as text arrives. User messages and command/status text remain literal. Terminal controls are stripped, Rich markup is not interpreted in model text, and rendering neither fetches images nor automatically opens links. Formatting does not execute code or change the stored model conversation. Failed/canceled replies remain marked incomplete and excluded from model history.
 
-The interface lists actual local research drafts/jobs as they are created; the shared catalog remains disconnected. It does not populate synthetic strategies, tests, balances or trading positions. Unavailable account data is explicitly unknown. Reports lists and opens retained research evidence; the status bar/tooltip shows the configured model, actual request state and completed conversation turns; configuration alone is not a verified online request. Local research execution is documented in [Phase 2](phase2.md); trading integrations remain unavailable.
+The interface lists actual local strategies and research drafts/jobs as they are created; the library is personal and has no publication operation. It does not populate synthetic strategies, tests, balances or trading positions. Unavailable account data is explicitly unknown. Reports lists and opens retained research evidence; the status bar/tooltip shows the configured model, actual request state and completed conversation turns; configuration alone is not a verified online request. Local research execution is documented in [Phase 2](phase2.md); trading integrations remain unavailable.
 
 ### Terminal window size at launch
 
@@ -60,13 +60,13 @@ Local complete drafts populate Library with stable strategy IDs and dedicated ag
 
 `/liquid-account` calls only the reviewed `get_account` operation after read-only catalog connection. `/liquid-account-reads` lists private attempts and `/liquid-account-show <complete-read-id>` opens a historical record online. [Scope and verification limits](liquid-account-diagnostics.md) remain explicit: provider text is literal, known credentials are rejected, no model is involved, and a reported address cannot link an account, populate Positions, verify paper mode or authorize execution.
 
-## Login and optional account setup
+## Personal setup and optional provider connections
 
-Application login uses Supabase Auth OAuth, independent of broker accounts. A browser may be used for the external sign-in/consent step; research, chat, and portfolio interaction remain in the permanent TUI. The exact PKCE/callback flow and local token storage must be verified before implementation.
+Application login is retired under D57. Inline onboarding configures the model, and local SQLite retains the personal library/histories. The notice explains local retention, model disclosure and the absence of automatic publication or a platform fee.
 
-After login, users can research and backtest without connecting Alpaca or Liquid. Optional account linking has its own consent, permissions, environment, and connection status. Live activation requires a separate mandate/confirmation. Disconnecting a trading account does not delete the user's strategies or app profile.
+Research does not require an Alpaca or Liquid connection. Optional provider authorization has its own consent, permissions, environment and status. A browser may still be required for provider OAuth; it is not application login. Disconnecting a provider does not delete local strategies/history or close positions. Trading activation requires a separate verified mandate and integration.
 
-Proposed manual operations include /login, /logout, /connections, /connect <provider>, and /disconnect <connection-id>. These are not implemented commands. Distinguish logout, connector revocation, runtime shutdown, and position closure in the UI.
+There are no planned /login or /logout operations. Actual provider diagnostic commands are listed in /help; they cannot activate trading. Distinguish provider disconnection, runtime shutdown and position closure.
 
 ## Proposed surfaces
 
@@ -91,7 +91,7 @@ Incomplete arguments open a terminal form or chooser. Preview the strategy, impl
 | /new | Start specification from an idea |
 | /import <url> | Acquire a source and extract rules |
 | /strategies | Browse the user's submissions and linked catalog strategies |
-| /recommendations | Explore relevant community strategies and their evidence |
+| /recommendations | Explore relevant personal-library strategies and their evidence |
 | /show <strategy-id> | Inspect rules, sources, variants, and experiments |
 | /backtest <strategy-id> | Select configuration and launch a historical experiment |
 | /compare | Compare strategies, implementations, or experiment runs |
@@ -131,17 +131,17 @@ Chats, source access credentials, account details, and personal mandates are not
 
 Use an English-only online TUI inspired by the conversational terminal experience of Claude Code and Codex. Linux and macOS are the first supported clients; all operating systems remain the longer-term goal. Alongside chat and forced slash-command operations, expose panels for opening strategies, ongoing/completed tests and actual trading positions. These surfaces are required rather than tentative.
 
-First-run onboarding configures the user's selected model/provider, hosted browser login and trading connections. Trading connections remain optional; offer an explicit skip choice for research without a broker. The explicit local Ollama selection permits local model inference; research operations retain online data checks. No general offline research functionality is planned. Hosted login deployment, OAuth provider and terminal callback details still need decisions.
+First-run onboarding configures the user's selected model/provider. Trading connections remain optional and separate. The explicit local Ollama selection permits local inference; research operations retain online data checks. No general offline application mode is planned. Hosted application login/deployment is retired.
 
 ## Confirmed execution and onboarding refinements
 
-Users provide their own model API keys. Google and GitHub are selected for browser login; no hosted-login domain exists yet. Research executes an approved plan and asks clarifying questions when needed. Execution uses separate configured permissions. On TUI exit, users choose keeping positions or requesting closure of all positions. The keep/close choice is settled and must not be reopened. Internal lifecycle and pending-order handling must honor that choice.
+The user provides model API keys as required by the chosen provider. Hosted application login is retired. Research executes an approved plan and asks clarifying questions when needed. Execution uses separate configured permissions. On TUI exit, users choose keeping positions or requesting closure of all positions. The keep/close choice is settled and must not be reopened. Internal lifecycle and pending-order handling must honor that choice.
 
-Login implementation is deferred to later pre-release work; preserve it in the final onboarding design while focusing current development on model setup, chat, commands, panels and research.
+Hosted login and platform billing have been removed from the current plan. Preserve model setup, chat, commands, local panels, provider consent and research controls.
 
 ## Strategy-agent and Reports increment
 
-[Strategy agents](strategy-agents.md) now route registered-strategy conversations to separate persistent specialist contexts, with `/agent` selection and the same exact-plan approval gates for tests. Reports replaces Session and lists actual completed reports; selecting a report reverifies retained artifact integrity and online availability. Model/request metadata moved to the status tooltip. Supabase is provisioned with a private tested schema, while the current TUI uses the local development registry until authenticated application-service synchronization exists. Broader Phase 3–5 work remains in progress.
+[Strategy agents](strategy-agents.md) now route registered-strategy conversations to separate persistent specialist contexts, with `/agent` selection and the same exact-plan approval gates for tests. Reports replaces Session and lists actual completed reports; selecting a report reverifies retained artifact integrity and online availability. Model/request metadata moved to the status tooltip. The existing local SQLite registry is the personal application's store. Prior Supabase provisioning is historical and hosted synchronization is retired. Broader Phase 3–5 work remains in progress.
 
 ## Bounded study interaction
 

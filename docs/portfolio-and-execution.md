@@ -52,11 +52,11 @@ Operate through the permanent TUI and shared application operations. Chief-agent
 
 Short-term trading includes overnight and multi-day positions. A week-long position is allowed if its strategy and mandate allow it; no universal day-end closure applies. An instrument's session ending is distinct from a strategy exit. Model calendars, financing, funding, margin, and provider restrictions as applicable.
 
-The Supabase-managed PostgreSQL registry holds shared strategy definitions; personal instances pin strategy identity and implementation, selected instruments, account reference, capital, and limits. Changing personal capital/account does not create a strategy. Changing behavioral sizing or exit rules does. Credentials, account details, chats, personal limits, and raw live records are not automatically published with the strategy.
+The private local SQLite library holds strategy definitions; personal instances pin strategy identity and implementation, selected instruments, account reference, capital, and limits. Changing personal capital/account does not create a strategy. Changing behavioral sizing or exit rules does. Credentials, account details, chats, personal limits, and raw live records are not automatically published with the strategy.
 
-## Optional providers and independent login
+## Optional provider authorization
 
-Supabase Auth OAuth authenticates the application user. Alpaca and Liquid only provide optional operational account access and execution. No broker account is required for research or backtesting. Broker OAuth scopes/tokens are distinct from the Supabase session and from the stratosphere live mandate.
+The personal application has no hosted login or users database. Alpaca and Liquid provide optional account authorization; actual feed/execution capabilities require separate verification. No broker account is required for research or backtesting. Broker scopes/tokens are distinct from a stratosphere execution mandate.
 
 Budget management and risk valuation run before execution. Keep a single authoritative order/reconciliation path per account; neither the chief agent nor a provider-side assistant may independently bypass the gateway. Risk controls must account for reserved capital and pending orders as well as filled positions. Define concurrency, netting, and failure policies before live use.
 

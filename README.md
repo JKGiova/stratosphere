@@ -1,110 +1,66 @@
 # stratosphere
 
-**Quantitative strategies created, tested, and managed through agents.**
+**A personal terminal workspace for agent-driven quantitative research and trading development.**
 
-stratosphere is the component of the **tradingsphere** suite dedicated to the complete lifecycle of a quantitative trading strategy: starting from an idea or external source, turning it into executable rules, evaluating it on historical and real-time data, improving it, and activating it on a live account with coordinated portfolio management.
+stratosphere is the quantitative-strategy component of **tradingsphere**. The repository stays private. Under [D57](docs/decisions.md), this is for the user's own use: no commercialization, platform commission, hosted application login, multi-user database or automatic community publication.
 
-Planned sources include YouTube videos, Instagram Reels, articles, X posts and threads, TradingView strategies, and GitHub repositories. Agents reconstruct the rules, highlight missing information, and propose implementations and variants. A portfolio management agent evaluates the signals from active strategies together and proposes allocations and position openings, reductions, and closures within limits enforced by the risk system.
+## Current implementation
 
-## Project status
+The responsive Textual TUI provides Chat, Library, Focus, Tests, Positions and Reports. Tab/Shift+Tab cycle views; the terminal retains its existing size. Model setup lives in chat with masked credentials, explicit provider selection and Markdown replies. The [12 adapters](docs/model-providers.md) include local Ollama; provider protocol tests and actual model reliability remain distinct.
 
-**Phase 0 complete.** The repository contains the plan plus verified compatibility/contract proofs: pinned runtime dependencies, a Textual framework probe, canonical examples, a read-only ECB historical integration and a bounded native NautilusTrader simulation. See [Phase 0 gates and evidence](docs/phase0.md). **Phase 1 is in progress:** the first terminal increment adds model onboarding, streaming model chat through LangGraph ([12 model providers](docs/model-providers.md), with OpenRouter Cohere North Mini Code free by default), deterministic slash commands and capability panels. See [Phase 1 progress and run instructions](docs/phase1.md). Live streaming chat and multi-turn context are verified with the selected Cohere free model; see the bounded test evidence in Phase 1. The first [Phase 2 research workflow](docs/phase2.md) now turns pasted rules into a reviewed SMA specification, approved native backtests and reproducible reports. The first [bounded-study increment](docs/phase3-studies.md) adds approved SMA comparisons, validation-only selection, retained attempts and a separate final holdout protocol, verified with authored data. [Commercial dataset rights](docs/data-source-rights.md) remain unresolved. The [dated applicability increment](docs/phase3-applicability.md) adds private assessment snapshots and local research candidates with explicit compatibility, evidence and missing-context status. A [strategy-agent foundation](docs/strategy-agents.md) now provides stable per-strategy agents, local registry records and a Reports panel; the [Supabase private schema](docs/supabase-setup.md) is provisioned and ownership-tested. The [source intake increment](docs/phase4-sources.md) adds read-only snapshots, a commit-pinned GitHub file reader, partial YouTube/X/TradingView material and explicit Instagram access limitations. [Strategy-owned source reviews](docs/source-reviews.md) add private reports with validated source references without enabling conversion or tests. Complete media/Pine acquisition, source-bound conversion, authenticated shared registry service, general generated-code execution, login, paper/live execution and billing remain unimplemented. The initial proof does not verify tradable market data or broker capabilities.
+The local SQLite library retains exact strategy identities, provenance, one stable agent per strategy, separate histories, jobs and report references. Approved bounded SMA backtests/studies use NautilusTrader and retain inspectable results, costs, failures and validation/holdout evidence. Sources and model interpretations remain subject to the limitations in their respective records.
 
-The terminal follows [Gloomberb](https://github.com/gloom-sh/gloomberb)'s monochrome style: black/charcoal surfaces, white focus accents, square dividers and compact title bars. The responsive workspace shows six, four, two side-by-side, two stacked or one panel according to terminal size. **Tab / Shift+Tab** cycle through Library, Focus, Chat, Tests, Positions and Reports; F1–F4 are direct shortcuts. Model setup lives inside agent chat, and assistant replies render Markdown, including code and tables. See [layout thresholds and keyboard controls](docs/terminal-interface.md#workspace-layout-and-navigation).
+[Authored account inspection](docs/paper-inspection.md) and the [reviewed observation worker](docs/observation-service.md) expose retained accounting, reservations, queue recovery, ownership and heartbeat/silence stops. They are fixture/account-processing foundations, not a broker paper service.
 
-The app uses the terminal’s existing window size; automatic maximization and the clickable brand menu are removed.
+The user's [Alpaca account/asset check](docs/alpaca-paper-testing.md#user-performed-paper-check--21-october-2026) was inspected and reports an active USD crypto account and tradable fractional BTC/USD. A real feed, Alpaca paper order transport, complete broker reconciliation and the operational keep/close exit workflow remain unfinished. Liquid perpetual integration follows later. Connecting or inspecting a provider does not grant trading authority.
 
-[Authored account reviews](docs/phase5-paper-reviews.md) add explicit budget/risk advice over an existing internal journal and retain the report in Reports. They cannot create accounts, change allocations or approve orders. The two-role protocol is fixture-tested; final live Ollama attempts were rejected, so model reliability remains unverified. The [actual Liquid read catalog](docs/liquid-paper-testing.md#actual-exported-schema-observations--19-october-2026) has been inspected without invoking a provider tool; actual account identity, feed and paper isolation remain unverified.
+**Phase 0 is complete within its stated scope. Phases 1–5 remain partial/in progress.** The full personal research/source/paper objective is tracked in [Phases 3–5](docs/phase3-5.md); this cleanup does not mark those phases complete.
 
-Use `/new` in chat to review the first research profile: BTC/USDT spot, hourly SMA crossover, a pinned January 2025 dataset, editable simulated costs and one approval for base/stress backtests. `/jobs`, `/show` and `/report` expose actual local evidence; `/pause` and `/resume` retain completed checkpoints. This is an internal increment, not a completed phase or release. See [Phase 2 run instructions and limits](docs/phase2.md).
+## Run the existing client
 
-[Measured report analyses](docs/report-analysis.md) now let the owning strategy agent interpret sealed research/study results through `/analyze-report <job-id>`. Reports retains the advisory narrative and all frozen fact references; model interpretations remain unverified and cannot approve or start operations.
+From the configured repository environment:
 
-[Authored account inspection](docs/paper-inspection.md) connects `/paper` and `/portfolio` to an existing journal's positions, orders, fills and health. Views retain exact fill economics, reservations and capture timestamps without account mutation or model disclosure. A missing journal stays unavailable; no broker, feed or paper service is connected by inspection.
+```sh
+.venv/bin/python -m stratosphere
+```
 
-[Alpaca is now the first paper route](docs/alpaca-paper-testing.md) for Bitcoin spot; Liquid perpetual support follows later. `/alpaca-connect` opens masked inline credentials for a fixed paper-host account/BTC/USD asset check, and `/alpaca-save` exports that diagnostic privately. The user's retained check reports an active USD crypto account and tradable fractional BTC/USD; its manifest and native precision were inspected. Feed entitlement, order execution and reconciliation remain unimplemented/unverified. The user's actual Liquid address diagnostic and unchanged current read catalog were inspected separately; neither grants paper authority.
+Select the model/provider in the inline form, or dismiss it with Escape to inspect supported non-model operations. Use /help for implemented commands. See [Phase 1 setup](docs/phase1.md#try-it), [Phase 2 research](docs/phase2.md) and [Intel macOS verification](docs/intel-macos.md) for dependencies and limits. Do not paste keys into chat.
 
-The standalone [authored observation worker](docs/observation-service.md) adds reviewed single-process ownership, durable delivery/crash recovery and per-stream silence/heartbeat stops. `/paper health` can inspect its dated state and actual lock ownership without model disclosure. This development service has no real feed, broker transport or automatic TUI lifecycle controls.
+Research and reporting retain online gates. Local storage and the explicitly supported Ollama model do not introduce a general offline application mode. No Supabase/application account is required by the TUI.
 
-## Confirmed direction
+## Personal workflow and remaining scope
 
-- **Permanent terminal interface:** a TUI with a chief-agent chat and slash commands; no planned migration to a web UI.
-- **Short-term, multi-market strategies:** crypto, equities/ETFs, and forex. Positions may remain open for days or a week; there is no mandatory daily liquidation.
-- **Python + LangGraph:** backend and agent orchestration.
-- **NautilusTrader:** selected backtesting and execution engine, subject to version and adapter verification.
-- **Supabase (PostgreSQL + Auth):** managed database and OAuth-based application login, independent of trading accounts.
-- **Optional Alpaca and Liquid connectors:** link accounts only when needed; connecting an account does not activate live trading.
-- **Controlled execution:** budget management → risk valuation → deterministic checks → execution gateway and selected connector.
-- **Automatic community sharing:** registered strategies enter the shared catalog, with exact deduplication and distinct IDs for even small rule changes.
+- Preserve sources and missing information; convert external logic only with behavioral conformance.
+- Use one agent per exact strategy with shared validated chat/slash operations.
+- Review exact test plans and budgets before native execution; retain all attempts and measured evidence.
+- Compare variants without transferring holdout results or treating model interpretation as verified fact.
+- Progressively verify crypto, equities/ETFs and forex data/account capabilities.
+- Verify personal paper operation, risk/accounting, restart, reconciliation and shutdown before any separately authorized live activation.
 
-The [decision log](docs/decisions.md) separates confirmed choices from implementation proposals and open questions.
-
-## Planned capabilities
-
-- Collaborate with a chief agent in the TUI, intervene in research workflows, and invoke the same operations through slash commands.
-- Discover evidence-backed community strategy recommendations and use existing strategies as starting points.
-- Import sources and preserve references to the evidence behind extracted rules.
-- Create, modify, and improve strategies through specialized agents.
-- Version strategy specifications and implementations, with explicit assumptions and parameters.
-- Run reproducible backtests with costs, data quality checks, and out-of-sample validation.
-- Run forward tests and paper trading on real-time data.
-- Coordinate capital, exposures, and positions across multiple strategies.
-- Activate validated versions for live trading, with monitoring, reconciliation, and operational shutdown controls.
-
-## Strategy workflow
-
-1. Import a source or describe an idea.
-2. Extract the rules and resolve ambiguities.
-3. Generate a verifiable specification and implementation.
-4. Run backtests, validation, and comparisons between versions.
-5. Evaluate the selected version with live data and simulated capital.
-6. Explicitly activate it for live trading within a defined risk mandate.
-7. Monitor results and positions; develop improvements as new versions.
-
-Backtest results and claims made by a source do not guarantee future returns.
+Broker fees, spreads, slippage, funding and native rounding remain trading costs; there is no stratosphere service fee. Provider data restrictions still apply. Historical protocol bytes and reports remain unchanged even where they mention earlier commercial assumptions.
 
 ## Documentation
 
-| Document | Contents |
+| Document | Purpose |
 | --- | --- |
-| [Plan index](docs/README.md) | Reading order and document status |
-| [Product vision and plan](docs/product-plan.md) | Objectives, use cases, boundaries, and requirements |
-| [Architecture and agents](docs/architecture.md) | Components, responsibilities, and contracts |
-| [Sources and strategy lifecycle](docs/strategy-lifecycle.md) | Importing, specifications, versions, and improvements |
-| [Data and validation](docs/testing-and-validation.md) | Backtests, live evaluation, and promotion criteria |
-| [Portfolio and execution](docs/portfolio-and-execution.md) | Allocation, positions, risk, and orders |
-| [Authentication and connectors](docs/authentication-and-connectors.md) | Supabase OAuth login, optional accounts, authorization, and security |
-| [Liquid paper testing](docs/liquid-paper-testing.md) | Read-only browser connection, test options and unverified paper execution |
-| [Liquid account diagnostics](docs/liquid-account-diagnostics.md) | Explicit public-address reads, private observations and unverified ownership/environment |
-| [Paper ledger foundation](docs/phase5-paper-ledger.md) | Internal authored-paper reservations, fill attribution and native accounting checks |
-| [Closed-bar journal](docs/phase5-closed-bars.md) | Internal reviewed authored streams, persistent crossings and freshness/gap controls |
-| [Authored signal decisions](docs/phase5-signal-decisions.md) | Internal position-aware reservations and deterministic account risk gates |
-| [Authored account reviews](docs/phase5-paper-reviews.md) | Explicit private budget/risk advice and retained Reports without account changes |
-| [Database model](docs/database-model.md) | Tables, fields, exact strategy identity, evidence, and personal instances |
-| [Registry-anchored studies](docs/phase3-registry-studies.md) | Approved studies of existing definitions and variants without a standalone parent job |
-| [Source intake](docs/phase4-sources.md) | Retained material, provider access limits, provenance and inspection |
-| [Measured report analysis](docs/report-analysis.md) | Strategy-owned interpretations of frozen measurements, fact inspection and explicit limitations |
-| [Authored account inspection](docs/paper-inspection.md) | Captured positions, orders, fills and health from an existing read-only journal |
-| [Alpaca paper development](docs/alpaca-paper-testing.md) | Fixed paper account/asset checks, masked setup and the remaining feed/execution requirements |
-| [Source reviews](docs/source-reviews.md) | Strategy-owned interpretations, validated source references and private reports |
-| [Data capabilities](docs/market-data-capabilities.md) | Exact profile/purpose matching, freshness and unresolved provider requirements |
-| [Source conformance](docs/source-conformance.md) | Rule mapping, numerical blockers and limits on converted execution |
-| [Terminal interface](docs/terminal-interface.md) | Chief-agent chat, slash commands, jobs, and user intervention |
-| [Community catalog](docs/community-catalog.md) | Automatic sharing, recommendations, provenance, and reuse |
-| [Decision log](docs/decisions.md) | Confirmed decisions, proposals, and unresolved details |
-| [Roadmap](docs/roadmap.md) | MVP, subsequent phases, and completion criteria |
-| [Phase 0 verification](docs/phase0.md) | Sequential gates, commands, platform limits and measured evidence |
-| [Canonical contracts](docs/phase0-contracts.md) | Exact identities, schemas, example strategy/data/experiment protocol |
-| [Access boundary](docs/phase0-access-boundary.md) | Hosted API decision and shared/private contract scope |
+| [Personal-use scope](docs/personal-use.md) | Current requirements, retired features and the bug-fixing checkpoint |
+| [Roadmap](docs/roadmap.md) | Personal phases and completion criteria |
+| [Acceptance ledger](docs/phase3-5.md) | Full Phase 3–5 scope, measured increments and missing verification |
+| [Architecture](docs/architecture.md) | Local operations, agents, persistence and execution boundaries |
+| [Strategy agents](docs/strategy-agents.md) | Stable agents, separate histories and Reports |
+| [Research](docs/phase2.md) / [bounded studies](docs/phase3-studies.md) | Approved native tests, variants and immutable evidence |
+| [Source intake](docs/phase4-sources.md) / [conformance](docs/source-conformance.md) | Actual material, access limits and conversion blockers |
+| [Report inspection](docs/report-evidence.md) / [analysis](docs/report-analysis.md) | Complete sealed measurements and advisory specialist interpretation |
+| [Local storage](docs/database-model.md) / [personal library](docs/community-catalog.md) | Strategy identity, provenance and local candidate evidence |
+| [Provider connections](docs/authentication-and-connectors.md) | Model/broker access without application login |
+| [Alpaca development](docs/alpaca-paper-testing.md) / [Liquid testing](docs/liquid-paper-testing.md) | Current diagnostics and remaining integration requirements |
+| [Observation worker](docs/observation-service.md) / [account inspection](docs/paper-inspection.md) | Authored queue/lifecycle and read-only health |
+| [Data rights](docs/data-source-rights.md) / [capabilities](docs/market-data-capabilities.md) | Permitted purpose, actual profiles and verification limits |
+| [Terminal interface](docs/terminal-interface.md) | Responsive panels, onboarding and keyboard interaction |
+| [Decision log](docs/decisions.md) / [full documentation index](docs/README.md) | Current decisions and historical records |
 
-## Subsequent development objective
+Historical Supabase schemas/access proofs and the [former pricing plan](docs/commercial-model.md) are retained as retired material. The scope change does not delete hosted resources, local databases or evidence, and does not change visibility/licensing.
 
-Complete a reproducible workflow from **article or user-provided text → specification → executable strategy → backtest → report**, using one initial verified dataset/provider integration inside a multi-market architecture. Include the TUI and shared strategy registration; the first integration does not restrict the product to one asset class. YouTube, Instagram, X, TradingView, and GitHub source integrations are required in Phase 1 alongside the online English Linux/macOS TUI, onboarding, and registry. This narrow research proof is an internal increment, not a public release. Paper trading and live execution follow in the [roadmap](docs/roadmap.md).
+## Current checkpoint
 
-## Development conventions
-
-GitHub is the shared source of truth for development. Code, comments, documentation, commit messages, and GitHub development discussions must be written in English. The product and suite names are always written as **stratosphere** and **tradingsphere**, respectively.
-
-## Launch and commercial direction
-
-The repository remains private. Release follows extensive testing, without a target date. The application is online-only and English-only, starting on Linux/macOS with eventual support for all OSes. The commercial fee target is 0.5% per opening trade, capped at $1; calculation/collection details remain open. See [commercial requirements](docs/commercial-model.md) and the [updated decisions](docs/decisions.md).
+Finish and verify the in-progress personal-use cleanup, then move to the user-led intermediate bug-fixing session. New feed/adapter features are outside this checkpoint. Extensive testing remains required; there is no deadline or claim that personal trading is ready.

@@ -1,6 +1,6 @@
 # Phases 3–5 implementation and acceptance ledger
 
-Status: **in progress**. The user authorized the full Phase 3, 4 and 5 scope, local Ollama testing, an orchestrator bridging the user to one agent per strategy, and replacement of Session with Reports. This ledger preserves the complete objective across sequential implementation work. Unchecked items are not implemented/verified completion claims. Phase 6 live execution and billing remain outside this authorization.
+Status: **in progress**, under the user's personal-only scope in D57. The user authorized Phase 3, 4 and 5 research/source/paper work, local Ollama testing, an orchestrator bridging the user to one agent per strategy, and replacement of Session with Reports. Hosted user databases/login, automatic sharing, community deployment and platform billing are retired requirements, not remaining gates. Unchecked personal-workflow items below remain incomplete. Phase 6 live orders remain outside this authorization. The current instruction is to close in-progress personal-use cleanup, then stop new feature increments for the intermediate bug-fixing session.
 
 ## Agent workflow and interface
 
@@ -18,7 +18,7 @@ Status: **in progress**. The user authorized the full Phase 3, 4 and 5 scope, lo
 - [x] Candidate selection uses development/validation only. Final holdout is evaluated once for the frozen selection, cannot be reused for optimization, and exposes local contamination/reuse. External exposure remains explicitly unverifiable.
 - [ ] Native NautilusTrader results, sensitivity/doubled-cost checks, baselines, distributions, equity/trades, limitations and immutable references are retained and inspectable.
 - [ ] Recommendations separate instrument/data compatibility, empirical evidence, dated current context and missing verification; no profitability-only promotion or transferred performance.
-- [x] Local findings/applicability assessments retain timestamp, context, attempted variant denominators and exact evidence references. Hosted synchronization and actual current-provider verification remain pending.
+- [x] Local findings/applicability assessments retain timestamp, context, attempted variant denominators and exact evidence references. Actual current-provider verification remains pending; hosted synchronization is retired.
 
 ## Phase 4 — source maturity and market coverage
 
@@ -43,6 +43,8 @@ Status: **in progress**. The user authorized the full Phase 3, 4 and 5 scope, lo
 - [ ] Positions, orders, health, limits, blocks and reports display actual retained runtime state; paper mode cannot submit live orders.
 
 ## Verification record
+
+Historical verification paragraphs below retain their original tested scope and limitations. References to unfinished hosted access, commercialization or multi-user deployment describe the earlier plan and are superseded by D57. They do not reinstate those acceptance requirements. Source/conversion fidelity, actual provider/feed eligibility, personal runtime/risk/accounting and paper reconciliation remain required; personal use does not prove them.
 
 The first strategy-agent/Reports/private-registry foundation is verified in [strategy agents](strategy-agents.md). The final local foundation suite passed 403 tests, real two-agent Ollama routing/analysis and restart checks passed, and Supabase ownership/conformance tests passed with all fixtures rolled back. Remaining unchecked items below are still required for the full goal. Completion requires inspection of each item above at the relevant scope, including local integration and live Ollama/feed checks where available. A green unit suite alone does not verify hosted account access, shared-user ownership or sustained paper behavior. Supabase login and commercial fee collection remain deferred; database development must preserve the selected service boundary and private/shared projections.
 
@@ -98,10 +100,10 @@ The [authored decision gateway](phase5-signal-decisions.md) now supplies positio
 
 The original **Liquid-first paper** choice is superseded by the user's 21 October selection: **Alpaca first for Bitcoin spot; Liquid later for perpetuals**. The [Liquid connection increment](liquid-paper-testing.md) retains public metadata checks and read-only OAuth/catalog inspection; its historical 659-test result does not prove account ownership or a paper adapter. The actual user-performed address diagnostic and current catalog are now inspected: one reported address plus prose remains `requires_review`, and all 38 tool definitions match the earlier export. Liquid's documented spot exclusion prevents relabeling the existing spot strategy as a perpetual test. The new [Alpaca development path](alpaca-paper-testing.md) supplies fixed paper-host account/BTC/USD asset reads and masked inline credentials. The user's dated check is now inspected; legal account control, commercial data entitlement, feed/runtime and order/reconciliation readiness remain distinct pending requirements. This does not complete optional account linking or the paper-adapter acceptance items above.
 
-1. Expand the bounded local study increment as required by the remaining ledger, including wider supported strategy families and verified commercial data rights/provider routing. Supported registry variants no longer require a standalone parent research job.
-2. Expand the local dated applicability/candidate workflow only with verified evidence, appropriate current-context providers and authenticated shared projections; retain explicit uncertainty and attempt counts.
+1. Expand the bounded local study increment as required by the remaining ledger, including wider supported strategy families and verified permitted personal data use/provider routing. Supported registry variants no longer require a standalone parent research job.
+2. Expand the local dated applicability/candidate workflow only with verified evidence, appropriate current-context providers; retain explicit uncertainty and attempt counts.
 3. Mature source acquisition/conversion and data capability routing without inventing restricted material or transferring performance between instrument types.
 4. Add the persistent feed/paper runtime, personal instances, budget/risk proposals, deterministic controls, order ledger, reconciliation and the confirmed keep/close exit choice.
-5. Complete authenticated service-mediated registry synchronization before exposing shared-user records; the current private schema and local workspace are foundations, not that deployed service.
+5. Preserve the personal local registry, histories and report evidence across application upgrades and recovery. Hosted user records and service-mediated synchronization are retired, not a fifth implementation prerequisite.
 
-The original Phase 3–5 objective remains active until every explicit requirement is verified. This sequence does not redefine completion around the already implemented foundation.
+The full personal Phase 3–5 objective remains active until its remaining explicit requirements are verified. D57 retires only the commercial/shared-service requirements; it does not redefine research, source or paper completion around the existing foundation. At the current checkpoint, finish cleanup and await the user's bug-fixing session before starting another feature increment.

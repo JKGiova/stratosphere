@@ -1,3 +1,13 @@
+# Personal local database model
+
+Current scope: local SQLite and private files, as confirmed in [D57](decisions.md). The TUI's existing workspace is now the personal registry, not a temporary client awaiting hosted synchronization. It retains exact strategies/lineage, sources/submissions, stable agents and separate histories, jobs, operations, reports and assessments. Account/service journals are separate from the strategy workspace.
+
+No users/profile table, hosted database, application login or cross-user synchronization is required. Preserve existing identities and historical receipts; this cleanup makes no schema migration or deletion. See [personal-use scope](personal-use.md).
+
+## Historical hosted model — retired
+
+The original design below is retained for historical context. Its hosted user tables, automatic publication and Supabase implementation requirements are superseded by D57; they are not current completion criteria.
+
 # Supabase PostgreSQL database model
 
 Current implementation: the [private Supabase foundation](../supabase/README.md) is provisioned and ownership-tested. The TUI currently uses a private local development registry for agent identities/histories and research references; authenticated hosted synchronization remains pending. Tables and relationships beyond that foundation below remain planned until their corresponding implementation is verified.

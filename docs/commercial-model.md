@@ -1,3 +1,11 @@
+# Retired commercial model
+
+Status: **retired by D57**. stratosphere is for personal use. The 0.5% opening-order platform fee, $1 cap, collection, billing/credits and commercial-release requirements below are historical, not deferred work.
+
+Broker/exchange fees, spreads, slippage, funding and native currency rounding remain necessary trading costs. Keep historical report/protocol bytes unchanged; this scope change creates no platform charge or authorization to delete evidence. See [personal-use scope](personal-use.md).
+
+## Historical pricing plan
+
 # Commercial model
 
 Status: confirmed pricing direction; billing is not implemented.

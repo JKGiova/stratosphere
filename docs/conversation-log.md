@@ -4823,3 +4823,63 @@ Your personal-only decision is recorded, but the roadmap/UI cleanup hasn’t bee
 Next: finish that cleanup, then implement and verify the BTC/USD feed and paper-trading workflow.
 
 ---
+
+### 567 — User
+
+finish only mid-done things, and then we will start an intermediate  bug fixing session
+
+---
+
+### 568 — Assistant (progress update)
+
+I’ll finish the in-progress personal-use cleanup and close out the current changes, without starting a new feature increment. Then I’ll stop at a clear checkpoint for the bug-fixing session.
+
+---
+
+### 569 — Assistant (progress update)
+
+The unfinished work is the personal-use transition; the worker increment is already committed and verified. I’m closing the remaining roadmap and UI inconsistencies, and preserving existing strategy identities, approval hashes and historical reports for the bug-fixing checkpoint.
+
+---
+
+### 570 — Assistant (progress update)
+
+The active plan now describes a personal tool, and the old hosted and commercial designs are clearly marked as historical. The onboarding and library messages also match that direction. Local data, historical reports and Supabase resources are being preserved.
+
+---
+
+### 571 — Assistant (progress update)
+
+The targeted checks passed: 103 tests. I’m now checking the installed package and restart behavior, including that existing local records and approval hashes survive the cleanup unchanged.
+
+---
+
+### 572 — Assistant (progress update)
+
+The cleanup now covers the validation and execution plans too. They retain the trading safeguards and future paper/live requirements, while removing hosted-login, publication and fee requirements. No database migration or trading code has changed.
+
+---
+
+### 573 — Assistant (progress update)
+
+The installed app reopened the historical strategy records and reports without cloud login or model calls. The preservation check found only the existing report-index timestamp refresh; I’m checking stored records separately from SQLite file bytes so that normal bookkeeping is accounted for.
+
+---
+
+### 574 — Assistant (progress update)
+
+Verification passed: 103 targeted tests, installed-package checks in two fresh processes, and wide/small TUI checks. Historical artifacts and approval hashes are preserved. I’m publishing the cleanup, updated rules and conversation log, then stopping feature work for the bug-fixing session.
+
+---
+
+### 575 — Assistant
+
+Finished the in-progress personal-use cleanup and pushed it privately.
+
+- Updated roadmap, onboarding, UI wording and AGENTS.md.
+- Preserved local strategies, histories, reports and approval hashes.
+- Passed **103 targeted tests**, installed-package restart checks and responsive UI checks.
+
+No new feature increment was started. Ready for the bug-fixing session.
+
+---

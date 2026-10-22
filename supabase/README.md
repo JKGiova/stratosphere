@@ -1,3 +1,11 @@
+# Historical hosted database development
+
+Status: **retained historical implementation, outside the personal application's requirements under D57**. The TUI uses local SQLite. No new hosted users service, login or synchronization is planned. Existing migrations/tests remain intact; this cleanup does not modify or delete hosted resources.
+
+The details below describe prior development and verification, not a fresh health check or a remaining completion gate. See [personal-use scope](../docs/personal-use.md).
+
+## Historical development record
+
 # Database development
 
 The stratosphere project is provisioned in the **tradingsphere** organization on the free allowance, Frankfurt (`eu-central-1`). The project reference is `iaouphzeaiqyunfwbprm`; it is an identifier, not a credential. Login providers, shared application hosting and client database access are not configured.

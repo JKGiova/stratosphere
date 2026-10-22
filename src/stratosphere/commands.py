@@ -5,7 +5,7 @@ import shlex
 from dataclasses import dataclass
 
 PANELS = {
-    "strategies": "The shared library is not connected yet. No strategies loaded.",
+    "strategies": "Your local strategy library is empty. No strategies registered yet.",
     "jobs": "No local research runs loaded. Use /new to prepare a supported plan for approval.",
     "reports": "No completed research reports. Approve and complete a test plan first.",
     "portfolio": (

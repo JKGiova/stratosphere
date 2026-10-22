@@ -1,5 +1,7 @@
 # Roadmap planning questionnaire
 
+Historical questionnaire. Under D57, hosted login/user databases, automatic sharing, commercial pricing and payment questions are retired and need no answers. Use [personal-use scope](personal-use.md) and the current [roadmap](roadmap.md) for remaining personal research/source/paper work. The current checkpoint closes existing cleanup before user-led bug fixing.
+
 Status: partially answered, October 13, 2026. Confirmed answers are in decisions.md (D20–D33). The questionnaire remains the historical question set; unconfirmed options do not authorize deployment, spending or trading.
 
 The existing roadmap gives us eight phases. We’ll turn each into tasks, dependencies, and acceptance criteria after your answers:

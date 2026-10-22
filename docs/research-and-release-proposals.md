@@ -1,5 +1,7 @@
 # Research, collection and release proposals
 
+**Historical proposals:** [D57 and the personal-use scope](personal-use.md) retire payments, hosted login, cross-user sharing and commercial-release gates. Alpaca-first Bitcoin spot supersedes the Liquid-first priority below. Technical research budgets, operational gates and durations remain proposals unless separately confirmed; this document does not start another feature increment.
+
 Status: proposals for user review, October 13, 2026. Payment collection and login are now deferred. This proposal did not approve a data provider, numerical job budget or paper duration. The user subsequently selected BTC/USDT spot hourly Binance archive data for the first [Phase 2 case](phase2.md); broader data choices and numerical release budgets remain open. The TUI-exit keep/close choice is already confirmed.
 
 ## Payment collection — deferred

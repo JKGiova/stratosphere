@@ -54,32 +54,32 @@ Numerical thresholds depend on the market, strategy, and mandate and must be def
 
 For paper → live promotion, define duration or minimum observation count, tolerances between expected and observed behavior, and latency and reliability requirements in advance. Also verify reconciliation, limits, interruptions, restarts, and shutdown procedures. Do not automatically promote a strategy based on returns alone.
 
-## Shared evidence and short-term multi-market testing
+## Retained evidence and short-term multi-market testing
 
 Store each run independently with its strategy identity, exact implementation, data snapshot, engine version, cost assumptions, instruments, and evaluation protocol. Reusing an existing strategy permits retrieving past runs, not assigning their returns to a different asset, timeframe, provider, or configuration.
 
 Short-term tests must allow overnight and multi-day holdings when the rules allow them. Do not automatically liquidate at a session boundary. Apply session calendars, corporate actions, funding, financing, and overnight gaps where relevant, and explicitly test holding policies.
 
-Record observed regime suitability in findings with regime definitions, samples, windows, and limitations. Recommendations must distinguish reproducible backtests, observed paper results, and verified live evidence. Missing verification or short samples must remain visible; shared registration is not a validation badge.
+Record observed regime suitability in findings with regime definitions, samples, windows, and limitations. Recommendations must distinguish reproducible backtests, observed paper results, and verified live evidence. Missing verification or short samples must remain visible; local registration is not a validation badge.
 
 Optional alternative-data sources such as Quiver require publication/availability timestamps and snapshot retention. Transaction dates alone must not grant earlier knowledge to the backtest. Dataset access, licenses, and freshness remain connector-specific decisions.
 
 ## Authentication and connector acceptance tests
 
-Before shared/private access, verify Supabase OAuth callbacks, token validation/expiry, safe refresh and logout, identity-to-profile mapping, and cross-user authorization isolation. An external ID without a valid verified session must not grant access.
+The personal application has no hosted login or cross-user service. Verify private local storage, separation of strategy histories, credential exclusion and retained evidence across restarts. Optional provider authorization remains independently scoped and cannot grant trading permission.
 
 Test research without any broker connection. Linking a provider must not enable live orders. Verify account/environment isolation, least-privilege scopes, revocation, reconnects, required confirmations, and provider-specific reconciliation before each connector is enabled.
 
 Verify that budget proposals and risk-agent assessments cannot bypass deterministic checks or send direct orders. Simulate concurrent intents, reserved capital, partial fills, ambiguous timeouts, and duplicate retries. Backtests must model the actual tradable instrument; a perpetual referencing a stock cannot inherit an ordinary equity test without additional validation.
 
-## Release and commercial-cost refinements
+## Personal-use readiness and trading costs
 
-The first public/commercial release follows extensive testing without a fixed deadline. Define measurable release gates rather than interpreting a successful internal demo as release readiness. Testing must cover all five Phase 1 sources, converted strategy behavior, Linux/macOS onboarding, online outages, user isolation, research repeatability and eventual paper/live recovery. Required durations, samples and operating thresholds remain open.
+Personal operation still requires extensive testing without a fixed deadline. Define measurable readiness gates rather than interpreting a successful internal demo as operational readiness. Testing must cover all five Phase 1 sources, converted strategy behavior, Linux/macOS onboarding, online outages, strategy-history isolation, research repeatability and eventual paper/live recovery. Required durations, samples and operating thresholds remain open.
 
-When the commercial fee policy is finalized, include the stratosphere opening-trade fee in appropriate cost models, separately from broker charges. The target is 0.5% per opening trade, capped at $1, but fee basis and grouping have not been approved.
+There is no stratosphere platform fee. Include actual broker commissions, spreads, slippage, funding and rounding in reviewed simulation/execution assumptions. Historical sealed reports and canonical v1 contracts retain their original assumptions and bytes; they do not implement a current service charge.
 
 ## Release-gate discussion
 
-The user requested clarification of release gates rather than approving numerical thresholds. The [research and release proposals](research-and-release-proposals.md) suggest an initial 30-day paper stability exercise, representative source/client tests, behavior conformance, reproducibility, security/billing checks and crash/reconnect/exit scenarios. The duration and specific criteria remain proposals, and operational stability does not establish a strategy's profitability or authorize live trading.
+The user requested clarification of release gates rather than approving numerical thresholds. The historical [research and release proposals](research-and-release-proposals.md) suggest an initial 30-day paper stability exercise, representative source/client tests, behavior conformance, reproducibility and crash/reconnect/exit scenarios. Billing and hosted-user gates are retired by [D57](personal-use.md). The duration and remaining criteria are proposals, and operational stability does not establish a strategy's profitability or authorize live trading.
 
 The local [report evidence inspector](report-evidence.md) exposes retained metrics, distributions, trades, fills, signals, equity and baselines by exact research/study cell, with complete display pagination and explicit failure/selection attribution. It does not compute missing risk metrics, revise historical results, infer data entitlement or supply evidence for unsupported strategies/markets. Lifecycle fixtures, native authored simulations, installed-package historical reads and actual provider checks remain distinct in the [Phase 3–5 acceptance ledger](phase3-5.md).

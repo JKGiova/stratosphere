@@ -37,7 +37,7 @@ A strategy is an exact, immutable behavioral specification. Assign a long random
 
 Compare candidate submissions using complete specifications. Similarity search can shortlist candidates but cannot merge them. Canonicalization may remove representational differences; it must not round parameters, drop timing, infer missing exits, or approximate equivalence. If identity cannot be established, keep separate records or an unresolved draft. Only complete canonical specifications are eligible for exact deduplication.
 
-A matching submission reuses the existing strategy and creates a submission record and source association. Preserve the new source snapshot and evidence for its rules without overwriting the old source. Even a small rule/parameter change creates a new strategy ID linked to its parent. Registered strategies are automatically included in the shared catalog; publication is not an opt-in step.
+A matching submission reuses the existing strategy and creates a submission record and source association. Preserve the new source snapshot and evidence for its rules without overwriting the old source. Even a small rule/parameter change creates a new strategy ID linked to its parent. Registered strategies enter the private local library, without automatic publication. Historical public-ID field names remain stable identifiers.
 
 See the [database model](database-model.md) for fields and concurrent registration requirements.
 
@@ -60,7 +60,7 @@ Agents retrieve stored rules and evidence, then reevaluate compatibility and cur
 | Live | Implementation activated in a user's instance on a live account | Continuous monitoring within the mandate |
 | Suspended / retired | New signals disabled | Review and renewed enablement where applicable |
 
-These states describe candidate implementations and user deployments, not a global assertion that all users are live. Catalog visibility and validation are separate. A negative outcome keeps the version in research or retires it; it does not require searching for parameters until the test passes. Suspending signals does not automatically liquidate positions: operational policy separately defines what happens to existing exposure.
+These states describe candidate implementations and personal instances. Library registration and validation are separate. A negative outcome keeps the version in research or retires it; it does not require searching for parameters until the test passes. Suspending signals does not automatically liquidate positions: operational policy separately defines what happens to existing exposure.
 
 ## Modification and improvement
 

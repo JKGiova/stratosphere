@@ -2,7 +2,7 @@
 
 Last updated: October 22, 2026. Product decisions and Phase 0 implementation selections are separate below. Measured scope/limits are recorded in phase0.md; selections alone do not establish product or live readiness.
 
-Current scope: **personal use only**, confirmed in D57. Earlier commercial, hosted-login and multi-user catalog decisions below are historical where superseded. Updating the remaining roadmap, UI notices and acceptance criteria to this scope is still pending; no hosted resource deletion is implied.
+Current scope: **personal use only**, confirmed in D57 and reflected in the current roadmap, UI notices and acceptance ledger. Earlier commercial, hosted-login and multi-user catalog decisions below are historical where superseded; no hosted resource deletion is implied. The user's current checkpoint is to finish this cleanup and then move to an intermediate bug-fixing session, without starting a new feature increment.
 
 ## Confirmed decisions
 
@@ -70,7 +70,9 @@ Current scope: **personal use only**, confirmed in D57. Earlier commercial, host
 
 D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently refined the same day to select Supabase as the managed PostgreSQL platform. D17–D19 were then confirmed to separate application authentication from optional operational connectors. The other entries summarize the product requirements and registry model developed in the preceding discussion.
 
-## Implementation proposals, not confirmed vendor choices
+## Historical proposals preceding D57
+
+The hosted, login and publication proposals in this historical section are superseded by [personal-use scope](personal-use.md). Remaining source, research and provider decisions are tracked in the current [roadmap](roadmap.md); retired billing/hosting questions need no further answers.
 
 - Parquet for versioned market data and DuckDB for analysis remain proposed; Pydantic is now selected for Phase 0 contracts.
 - Separate TUI, research workers, and trading runtime within a modular repository.
@@ -85,7 +87,7 @@ D07, D08, and D14 were explicitly confirmed on October 13. D09 was subsequently 
 
 Automatic strategy sharing does not grant permission to publish secrets, account state, private conversations, personal configuration, or third-party material without appropriate rights. Define a publishable strategy projection and ingestion notices before launch.
 
-## Still open
+## Historical open items preceding D57
 
 - Tradable historical/live data providers, supported accounts/instruments and operational engine adapters. Phase 0 selects an ECB EURUSD reference-rate compatibility sample, not a production market-data provider. Liquid's first-connector order remains confirmed.
 - Production model provider coverage, queue/scheduler, application-service hosting and secure local session storage. Testing model and initial client OSes are confirmed; Textual is selected in Phase 0.
@@ -98,7 +100,7 @@ Automatic strategy sharing does not grant permission to publish secrets, account
 - Online outage behavior for jobs and operational positions; offline product functionality is excluded.
 - APIs to other tradingsphere components.
 
-Do not reopen confirmed choices as if undecided. When a new proposal changes a confirmed requirement, obtain user confirmation and update this log.
+D57 explicitly supersedes hosted login, community publication and commercial prerequisites above. The current personal roadmap tracks remaining choices; historical questions do not require new answers.
 
 ## Planning refinement status
 

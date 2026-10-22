@@ -163,9 +163,10 @@ class ModelSetup(Vertical):
             "An explicit paper budget/risk review sends the authored account snapshot "
             "to this model provider and retains its advisory report locally. "
             "Research sources/results are saved privately on this computer. "
-            "Future registered strategies will be shared automatically; chat is "
-            "separate. Optional paper-account checks use /alpaca-connect. "
-            "Application login and execution come later."
+            "Strategies stay in your local library; there is no automatic publication "
+            "or application login. Optional paper-account checks use /alpaca-connect. "
+            "There is no stratosphere platform fee; broker costs still apply. "
+            "Trading execution is not available yet."
         )
 
     def compose(self) -> ComposeResult:
@@ -430,7 +431,7 @@ class StratosphereApp(App[None]):
         with Container(id="panes"):
             with WorkspacePane(id="library-pane", classes="pane"):
                 yield Static("STRATEGY LIBRARY", classes="pane-title", id="library-title")
-                yield Static("Catalog / not connected", classes="eyebrow", id="library-state")
+                yield Static("Local library", classes="eyebrow", id="library-state")
                 yield DataTable(id="strategies", zebra_stripes=True, cursor_type="row")
                 with VerticalScroll(classes="pane-body", id="library-empty"):
                     yield Static("No strategies loaded", classes="empty-heading")
@@ -2101,7 +2102,7 @@ class StratosphereApp(App[None]):
             f"# {record['name']}\n\nStrategy `{public_id}`\n\n"
             f"Dedicated agent `{record['agent_id']}`\n\n"
             f"Behavior `{record['spec_sha256']}`\n\n"
-            "Registration does not imply validation. Shared service is not deployed.\n\n"
+            "Stored in your personal local library. Registration does not imply validation.\n\n"
             + "## Research jobs\n\n"
             + "\n".join(f"- `{j['job_id']}` · {j['state']}" for j in jobs)
             + "\n\nAsk in chat to analyze this strategy or inspect its tests and reports."

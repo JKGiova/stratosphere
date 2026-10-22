@@ -1,3 +1,13 @@
+# Personal strategy library and recommendations
+
+Current scope: the user's private local library, as confirmed in [D57](decisions.md). Exact duplicate reuse, accumulated provenance, distinct variants, dated evidence and local research-candidate comparisons remain. No automatic publication, community leaderboard, cross-user discovery or hosted catalog service is required.
+
+The current local registry/agent operations are implemented within their documented limits. Recommendations must preserve all candidate denominators, exact evidence and uncertainty; personal use does not turn a historical finding into a current suitability label.
+
+## Historical community design — retired
+
+The prior multi-user publication/hosting design below is historical and superseded by D57. It is not an active prerequisite.
+
 # Shared catalog and recommendations
 
 ## Confirmed behavior

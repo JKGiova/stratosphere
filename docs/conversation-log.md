@@ -4994,3 +4994,90 @@ Restart the TUI and enter your model key/sign in to Liquid **once** with this ve
 Keychain and restart tests passed; actual Liquid renewal still needs verification after that login.
 
 ---
+
+### 593 — User
+
+rebuild the tui just to use it in full screen
+
+---
+
+### 594 — Assistant (progress update)
+
+I’ll check the TUI’s sizing and layout, then make it use the full terminal viewport while preserving your terminal window size.
+
+---
+
+### 595 — Assistant (question)
+
+The app already fills its terminal window. For this rework, should it show one panel at a time, keep the multi-panel dashboard, or make macOS Terminal enter fullscreen?
+
+Options:
+
+- One focused panel filling the terminal
+- Multi-panel dashboard for a large fullscreen terminal
+- Automatically enter macOS Terminal fullscreen
+
+---
+
+### 596 — User
+
+Question: The app already fills its terminal window. For this rework, should it show one panel at a time, keep the multi-panel dashboard, or make macOS Terminal enter fullscreen?
+
+Answer: Automatically enter macOS Terminal fullscreen
+
+---
+
+### 597 — Assistant (progress update)
+
+Got it—you want macOS Terminal to enter native fullscreen automatically. I’ll add that to startup and keep the responsive panel layout.
+
+---
+
+### 598 — Assistant (progress update)
+
+The startup hook will target the Terminal window running stratosphere and request native fullscreen. It will leave an already-fullscreen window as it is, and the TUI will still start if macOS denies automation access.
+
+---
+
+### 599 — User
+
+revert the last request, list me what we still miss in the development behind the plan
+
+---
+
+### 600 — Assistant (progress update)
+
+I’ll undo the unfinished fullscreen change, keep credential persistence, and compare the implementation with the roadmap to list what’s still missing.
+
+---
+
+### 601 — Assistant (progress update)
+
+The fullscreen change is reverted, and the startup test passes. The main gap is Liquid trading: we have read-only connection diagnostics and tested local simulation foundations, but no verified Liquid feed, paper order adapter, or sustained trading runtime. Phases 1–5 are still partial; Phase 0 is complete within its documented scope.
+
+---
+
+### 602 — Assistant
+
+Reverted the automatic fullscreen change. The TUI leaves your terminal window size alone; responsive panels and saved credentials remain. The startup test passed.
+
+Against the [roadmap](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/docs/roadmap.md), **Phase 0 is complete within its verified scope; Phases 1–5 are partial; Phases 6–7 remain unimplemented.**
+
+| Area | What we still need |
+| --- | --- |
+| **1 — TUI and agents** | Complete the broader strategy-agent workflows and verify isolation, recovery and consistent chat/slash behavior across them. Existing supported paths already work. |
+| **2 — Research** | Expand beyond the supported hourly BTC/USDT spot SMA family: more rules, instruments, windows and providers, with explicit conformance tests. Arbitrary Pine/Python/media strategies cannot yet be faithfully converted. Acquired/generated code needs verified isolation before execution. |
+| **3 — Iteration** | Broader experiment/comparison coverage, reliable model interpretation, and recommendations backed by verified current context. Bounded SMA studies, retained attempts and holdout controls already exist. |
+| **4 — Sources and data** | Mature all five integrations—YouTube, Instagram, X, TradingView and GitHub—including actual transcripts/code where accessible, authenticated/blocked/changed cases and conversion fidelity. Broader market adapters and actual feed permissions remain unfinished. |
+| **5 — Liquid paper trading** | Verify account/environment and feed eligibility; implement a structured real-time feed, perpetual accounting and a paper order adapter. Complete partial fills, cancellations, ambiguous orders, reconciliation, concurrent-strategy attribution and sustained restart/outage tests. Local authored-account tests do not establish Liquid paper trading. |
+| **5 — Trading interface** | Show actual provider-backed positions/orders/health and implement the exit choice: keep positions or request closure of all, with failures and residual exposure visible. |
+| **6 — Live execution** | Verified live order transport, explicit activation, complete risk/emergency controls and operational acceptance. Live orders require separate authorization. |
+| **7 — Operations** | Broader adapters, drift monitoring and controlled upgrades without silently changing active strategies. |
+
+Before release, we also need sustained end-to-end testing, backup/recovery verification, actual Liquid credential-renewal testing and Linux secure-store verification.
+
+Billing, hosted application login, multi-user databases and Alpaca are **outside the current plan**.
+
+The next agreed step remains the intermediate bug-fixing session. The conversation log is synchronized to GitHub.
+
+---

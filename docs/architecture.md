@@ -15,7 +15,7 @@
 
 Application services are authoritative. Natural-language and slash routes must reuse their
 validation and approval boundaries. Models cannot grant permission or mutate an active strategy.
-The tool-runtime draft is described in [agent workflow](agent-workflow.md).
+The creation handoff and deferred general runtime are described in [agent workflow](agent-workflow.md).
 
 ## State
 

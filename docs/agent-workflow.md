@@ -12,32 +12,34 @@ source reviews, bounded study proposals, dated assessments, report inspection an
 interpretation. Budget/risk reviews use separate explicit account contexts. Approval, registration,
 account diagnostics and native execution remain application-owned operations.
 
-## Interrupted tool-runtime work
+## Explicit strategy creation
 
-Recent interrupted development produced a local bounded model → tool → observation → model draft
-and tests. It is not part of the published application baseline. Stabilize it before treating it
-as complete or layering another framework on top. DeepSeek Harness has not been adopted.
+Use `/create <brief>` or start chat with “Create a strategy …”. This generates an independent
+BTC/USDT hourly spot, long-only SMA crossover candidate. The model proposes complete periods,
+fixed BTC quantity, a descriptive name and a falsifiable hypothesis. Unsupported or ambiguous
+proposals stop with questions; malformed output cannot register a strategy. External URLs/code
+belong in source intake, and existing strategy variants belong in `/study`.
 
-The draft entry points are `/work <task>` and `Work on this strategy: <task>`. They bind the selected
-strategy before model waits. Proposed capabilities cover own definition/jobs/provenance, sealed
-report facts, source/report reviews, dated assessments and study/test review handoffs.
+Application code validates and compiles the proposal using the supported implementation. It
+retains the original brief, model reference, proposal, schema/prompt hashes and generated origin.
+Rendered declarations are explicitly model-generated, not external quotes or faithful-conversion
+proof. Registration atomically binds the exact strategy, its stable agent and a pending research
+job. Exact duplicates reuse the existing strategy/agent and retain the additional provenance.
+Different independent definitions receive separate agents; this is not a variant-lineage shortcut.
 
-Default draft limits are eight total model calls, six tool calls and 180 seconds, including nested
-model stages. Context/output limits fail explicitly without truncation. Repeated identical calls
-are rejected. Run headers/events retain outcomes and safe observations; failed/interrupted work
-must never silently replay. `/agent-tools`, `/agent-runs` and `/agent-run <id>` inspect this draft.
+The owning agent immediately critiques the untested candidate with its own history/evidence.
+Creation uses at most one proposal call and one initial analysis call, each capped at 180 seconds,
+without automatic retries or fallback. Failed/canceled attempts remain under `research/creations/`;
+complete plans remain inspectable through `/jobs` and `/show`, including after restart. A failed
+analysis leaves the plan available for review without committing an incomplete agent turn.
 
-## Stabilization acceptance
+The handoff displays the exact January 2025 archive, capital, costs, implementation and two-run
+base/stress plan. Human approval of its digest remains mandatory before native execution. Approval
+and `/resume` use the existing owning-agent research path. There is no automatic optimization,
+holdout use, execution or profitability claim. Models cannot approve their own proposals.
 
-- Complete success, failure, cancellation, budget exhaustion and restart paths with actual UI controls.
-- Preserve owner identity/history across Library navigation, model waits and forms.
-- Use exact typed capabilities over existing validated services; reject invented actions/arguments.
-- Stop for human study/test approval. A paused approved job offers explicit resume, not reapproval.
-- Keep source acquisition limited to explicitly authorized material and preserve original access limits.
-- Keep raw simulation tables, credentials, Liquid catalogs and account evidence outside strategy prompts.
-- Count nested calls against the same budget and deadline; never retry ambiguous actions automatically.
-- Retain inspectable failures without partial chat turns or changed sealed evidence.
-- Verify real model task completion, not only valid JSON or valid evidence references.
+## Deferred general runtime
 
-One installed 4B local model completed an artificial lookup task; the smaller model repeated calls
-and was stopped. This is limited behavior evidence, not broad workflow/model reliability.
+The generic `/work` model/tool loop was removed from the working tree at the user's request.
+It is not available. The narrow creation workflow does not adopt DeepSeek Harness or restore that
+runtime. Autonomous repeated experiments and broader strategy families remain separate work.

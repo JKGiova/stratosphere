@@ -145,6 +145,8 @@ class ModelSetup(Vertical):
         destination = (
             "OpenRouter and its routed model provider"
             if self.selected_provider == "openrouter"
+            else "Cheaper Inference and its serving model provider"
+            if self.selected_provider == "cheaperinference"
             else PROVIDER_LABELS[self.selected_provider]
         )
         cost = (
@@ -788,6 +790,9 @@ class StratosphereApp(App[None]):
         return message
 
     def contains_session_credential(self, content: bytes) -> bool:
+        if re.search(rb"ci_live_[A-Za-z0-9_-]{24,}", content):
+            return True
+
         def matches(key):
             return bool(key) and (
                 key.encode() in content
@@ -817,7 +822,17 @@ class StratosphereApp(App[None]):
             command = route_command(text)
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
-            if command.action in {
+            if command.action == "create":
+                if not self.session:
+                    await self.add_message("Configure your online model with /model first.")
+                elif self.research_busy or (
+                    self.response_worker and not self.response_worker.is_finished
+                ):
+                    await self.add_message("Pause or cancel the current operation first.")
+                else:
+                    await self.add_message(f"You: {text}")
+                    self.response_worker = self.generate_response("/create " + command.args[0])
+            elif command.action in {
                 "new",
                 "study",
                 "approve",

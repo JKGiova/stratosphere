@@ -31,17 +31,16 @@ Fixture tests are not real-provider tests; a green suite is not operational read
 
 ## Current verification snapshot
 
-There is no final clean-checkout regression baseline for the interrupted tool-runtime draft yet.
-Its checks exposed a sandbox-blocked OAuth listener and a TUI `/data` import collision. The callback
-passed separately and the import was repaired locally; later affected checks passed. Review and
-verify those changes as a coherent revision before claiming completion.
+The focused creation checks cover exact duplicate reuse, isolated histories, immutable generated
+provenance, unresolved/malformed proposals, cancellation, failed analysis, registration rollback,
+restart recovery and approval gates. TUI coverage exercises `/create` through its inline review.
+The native creation integration compares approved base/stress runs on authored candles against an
+independent SMA/accounting oracle. Authored candles establish software behavior, not profitability.
 
-An installed draft package retained trace/history across two processes. A local 4B model completed
-one artificial strategy/jobs lookup; the smaller model repeated calls and was stopped. These checks
-do not establish a real provider feed, order transport, sustained service or general model quality.
-
-Documentation cleanup does not validate or publish those application changes. Current failures,
-proof outputs and artifacts belong under ignored `reports/`, not repeated prose in every guide.
+Model transport/schema fixtures include Cheaper Inference; no authenticated Qwen Flash completion
+has been established for this provider. The exposed chat credential was not used. General tool-loop
+work was discarded; its previous draft checks are not a verification claim for the current client.
+Fixture checks do not establish real provider feeds, order transport or sustained operation.
 
 ## Distribution and privacy
 

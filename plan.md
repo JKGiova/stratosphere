@@ -18,8 +18,8 @@ The repository stays private. There is no release deadline.
 
 | Area | Available foundation | Missing or requiring verification |
 | --- | --- | --- |
-| Terminal/models | Responsive panels, Tab navigation, inline setup, Markdown and 12 model adapters | Consistent forms, cancellation/restart and actual-provider reliability |
-| Library/agents | Exact identities, duplicate reuse, provenance, lineage and isolated saved histories; routed analysis and dedicated workflows | The interrupted bounded tool-loop implementation needs final review and stabilization; no DeepSeek Harness migration is complete |
+| Terminal/models | Responsive panels, Tab navigation, inline setup, Markdown and 13 model adapters | Consistent forms, cancellation/restart and actual-provider reliability |
+| Library/agents | Exact identities, duplicate reuse, provenance, lineage and isolated saved histories; generated SMA creation, initial specialist analysis and reviewed test handoff | Generic model/tool loop and broader autonomous experiments remain deferred |
 | Research | Approved NautilusTrader BTC/USDT hourly long-only SMA runs, bounded variants, costs and holdout controls | Broader strategy families/windows/providers and verified external-code conversion |
 | Sources | Supplied text/files/captions, pinned GitHub material and limited public readers | Complete authorized acquisition and faithful conversion; Instagram, media and Pine coverage remain incomplete |
 | Reports | Retained research/study evidence, detailed inspection and advisory reviews | Reliable interpretations and consistent presentation of exact ownership, failures and limitations |
@@ -33,10 +33,13 @@ See [usage](docs/usage.md) for commands and [invariants](docs/invariants.md) for
 
 ## Immediate priority: stabilization
 
-Do not expand the feature set during this pass.
+The explicitly requested exception is a narrow generated-strategy handoff: BTC/USDT hourly spot
+SMA creation, stable agent assignment, initial critique and an approval-gated native plan. Cheaper
+Inference has a Qwen Flash preset; real authenticated availability remains unverified. Broader
+autonomous workflow implementation remains deferred.
 
 1. Establish a clean-checkout baseline. Record revision, environment, native engine build and test results.
-   Review remaining local agent changes separately; interruption is not completion.
+   Review new creation changes separately; narrower checks do not establish release readiness.
 2. Reproduce each bug with the smallest useful case. Fix one coherent problem at a time, add a
    meaningful regression check and exercise the actual user path.
 3. Test onboarding, secure-store errors, model changes, cancellation, navigation, resizing and
@@ -45,9 +48,9 @@ Do not expand the feature set during this pass.
    command/chat consistency, duplicate handling and incomplete operations.
 5. Exercise source → supported specification → approval → simulation → report, including unsupported
    input, pause/resume, cancellation and evidence inspection without another simulation.
-6. Review the bounded agent runtime: typed tools, progress, shared budgets, nested calls, duplicate
-   guards, safe failure traces, isolation and explicit human handoffs. A paused approved job must
-   offer explicit resume rather than silently resume or demand another approval.
+6. Verify creation → stable specialist → reviewed test handoff, including duplicate reuse, generated
+   provenance, cancellation, failed analysis and restart. Keep the generic agent tool loop deferred.
+   Paused approved jobs offer explicit resume, never automatic replay or duplicate approval.
 7. Produce a short baseline report and update this status table. Keep unresolved defects explicit.
 
 Known verification limits: small local models can repeat tool calls or return invalid structured

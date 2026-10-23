@@ -170,6 +170,26 @@ class WorkspaceDatabase:
             db.execute("BEGIN IMMEDIATE")
             return self._register(db, spec, name, source, evidence, parent, comparison=comparison)
 
+    def register_created_job(self, spec, name, source, job_id, plan_sha256):
+        """Atomically bind an explicit idea, stable agent and awaiting-approval job."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            old = db.execute("SELECT * FROM research_jobs WHERE job_id=?", (job_id,)).fetchone()
+            if old:
+                row = db.execute(
+                    "SELECT * FROM strategies WHERE id=?", (old["strategy_id"],)
+                ).fetchone()
+                if old["plan_sha256"] != plan_sha256 or row["spec_sha256"] != fingerprint(spec):
+                    raise RegistryError("The created job is already bound to a different plan.")
+                return self._public(db, row) | {"resolution": "retained_creation"}
+            record = self._register(db, spec, name, source)
+            row = self._strategy(db, record["public_id"])
+            db.execute(
+                "INSERT INTO research_jobs VALUES (?,?,?,?,?)",
+                (job_id, row["id"], plan_sha256, "awaiting_approval", now()),
+            )
+            return record
+
     def _register(self, db, spec, name, source, evidence=(), parent=None, *, comparison=False):
         """The transaction owner commits identity, provenance, lineage and any receipt together."""
         digest, canonical = fingerprint(spec), canonical_bytes(spec).decode()

@@ -8,6 +8,7 @@ from typing import Literal
 
 from pydantic import Field, ValidationError, model_validator
 
+from stratosphere.agents.creation import StrategyCreator, creation_request
 from stratosphere.catalog.contracts import AssessmentTarget
 from stratosphere.catalog.service import AssessmentService, assessment_markdown
 from stratosphere.chat import ChatSession
@@ -617,6 +618,7 @@ class Orchestrator:
         )
         self.source_reviews = SourceReviewService(self.sources, database)
         self.source_registrations = SourceRegistrationService(self.sources, database)
+        self.creator = StrategyCreator(database, research, self.sources)
         self.report_analyses = ReportAnalysisService(
             research, self.studies, database, secret_check=self.sources.store.has_secret
         )
@@ -856,6 +858,43 @@ class Orchestrator:
         self.responding_strategy = None
         try:
             original_strategy = self.active_strategy
+            brief = creation_request(text)
+            if brief is not None:
+                created = await self.creator.create(brief, self.provider, self.model_ref)
+                proposal = created["proposal"]
+                if created["record"] is None:
+                    yield f"{proposal.status}: " + "\n".join(proposal.questions)
+                    return
+                identity = created["record"]["public_id"]
+                specialist = self.agent(identity)
+                self.responding_strategy = identity
+                if self.active_strategy == original_strategy:
+                    self.select(identity)
+                plan = created["plan"]
+                self.last_action = {
+                    "action": "review",
+                    "job_id": created["job_id"],
+                    "digest": plan.digest,
+                    "simulations": 2,
+                }
+                yield (
+                    f"Strategy `{identity}` assigned to its dedicated agent "
+                    f"({created['record']['resolution']}).\n\n"
+                    f"Proposed hypothesis: {proposal.hypothesis}\n\n"
+                    + plan_markdown(created["job_id"], plan)
+                    + "\n\nNo backtest has started. Review and approve the exact plan first.\n\n"
+                )
+                try:
+                    async with asyncio.timeout(180):
+                        async for delta in specialist.respond(
+                            "Critique this untested model-generated candidate. Identify research "
+                            "limitations. Do not invent results or claim tests have run. "
+                            f"User brief: {brief}\nHypothesis: {proposal.hypothesis}"
+                        ):
+                            yield delta
+                except ModelError, ResearchError, TimeoutError:
+                    yield "\n\nAgent analysis failed. The retained plan still needs approval."
+                return
             inspection = natural_account_inspection(text)
             if inspection is not None:
                 self.last_action = {"action": "paper_inspection", "args": inspection}

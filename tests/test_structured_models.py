@@ -73,6 +73,7 @@ async def test_duplicate_or_unapproved_workflow_actions_are_rejected(reply):
         "gemini",
         "kimi",
         "qwen",
+        "cheaperinference",
         "glm",
         "ollama",
     ],

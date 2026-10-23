@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 
 Provider = Literal[
+    "cheaperinference",
     "nvidia",
     "openrouter",
     "claude",
@@ -23,6 +24,7 @@ Provider = Literal[
 DEFAULT_PROVIDER = "openrouter"
 # Defaults are editable examples, not automatic model discovery or fallback choices.
 DEFAULT_MODELS = {
+    "cheaperinference": "qwen3.7-flash",
     "openrouter": "cohere/north-mini-code:free",
     "nvidia": "deepseek-ai/deepseek-v4.1-flash",
     "claude": "claude-sonnet-5-5",
@@ -37,6 +39,7 @@ DEFAULT_MODELS = {
     "ollama": "gpt-oss:20b",
 }
 PROVIDER_LABELS = {
+    "cheaperinference": "Cheaper Inference",
     "openrouter": "OpenRouter (free)",
     "nvidia": "NVIDIA NIM",
     "claude": "Claude (Anthropic)",
@@ -51,6 +54,7 @@ PROVIDER_LABELS = {
     "ollama": "Ollama",
 }
 KEY_ENVIRONMENTS = {
+    "cheaperinference": "CHEAPER_INFERENCE_API_KEY",
     "openrouter": "OPENROUTER_API_KEY",
     "nvidia": "NVIDIA_API_KEY",
     "claude": "ANTHROPIC_API_KEY",
@@ -65,6 +69,7 @@ KEY_ENVIRONMENTS = {
     "ollama": "OLLAMA_API_KEY",
 }
 BASE_URLS = {
+    "cheaperinference": "https://api.cheaperinference.com/v1",
     "openrouter": "https://openrouter.ai/api/v1",
     "nvidia": "https://integrate.api.nvidia.com/v1",
     "claude": "https://api.anthropic.com/v1",

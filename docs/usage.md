@@ -39,7 +39,7 @@ Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are 
 | --- | --- |
 | Models/chat | `/model`, `/model-forget`, `/cancel`, `/clear` |
 | Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
-| Research | `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
+| Research | `/create <brief>`, `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
 | Evidence | `/report <job>`, `/report-data`, `/analyze-report`, `/report-analyses`, `/report-analysis-show` |
 | Sources | `/source`, `/source-text`, `/source-file`, `/source-captions`, `/sources`, `/source-show` |
 | Source interpretation/import | `/conformance`, `/source-review`, `/source-register` and their list/show commands |
@@ -54,8 +54,9 @@ Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are 
 research/source evidence remains. Positions and paper commands currently inspect authored local
 journals, not a Liquid trading account. Missing accounts are unavailable, not zero balances.
 
-The interrupted agent-runtime draft adds `/work` and `/agent-tools`/`/agent-runs`/`/agent-run`.
-Treat these as review-pending working-tree behavior, not the completed published baseline.
+To generate a candidate, try `/create an hourly BTC/USDT SMA strategy with fast 20, slow 50,
+quantity 0.001 BTC`. Its dedicated agent starts analysis and presents the exact backtest plan for
+approval. Generated ideas are limited to the supported SMA family. See [agent workflow](agent-workflow.md).
 
 ## Quit and restart
 

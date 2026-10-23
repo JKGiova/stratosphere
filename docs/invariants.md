@@ -268,7 +268,7 @@ and separate live lock probes from historical heartbeat/session evidence. This d
 grants no provider feed, order authority, global executable attestation or production-duration
 reliability; reading health must not start, acknowledge, reset or stop it.
 
-## Bounded tool-runtime draft
+## Deferred bounded tool runtime
 
 Freeze strategy ownership before model waits. Use typed capabilities over the existing validated
 services, count nested calls against the same total budget/deadline and retain safe failed/canceled/

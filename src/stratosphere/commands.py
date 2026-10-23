@@ -43,6 +43,7 @@ HELP = """/help — Show commands
 /source-reviews — List retained source-review attempts
 /source-review-show <review-id> — Inspect a verified source review
 /new [text] — Draft a supported research plan in chat
+/create <brief> — Propose a BTC/USDT hourly SMA strategy and start its agent analysis
 /study [strategy-id|parent-job-id] — Review a bounded SMA study with a separate final holdout
 /assess [market symbol interval-seconds] — Record dated applicability for the selected agent
 /recommend <market> <symbol> <interval-seconds> — Ask each local strategy agent for candidates
@@ -183,6 +184,12 @@ def route_command(text: str) -> Command:
         if len(source_words) in arity[name]:
             return Command(name[1:], args=tuple(source_words[1:]))
         return Command("message", "Use /help for source command arguments.")
+    if name == "/create":
+        return (
+            Command("create", args=(text.strip().split(maxsplit=1)[1],))
+            if len(words) > 1
+            else Command("message", "Usage: /create <strategy brief>")
+        )
     if name == "/new":
         return Command("new", args=(text.strip().split(maxsplit=1)[1] if len(words) > 1 else "",))
     if name == "/agent" and len(words) <= 2:

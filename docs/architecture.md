@@ -1,58 +1,45 @@
-# Architecture and agents
+# Architecture
 
-Current scope: the user's **personal application**, as confirmed in [D57](decisions.md). Hosted login, user databases, automatic sharing and platform billing are retired. The [personal-use scope](personal-use.md) and [Phase 3–5 ledger](phase3-5.md) distinguish the current design from historical proofs.
+## Components
 
-## Selected foundation
+| Component | Responsibility | Code |
+| --- | --- | --- |
+| TUI | Panels, inline forms, chat, explicit commands and job controls | `src/stratosphere/tui.py`, `commands.py`, `workspace.py` |
+| Model transport | Provider-specific text streaming and exact workflow-schema delivery | `src/stratosphere/models/`, `chat.py` |
+| Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/agents/` |
+| Local library | Canonical identities, duplicate reuse, provenance, lineage, jobs and reports | `src/stratosphere/registry/` |
+| Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
+| Source/evidence services | Acquisition, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
+| Provider diagnostics | Fixed read-only Liquid connection/catalog/address operations | `src/stratosphere/connectors/` |
+| Authored account/runtime | Journals, reservations, risk gates, observation processing and inspection | `src/stratosphere/paper/` |
 
-Python, LangGraph, Pydantic, Textual and NautilusTrader remain selected. The local SQLite workspace is the strategy/agent registry; private artifact stores and account/service journals retain evidence and operational state. The application needs no Supabase client, application account or hosted API. Existing hosted migrations/access contracts remain historical, without deployment or deletion implied.
+Application services are authoritative. Natural-language and slash routes must reuse their
+validation and approval boundaries. Models cannot grant permission or mutate an active strategy.
+The tool-runtime draft is described in [agent workflow](agent-workflow.md).
 
-[Phase 0](phase0.md) pins runtime/engine versions and verifies its bounded compatibility scope. Intel macOS uses a verified custom wheel; see [Intel verification](intel-macos.md). Version compatibility is not proof of a broker adapter. Broader storage/analysis formats such as Parquet/DuckDB remain proposals.
+## State
 
-## Operation and agent boundaries
+- Local SQLite stores definitions, provenance, private strategy histories and job/report references.
+- Private files retain source bytes, plans, approvals, native artifacts and reports.
+- Separate account/service journals retain observations, reservations, fills, faults and worker state.
+- Native OS secure storage holds selected model settings/key and the fixed Liquid read grant.
+- Callback codes, PKCE/state, active MCP session identifiers and active credentials stay in memory.
 
-The orchestrator bridges the user to one stable agent per exact strategy. Each agent has separate private history, retained evidence and validated operations. Exact duplicates reuse their identity/agent; variants receive distinct identities and lineage. The user can inspect jobs and Reports without exposing another strategy's private conversation to the selected model.
+`STRATOSPHERE_RESEARCH_DIR` selects a research root. Defaults are the user's Application Support
+folder on macOS and XDG state directory on Linux. Operational data is not committed to Git.
 
-| Role | Responsibility |
-| --- | --- |
-| Orchestrator | Route user requests and return specialist results |
-| Strategy specialist | Analyze its rules/evidence, propose bounded work, inspect approved tests and reports |
-| Source/research/development roles | Acquire actual material, formalize rules and establish behavioral conformance |
-| Validator | Compare complete measured evidence, failures, costs and holdout attribution |
-| Portfolio coordinator | Coordinate candidate intents across personal strategies |
-| Budget and risk roles | Produce advisory proposals over explicit frozen account context |
-| Operational supervisor | Inspect health and propose review/pause actions |
+## Process boundaries
 
-These logical roles do not imply an always-running model/process for each role. Models cannot grant plan approval, execute acquired code/SQL, mutate allocations or submit orders independently.
+The TUI invokes validated services. Trusted native research runs in separate credential-free
+workers. Imported source is never executed just because it was acquired. Generated-code isolation
+and executable verification remain unfinished.
 
-## Processes and durable state
+The authored observation worker is separate from the TUI and requires its own approved streams,
+queue and OS ownership lock. It has no real provider feed or order transport. Reading status never
+starts or modifies it. Liquid paper/live transport remains unimplemented.
 
-The TUI invokes validated application operations; slash commands and natural-language routes share those boundaries. Local registry records, job checkpoints, evidence, approvals and account journals are authoritative, rather than conversation text.
+## Compatibility
 
-Research runs separately from operational processing. The reviewed [authored observation service](observation-service.md) adds one owner per account, durable queue recovery and silence/heartbeat stops. It processes authored inputs only. Its existence does not establish a real feed, broker transport, production soak or the complete keep/close exit workflow.
-
-[Research workers](phase2.md) receive only validated inputs and a minimal credential-free environment. The supported exact SMA compiler and pinned native simulations are implemented; arbitrary generated/acquired-code execution remains disabled. Risk controls, reservations, idempotency and reconciliation must remain deterministic even when models fail.
-
-## Storage and privacy
-
-The selected model configuration and optional fixed-resource Liquid read grant use the [native credential store](credentials.md). They are not SQLite/profile records. Restoring a model sends no prompt; Liquid restores a fresh read-only MCP session/catalog and can renew a supported rotating grant without browser interaction. This grants no account or order authority.
-
-- Local SQLite: canonical strategies, provenance, stable agents, separate histories, jobs and report references.
-- Private artifacts: source snapshots, immutable approvals, native results, reports and review receipts.
-- Account/service journals: observations, reservations, actual reported economics, faults and processing state.
-- Process memory: active model/broker/session credentials and their redaction guards.
-
-The application has no multi-user profile, app-login or public-publication requirement. Historical identifiers named public IDs remain stable local identifiers. Preserve old wire readers, source pins and sealed evidence; a presentation/scope cleanup must not rewrite historical metrics, fee assumptions or approvals. See [local database model](database-model.md).
-
-## Providers and online operation
-
-Model adapters remain explicit and selectable, including local Ollama; no paid/model/provider fallback is inferred. Online gates for research/reporting remain. Linux/macOS and English are the initial client targets.
-
-Liquid is the only trading connector. Optional provider authentication and permissions remain separate from strategy approval. Account metadata does not establish feed access, paper isolation, perpetual precision/funding/fee handling or order authority. Match each actual venue/instrument/quote/timing profile and permitted personal use.
-
-There is no stratosphere service fee or billing ledger requirement. Broker/exchange commissions, spread, slippage, funding and currency rounding still belong in simulation and operational accounting.
-
-## Operational lifecycle still required
-
-The confirmed exit choice is to keep positions or request closure of all. Closing the TUI, stopping a worker, disconnecting credentials, canceling entries and closing positions are distinct actions. Closure must retain actual outcomes, failures and residual exposure; no immediate fill is assumed.
-
-Provider feed/authenticity, native fee/precision handling, a single broker order gateway, complete portfolio reconciliation, sustained operation and executable binding remain required before personal paper/live readiness. Live activation needs separate explicit authorization. The current checkpoint finishes existing personal-use cleanup and then reserves further work for the user-led bug-fixing session.
+Versioned schemas, complete definition hashes, frozen approval pins and immutable report readers
+must survive upgrades. Do not recalculate old results or reinterpret old spot evidence as perpetual
+performance. See [contracts](contracts.md) and [invariants](invariants.md).

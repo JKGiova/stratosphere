@@ -1,33 +1,31 @@
-# Data-source rights and capability status
+# Data rights and purpose
 
-Current scope, October 22, 2026: **personal use only** under D57. Commercialization permission is no longer a general prerequisite. Actual provider/account eligibility, permitted purpose, storage and redistribution restrictions remain separate from technical access and code licensing. No provider prices or data were acquired during this cleanup, and no existing acquisition/quality gate was loosened.
+Technical reachability, software licensing, account entitlement and permitted market-data use are
+separate. Personal use retires the earlier commercial-product requirement; it does not grant
+redistribution, live/feed rights or permission to ignore provider restrictions.
 
-Liquid is the only trading connector under [D58](decisions.md). Read-only catalog/address access does not establish market-data entitlement, a structured feed, paper isolation or execution permission. See [Liquid testing](liquid-paper-testing.md) for the inspected contracts and remaining perpetual-specific verification.
+## Current boundaries
 
-The [Binance Vision terms](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md) describe personal non-production historical backtesting among permitted non-commercial uses, while excluding live proprietary execution. Do not transfer a research allowance into paper/live/feed rights. Authored fixtures remain appropriate for deterministic software/native tests and establish no market performance.
+| Data | Permitted/verified project scope | Not established |
+| --- | --- | --- |
+| Binance Vision | Pinned BTC/USDT hourly historical research adapter and personal non-production research allowance recorded in provider terms | A live proprietary execution/feed entitlement |
+| ECB rates | Bounded reference-rate compatibility proof with attribution | Executable intraday forex prices or market liquidity |
+| Authored fixtures | Deterministic software/native accounting and protocol checks | Market performance, provider quotes or feed rights |
+| Liquid catalog/address | Read-only discovery/diagnostic evidence | Account control, market-data entitlement, paper isolation or execution permission |
+| Other markets/providers | Capability descriptions and explicit gaps | Verified equity/ETF/forex/perpetual trading adapters |
 
-Frozen v1 study protocols and capability records may retain historical commercial-rights labels. Keep their bytes/readers intact; these labels do not restore the retired commercial project requirement. Purpose-specific capability revisions and actual provider verification belong to a future reviewed increment, outside this cleanup.
+Before adding a provider or purpose, verify current terms, actual account/feed permissions,
+storage/redistribution conditions and instrument semantics. Do not purchase data or enable paid
+capacity without user authorization. Existing versioned evidence keeps its original labels and
+bytes even if product scope later changes.
 
-## Historical commercial review
+## Provider references
 
-The findings below describe the earlier commercial plan. Commercial licenses are still unverified, but are not current personal-application completion gates.
+- [Binance archive documentation](https://github.com/binance/binance-public-data)
+- [Binance dataset terms](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md)
+- [ECB reference rates](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html)
+- [ECB reuse/disclaimer](https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html)
 
-Verified October 18, 2026 against the provider's published documents. Technical availability and permission to use market data commercially are separate capabilities.
-
-## Binance Vision
-
-The [official archive documentation](https://github.com/binance/binance-public-data) describes monthly archives, SHA-256 checksum files, possible later revisions and microsecond spot timestamps from January 2025. The implementation verifies those technical properties for its supported BTCUSDT hourly profile.
-
-The [published dataset terms, version 1.0 dated August 26, 2026](https://github.com/binance/binance-public-data/blob/master/TERMS_AND_CONDITIONS.md), apply a noncommercial license, restrict commercial financial-product integration, and require a separate written agreement for commercial use. They also place conditions on derivative redistribution. The repository's code license does not establish commercial rights to its market datasets.
-
-No commercial data agreement has been supplied or verified for stratosphere. The existing archive research adapter therefore cannot be advertised as a commercial-ready market-data integration or carried into paper/live commercial operation. Study review exposes that missing entitlement. After this finding, additional protocol/native validation uses authored fixtures; no new live holdout acquisition is claimed. Existing historical evidence remains historical and is not silently rewritten.
-
-Before commercial use, verify an appropriate provider/account/data agreement and its permitted instrument, storage, redistribution and derived-output uses. Do not enable paid capacity or purchase a license without user authorization. A replacement provider must independently pass timestamp, completeness, instrument, session, availability and execution-semantics checks; a similar symbol is not a conforming substitute. Provider rights and operational adapter verification remain open work in Phase 4.
-
-## Kraken public APIs
-
-The [official API notice](https://docs-legacy.kraken.com/api/docs/guides/global-intro/#notices), read October 18, 2026, requires prior permission for non-personal commercial use of public endpoint data, including market/status data. No permission has been supplied or verified for stratosphere, and no new Kraken market/status acquisition was performed. Public reachability is not a verified commercial replacement for Binance. No provider was contacted or license purchased.
-
-## Other current evidence
-
-The Phase 0 ECB reference-rate proof is not tradable intraday forex data. No equity/ETF tradable-data adapter or commercial real-time-feed entitlement is verified. Authored fixture results establish software behavior and native-engine conformance, not market performance or provider rights.
+These links locate the contracts to recheck for a new use; this document is not a fresh entitlement
+review. Quality checks must preserve missing, duplicate, unordered and incomplete observations
+without invented prices/publication timestamps or silent sorting/deduplication.

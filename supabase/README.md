@@ -1,21 +1,13 @@
-# Historical hosted database development
+# Retained hosted database code
 
-Status: **retained historical implementation, outside the personal application's requirements under D57**. The TUI uses local SQLite. No new hosted users service, login or synchronization is planned. Existing migrations/tests remain intact; this cleanup does not modify or delete hosted resources.
+The personal TUI uses local SQLite. Hosted user databases, application login and synchronization
+are outside [the current plan](../plan.md).
 
-The details below describe prior development and verification, not a fresh health check or a remaining completion gate. See [personal-use scope](../docs/personal-use.md).
+This directory retains applied migration history and ownership/immutability SQL tests from earlier
+work. Keep these files compatible; documentation cleanup does not edit migrations, grant access,
+delete resources or prove current hosted-project health.
 
-## Historical development record
-
-# Database development
-
-The stratosphere project is provisioned in the **tradingsphere** organization on the free allowance, Frankfurt (`eu-central-1`). The project reference is `iaouphzeaiqyunfwbprm`; it is an identifier, not a credential. Login providers, shared application hosting and client database access are not configured.
-
-The migrations create the private `stratosphere` schema for strategy identities/lineage, source snapshots/associations, submissions, stable agents and owner-scoped sessions/turns, research jobs, operation outcomes, reports and assessments. All 13 tables have RLS enabled. The schema grants no usage to anonymous or authenticated clients; only the trusted application service can register definitions. No privileged key is distributed to the TUI. Models query the local development workspace through validated Python operations; hosted application-service synchronization is still pending.
-
-Migration files were initially created using the pinned official Supabase CLI 2.121.0, applied through the Supabase connector, and renamed to the authoritative versions returned by the remote migration history. No generated row IDs or credentials are embedded in migrations. Future database changes must append migrations rather than editing applied SQL.
-
-Run `tests/strategy_agent_registry.sql` in a controlled development database to verify canonical identity/deduplication, source accumulation, parent links, stable per-strategy agents, report and dated-assessment immutability, private assessment ownership, cross-owner foreign keys and RLS. The harness creates authored fixtures and temporary role grants in a transaction, then rolls back every change. It does not implement OAuth or prove login/session verification. Final checks must confirm no retained fixtures and no client schema grants.
-
-Application services must validate full canonical `StrategySpec` contracts before invoking registration. The SQL routine rejects noncanonical wire representations and protects the stored identity hash; it is not a substitute for engine/conversion conformance. Shared catalog DTOs must enumerate allowed fields and exclude private source material, conversations, accounts and limits.
-
-The `protect_applicability_assessments` migration makes payloads, timestamps and ownership associations append-only: updates and deletion fail for every application role. The invoker function has an empty fixed search path and no anonymous/authenticated execution grant. Controlled owner tests reject cross-owner reads/inserts and roll back all data/temporary privileges. No new client grants, login providers or paid capacity are enabled.
+Future authorized database changes must append migrations instead of rewriting applied SQL.
+Privileged service credentials must never reach the TUI, models or native workers. The existing
+SQL harness uses authored fixtures with transactional rollback; it is not application-login or
+provider-account verification. See [contracts](../docs/contracts.md).

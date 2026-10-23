@@ -1,37 +1,39 @@
-# Remembered model settings and Liquid login
+# Credentials
 
-Status: implemented for the personal Linux/macOS TUI under D59. Model settings and the optional Liquid read-only OAuth grant are stored through pinned `keyring==25.7.0`, using macOS Keychain or Linux Secret Service directly. There is no plaintext/config-file fallback, third-party keyring selection, hosted application login or new trade permission.
+## Save and forget
 
-## Use
+The selected model/provider/official endpoint/key and optional fixed Liquid read grant use macOS
+Keychain or Linux Secret Service through `keyring`. There is no plaintext, config-file or chained
+backend fallback. Only the selected model configuration is retained, not a provider password library.
 
-1. Start `.venv/bin/python -m stratosphere`. Enter the model/provider, official API base URL and key once in inline onboarding or `/model`. Successful submission remembers the selected configuration and key securely. Local Ollama's empty-key configuration can also be remembered.
-2. Run `/liquid-connect` and approve only `read` in the browser once. The app saves the resulting fixed-resource grant. Existing older sessions were memory-only, so a one-time sign-in is needed after this upgrade; the app cannot recover a refresh token discarded by an earlier version.
-3. Quit normally. On the next launch, the saved model is restored without a chat/model request. A saved Liquid login obtains a new MCP session/catalog without browser interaction while its access token remains valid, or renews a supported refresh grant when near expiry. It never restores account identity, a saved catalog as a connection, paper mode or execution authority.
+- `/model` sets and saves the selected configuration; startup restores it without a model request.
+- `/model-forget` removes saved model access when no operation is running.
+- `/liquid-connect` explicitly authorizes read access in the browser and saves a supported grant.
+- `/liquid-disconnect` waits for connector writes, cancels work and forgets active/saved access.
+- Quitting retains saved credentials. Provider revocation is managed separately with Liquid.
 
-The selected model configuration is remembered, rather than a multi-provider password library. `/model` replaces that selection. `/model-forget` removes its saved settings/key and clears the active model when no model/research operation is running. It does not delete strategy histories or reports.
+Unavailable/unlocked secure storage is reported explicitly; access may remain session-only after
+setup. Linux requires a functioning unlocked Secret Service session. macOS can prompt for Keychain
+access. Previously memory-only versions cannot recover tokens they discarded.
 
-`/liquid-disconnect` cancels connector work, waits for any in-progress secure-store write, and forgets both the active session and saved login. Quitting clears the current connector session but retains any already saved grant. Canceling active connector work also clears its in-memory session without deleting a confirmed saved grant. Provider consent/revocation is managed separately in Liquid. Local deletion is not a cryptographic memory-wipe guarantee.
+## Liquid restore and renewal
 
-macOS may ask permission to access Keychain. Linux needs an available, unlocked Secret Service session; a headless machine without it cannot persist credentials through this implementation. If secure storage fails, model setup continues for the current session with an explicit warning. A successful Liquid browser connection can similarly remain session-only if its grant cannot be saved. Startup reports unreadable/invalid credentials instead of silently changing providers or writing secrets to disk.
+Pin issuer/resource/client/read scope and bounded lifetimes. Revalidate metadata and negotiate a
+fresh session/catalog on restore; never load a saved diagnostic as a connection. Renew only through
+the fixed advertised token endpoint and validate exact read scope plus confirmed token rotation.
 
-## OAuth renewal boundary
+Use an account-wide OS lock shared across research roots. Consume the old saved grant before
+refresh dispatch, retain the confirmed replacement before catalog negotiation and finish secure
+writes before cancellation/disconnect releases the lock. Do not retry ambiguous refreshes or
+open a sign-in browser automatically on startup. Expiry/revocation may require explicit sign-in.
+Renewal occurs before an account diagnostic freezes its session, never inside the read.
 
-The [Liquid authorization metadata](https://coinvest.liquid.trade/.well-known/oauth-authorization-server) advertises `authorization_code` and `refresh_token`. Metadata is revalidated against the fixed issuer/endpoints before credentials are sent. Initial public-client registration requests the refresh grant only when advertised; browser consent stays `read`. Persisted grants pin issuer, resource, client, scope and bounded wall-clock lifetime. Callback codes, PKCE/state values, registration secrets, MCP session IDs and tool catalogs are not persisted in the credential store.
+Callback codes, PKCE/state, registration secrets and MCP session identifiers stay in memory.
+Credentials stay outside models, SQLite, reports, source artifacts and worker environments.
+Native secure storage is personal OS storage, not an independent multi-user security boundary.
 
-Renewal uses only the fixed token endpoint with `client_id`, `refresh_token`, `scope=read` and the canonical MCP `resource`. The response must explicitly confirm a bounded bearer token with exactly `read` and a changed refresh token. The pinned [MCP authorization contract](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization) requires secure token storage and rotation for public clients. Discovery hints or saved credentials never broaden scopes or invoke tools.
+## Verification limits
 
-An OS file lock serializes refresh consumption across local TUI processes. The saved old grant is removed before refresh dispatch: a timeout, cancellation or crash cannot replay an ambiguously consumed rotating token on restart. A confirmed rotated grant is saved before catalog negotiation, so a later protocol failure does not lose that known replacement. Secure-store writes finish before cancellation releases the lock; disconnect then deletes the saved value. No automatic refresh retry or browser fallback occurs during background startup. Expired nonrenewable or rejected access is forgotten; `/liquid-connect` can start a fresh explicit browser flow. A rejected/ambiguous refresh or provider revocation may require sign-in again.
-
-Renewal precedes the explicit account diagnostic's session freeze. It cannot run inside an active address read or change its retained session/request pins. Restoring/renewing performs only metadata/token/MCP initialization/catalog operations, with no `tools/call`, price request or order. Restored secrets and prior tokens in the current process remain redaction guards for catalog/chat/source boundaries.
-
-## Storage and verification limits
-
-Secrets are outside the repository, SQLite, `.env`, logs, model histories, source snapshots, report artifacts and worker environments. Empty private lock files contain no credentials. The native backend is selected directly; `PYTHON_KEYRING_BACKEND` and plaintext/chained alternatives cannot redirect writes. OS credential-store access controls apply; for example, the [keyring documentation](https://github.com/jaraco/keyring) explains that other code using the same allowed Python executable may access its macOS Keychain items. This is personal local storage, not a separate application-user security boundary.
-
-Authored tests cover saved settings, exact destinations, grant replay/rotation, scope/endpoint rejection, expiration/revocation, secret echoes, cancellation, locking, quit/restart and explicit forgetting. A synthetic macOS Keychain write/read/delete check passed without reading user credentials. Linux Secret Service requires separate native-host verification. Actual user refresh issuance/rotation is not claimed from public metadata or fixtures; Liquid controls grant lifetime and revocation. Credential persistence does not complete real feeds, perpetual paper execution or the rest of Phases 3–5.
-
-## Verification record — 22 October 2026
-
-The full regression run passed **1,289 tests**, with the localhost callback case deliberately deselected and 40 upstream Pandas warnings. That callback passed separately with permission to bind its local listener. A later shared-lock-root case brought the collection to **1,291**. The final **39 affected checks passed**, covering that addition and repeated-cancellation/form-notice refinements; this is verification across scoped runs, not a claim that a final 1,291-case full suite ran green in one process. Ruff/format, dependency-lock and whitespace checks passed.
-
-A rebuilt installed wheel used a temporary native macOS Keychain namespace in two fresh processes. The first saved synthetic model and read-only OAuth credentials, then quit. The second restored the model without sending a prompt, renewed an expired fixture grant without a browser, checked read-only catalog navigation at 180×48 and 45×12, and removed both entries through the application commands. No user credentials were read. Keychain read/write/delete, source/archive equality, credential/private-state exclusion and secret-free UI/state artifacts were checked. The OAuth/provider/connectivity behavior was authored; it made zero actual model/provider/native-start/order calls. Core research/study/runtime/decision/service digests stayed unchanged; the dependency lock changed intentionally for keyring. The TUI supplies current credential wording around the legacy hashed research widget without changing its protocol source bytes.
+Synthetic macOS Keychain write/read/delete and installed-package restart checks passed. Actual
+user Liquid refresh/rotation and Linux native-backend verification remain pending. Fixtures and
+public authorization metadata do not verify them or grant feed/trading access.

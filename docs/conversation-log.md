@@ -5118,3 +5118,42 @@ My recommendation is a small comparison prototype: run the same report-analysis 
 A harness could simplify agent development. It would not supply Liquid’s missing feed, paper adapter or reconciliation. This is an architectural proposal; I haven’t changed the implementation.
 
 ---
+
+### 606 — User
+
+what is the actual situation of the agent structure?
+
+---
+
+### 607 — Assistant (progress update)
+
+I’ll inspect the current agent code and trace how requests, strategy histories and application operations fit together.
+
+---
+
+### 608 — Assistant
+
+Currently, **we have a custom coordinator over shared agent code, with separate strategy sessions.** We do not have an autonomous team of agents continuously working in the background.
+
+The request flow is:
+
+**TUI → orchestrator → selected strategy session or dedicated workflow → validated application operation → response/report**
+
+| Part | What it actually does today |
+| --- | --- |
+| **Orchestrator** | Recognizes some explicit requests directly; otherwise asks the model for a validated JSON route, such as analyze, study, report or source review. It checks strategy IDs and prevents invented targets. |
+| **Strategy agents** | Every registered strategy has a stable agent identity and its own saved conversation. All use the same `StrategyAgent` implementation and the currently configured provider/model. They are separate contexts, not separately trained models or permanent processes. |
+| **Chat engine** | Uses LangGraph, but its chat graph is just **start → model response → end**. It streams text; it does not repeatedly select and execute tools until a goal is complete. |
+| **Specialized workflows** | Source reviews, study proposals, report analyses and applicability assessments have their own application-controlled paths, prompts, schemas and evidence validation. |
+| **Budget/risk roles** | Separate advisory model stages over a frozen authored-account snapshot. They cannot change allocations or authorize trading. |
+| **Application services** | Own actual registration, research, report inspection, approvals and deterministic controls. The model cannot execute arbitrary code/SQL or submit orders. |
+
+Strategy histories persist locally in SQLite and are restored when that strategy’s session is created. General chat is session-only. The orchestrator accepts one request at a time; it does not autonomously spawn a parallel agent team.
+
+The strengths are **strategy isolation, retained evidence and application-owned approval gates**. The weakness is that orchestration is spread across explicit routing branches, workflow services and TUI handlers. Adding a capability often means connecting several pieces manually.
+
+So the harness proposal is mainly about replacing that coordination plumbing with a reusable runtime for tool calls, context management and traces. We already share the agent implementation; the larger missing piece is a general, bounded **model → tool → result → model** loop.
+
+No migration has started. The relevant code is [orchestrator.py](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/src/stratosphere/agents/orchestrator.py) and [chat.py](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/src/stratosphere/chat.py).
+
+---

@@ -5157,3 +5157,27 @@ So the harness proposal is mainly about replacing that coordination plumbing wit
 No migration has started. The relevant code is [orchestrator.py](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/src/stratosphere/agents/orchestrator.py) and [chat.py](/Users/giovanni/Documents/Coding/tradingsphere/stratosphere/src/stratosphere/chat.py).
 
 ---
+
+### 609 — User
+
+is this finished?
+
+---
+
+### 610 — Assistant (progress update)
+
+I’ll distinguish what’s implemented from what remains unfinished and record that status in the project log.
+
+---
+
+### 611 — Assistant
+
+**No—the full agent workflow is not finished.**
+
+- **Implemented:** routing, separate saved strategy histories, supported research/review/report workflows, and application-owned approval controls.
+- **Unfinished:** a general agent loop that can plan several steps, call permitted tools, inspect results and continue within an approved budget; broader workflow coverage and reliability verification also remain.
+- **Harness migration:** only discussed; no implementation has started.
+
+The current structure is a working foundation, not the completed agent system from the plan.
+
+---

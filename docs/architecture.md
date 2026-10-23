@@ -8,6 +8,7 @@
 | Model transport | Provider-specific text streaming and exact workflow-schema delivery | `src/stratosphere/models/`, `chat.py` |
 | Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/agents/` |
 | Local library | Canonical identities, duplicate reuse, provenance, lineage, jobs and reports | `src/stratosphere/registry/` |
+| Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
 | Source/evidence services | Acquisition, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
 | Provider diagnostics | Fixed read-only Liquid connection/catalog/address operations | `src/stratosphere/connectors/` |

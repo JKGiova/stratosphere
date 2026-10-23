@@ -7,7 +7,8 @@ These are focused reference guides, not separate roadmaps.
 | --- | --- |
 | [Usage](usage.md) | Installation, startup, commands and supported workflow |
 | [Architecture](architecture.md) | Components, state ownership and code locations |
-| [Agent workflow](agent-workflow.md) | Existing agents and unfinished tool-runtime work |
+| [Agent workflow](agent-workflow.md) | Existing agents, creation handoff and deferred tool-runtime work |
+| [Yahoo backtesting](yahoo-backtesting.md) | Historical Yahoo setup, supported models and data limitations |
 | [Research](research.md) | Supported strategy, approval, studies and report evidence |
 | [Sources](sources.md) | Actual intake capabilities, provenance and conversion limits |
 | [Paper foundations](paper.md) | Internal accounting/runtime and missing provider integration |

@@ -13,6 +13,7 @@ dependencies = [
   "langgraph==1.2.15",
   "pydantic==2.14.1",
   "textual==8.2.8",
+  "yfinance==1.7.0",
 ]
 
 [project.optional-dependencies]

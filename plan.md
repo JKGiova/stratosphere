@@ -20,7 +20,7 @@ The repository stays private. There is no release deadline.
 | --- | --- | --- |
 | Terminal/models | Responsive panels, Tab navigation, inline setup, Markdown and 13 model adapters | Consistent forms, cancellation/restart and actual-provider reliability |
 | Library/agents | Exact identities, duplicate reuse, provenance, lineage and isolated saved histories; generated SMA creation, initial specialist analysis and reviewed test handoff | Generic model/tool loop and broader autonomous experiments remain deferred |
-| Research | Approved NautilusTrader BTC/USDT hourly long-only SMA runs, bounded variants, costs and holdout controls | Broader strategy families/windows/providers and verified external-code conversion |
+| Research | Legacy approved BTC/USDT runs/studies; separate Yahoo historical SMA price research for equities, crypto spot and fully funded FX, hourly/daily and longer explicit windows | Corporate-action accounting, verified equity/FX calendars, Yahoo agent/study integration, broader strategies and faithful source conversion |
 | Sources | Supplied text/files/captions, pinned GitHub material and limited public readers | Complete authorized acquisition and faithful conversion; Instagram, media and Pine coverage remain incomplete |
 | Reports | Retained research/study evidence, detailed inspection and advisory reviews | Reliable interpretations and consistent presentation of exact ownership, failures and limitations |
 | Credentials | Native secure storage and read-only Liquid grant renewal logic | Actual user refresh/rotation and Linux native-store verification |
@@ -37,6 +37,13 @@ The explicitly requested exception is a narrow generated-strategy handoff: BTC/U
 SMA creation, stable agent assignment, initial critique and an approval-gated native plan. Cheaper
 Inference has a Qwen Flash preset; real authenticated availability remains unverified. Broader
 autonomous workflow implementation remains deferred.
+
+Historical-only yfinance backtesting is implemented as a separate manual path, with versioned
+snapshots/plans and retained legacy evidence. Liquid stays the future real-time trading
+connector. Do not add Yahoo live quotes, account login, paid acquisition or provider fallback.
+The actual full-year hourly BTC check contains missing prices and is blocked; successful daily
+and shorter hourly acquisition is not proof of complete hourly coverage. See the
+[Yahoo guide](docs/yahoo-backtesting.md) for supported behavior and verification limits.
 
 1. Establish a clean-checkout baseline. Record revision, environment, native engine build and test results.
    Review new creation changes separately; narrower checks do not establish release readiness.

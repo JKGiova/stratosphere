@@ -42,6 +42,10 @@ HELP = """/help — Show commands
 /source-review <source-id> [strategy-id] — Ask that strategy's agent to review source evidence
 /source-reviews — List retained source-review attempts
 /source-review-show <review-id> — Inspect a verified source review
+/yahoo — Set up a historical Yahoo SMA backtest (stocks, crypto, forex)
+/yahoo-show <job-id> — Inspect a Yahoo plan or report
+/yahoo-approve <job-id> <plan-sha256> — Approve and run the exact Yahoo plan
+/yahoo-cancel <job-id> — Cancel a pending or running Yahoo operation
 /new [text] — Draft a supported research plan in chat
 /create <brief> — Propose a BTC/USDT hourly SMA strategy and start its agent analysis
 /study [strategy-id|parent-job-id] — Review a bounded SMA study with a separate final holdout
@@ -184,6 +188,12 @@ def route_command(text: str) -> Command:
         if len(source_words) in arity[name]:
             return Command(name[1:], args=tuple(source_words[1:]))
         return Command("message", "Use /help for source command arguments.")
+    if name in {"/yahoo", "/yahoo-show", "/yahoo-approve", "/yahoo-cancel"}:
+        expected = {"/yahoo": 1, "/yahoo-show": 2, "/yahoo-approve": 3, "/yahoo-cancel": 2}[name]
+        if len(words) == expected and (expected == 1 or re.fullmatch(r"[a-f0-9]{32}", words[1])):
+            if expected != 3 or re.fullmatch(r"[a-f0-9]{64}", words[2]):
+                return Command(name[1:], args=tuple(words[1:]))
+        return Command("message", "Use /yahoo or /help for Yahoo plan commands.")
     if name == "/create":
         return (
             Command("create", args=(text.strip().split(maxsplit=1)[1],))

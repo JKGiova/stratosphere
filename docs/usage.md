@@ -39,6 +39,7 @@ Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are 
 | --- | --- |
 | Models/chat | `/model`, `/model-forget`, `/cancel`, `/clear` |
 | Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
+| Yahoo historical research | `/yahoo`, `/yahoo-show`, `/yahoo-approve`, `/yahoo-cancel` ([guide](yahoo-backtesting.md)) |
 | Research | `/create <brief>`, `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
 | Evidence | `/report <job>`, `/report-data`, `/analyze-report`, `/report-analyses`, `/report-analysis-show` |
 | Sources | `/source`, `/source-text`, `/source-file`, `/source-captions`, `/sources`, `/source-show` |

@@ -19,12 +19,13 @@ See [setup and usage](docs/usage.md) for installation and the research workflow.
 
 - Responsive TUI, selectable model providers and a local library with separate strategy-agent histories.
 - Approved NautilusTrader research for the supported BTC/USDT hourly, long-only SMA crossover family.
+- Separate [Yahoo historical backtesting](docs/yahoo-backtesting.md) for supported stock, crypto and FX SMA price research.
 - Bounded variant studies and retained reports with explicit costs, failures and holdout attribution.
 - Partial source intake and reviews; arbitrary strategy conversion is unfinished.
 - Liquid read-only connection, catalog inspection and an address diagnostic.
 - Internal simulated-account and observation-worker foundations; no connected paper or live trading.
 
-The recent tool-using agent runtime remains work in progress pending stabilization. Software tests,
+The general autonomous tool loop remains deferred. Software tests,
 actual model behavior and provider readiness are separate checks. There is no release deadline.
 
 ## Development

@@ -1,5 +1,9 @@
 # Research and reports
 
+The historical Yahoo path is described in [Yahoo backtesting](yahoo-backtesting.md). It uses
+separate versioned plans/snapshots for equity, crypto and fully funded FX price research; the
+legacy Binance behavior and evidence below remain unchanged.
+
 ## Supported behavior
 
 The trusted implementation supports long-only fast/slow SMA crossover on BTCUSDT spot hourly

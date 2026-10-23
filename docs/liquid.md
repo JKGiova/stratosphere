@@ -8,6 +8,9 @@ Liquid is the only trading connector. Current access is read-only:
 - Fresh MCP catalog negotiation, deterministic browsing and explicit private export.
 - A separate explicit address-read diagnostic using the reviewed fixed `get_account` request.
 
+Yahoo historical backtesting is separate; see [Yahoo backtesting](yahoo-backtesting.md).
+Liquid remains reserved for future real-time trading integration.
+
 No real-time structured feed, perpetual paper adapter or order transport is implemented.
 An exported catalog or reported address does not verify legal account control, environment,
 feed entitlement, paper isolation or permission to trade.

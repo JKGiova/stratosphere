@@ -73,6 +73,11 @@ from stratosphere.studies.service import StudyService
 from stratosphere.studies.store import StudyStore
 from stratosphere.studies.widgets import StudyForm
 from stratosphere.workspace import CHROME_HEIGHT, choose_layout
+from stratosphere.yahoo.contracts import YahooSnapshot
+from stratosphere.yahoo.service import YahooBacktests
+from stratosphere.yahoo.service import plan_markdown as yahoo_plan_markdown
+from stratosphere.yahoo.service import report_markdown as yahoo_report_markdown
+from stratosphere.yahoo.widgets import YahooForm, YahooReview
 
 VIEWS = (
     ("library", "Library"),
@@ -286,7 +291,8 @@ class Conversation(VerticalScroll):
     def on_resize(self, event: Resize) -> None:
         focused = self.screen.focused
         if focused and any(
-            isinstance(parent, (ModelSetup, ResearchForm)) for parent in focused.ancestors
+            isinstance(parent, (ModelSetup, ResearchForm, YahooForm))
+            for parent in focused.ancestors
         ):
             self.call_after_refresh(lambda: focused.scroll_visible(animate=False))
 
@@ -337,6 +343,7 @@ class StratosphereApp(App[None]):
         paper_review_service=None,
         paper_inspector=None,
         credential_store=None,
+        yahoo_service=None,
     ):
         super().__init__()
         self.console.push_theme(
@@ -380,6 +387,9 @@ class StratosphereApp(App[None]):
         self.paper_reviews.secret_check = lambda data: (
             previous_secret_check(data) or self.contains_session_credential(data)
         )
+        self.yahoo = yahoo_service or YahooBacktests(
+            self.research.store.root / "yahoo", self.database
+        )
         self.studies = study_service or StudyService(
             StudyStore(self.research.store.root / "studies"), self.database
         )
@@ -409,7 +419,7 @@ class StratosphereApp(App[None]):
         )
         self.research_worker: Worker | None = None
         self.research_job_id: str | None = None
-        self.research_form: ResearchForm | StudyForm | None = None
+        self.research_form: ResearchForm | StudyForm | YahooForm | None = None
         self.selected_report_key: str | None = None
         self.active_pane = "chat"
         self.viewport = (80, 24)
@@ -524,6 +534,7 @@ class StratosphereApp(App[None]):
         self.query_one("#positions", DataTable).add_columns(
             "BTC", "Settled USDT", "Reserved USDT", "Strategy", "Instance"
         )
+        self.yahoo.recover()
         self.research.recover()
         self.studies.recover()
         self.refresh_research_views()
@@ -650,6 +661,8 @@ class StratosphereApp(App[None]):
                         else (
                             "#study-hypothesis"
                             if isinstance(form, StudyForm)
+                            else "#yahoo-symbol"
+                            if isinstance(form, YahooForm)
                             else "#research-source"
                         )
                     )
@@ -822,7 +835,9 @@ class StratosphereApp(App[None]):
             command = route_command(text)
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
-            if command.action == "create":
+            if command.action.startswith("yahoo"):
+                await self.handle_yahoo_command(command.action, command.args)
+            elif command.action == "create":
                 if not self.session:
                     await self.add_message("Configure your online model with /model first.")
                 elif self.research_busy or (
@@ -1191,8 +1206,20 @@ class StratosphereApp(App[None]):
                 "Agent ready",
                 key=record["public_id"],
             )
+        for job in self.yahoo.store.jobs():
+            jobs.add_row(
+                job[:12],
+                "Yahoo historical research",
+                self.yahoo.store.state(job),
+                key="yahoo:" + job,
+            )
         reports = self.query_one("#reports", DataTable)
         reports.clear()
+        for job in self.yahoo.store.jobs():
+            if self.yahoo.store.state(job) == "completed":
+                reports.add_row(
+                    "Yahoo historical research", job[:12], "Retained", key="yahoo:" + job
+                )
         for record in self.database.reports():
             reports.add_row(
                 Text(safe_text(record["name"])),
@@ -2091,6 +2118,11 @@ class StratosphereApp(App[None]):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         parent = event.button.parent
+        if isinstance(parent, YahooReview):
+            event.stop()
+            action = "yahoo-approve" if event.button.id == "yahoo-approve" else "yahoo-cancel"
+            await self.handle_yahoo_command(action, (parent.job, parent.digest))
+            return
         if not isinstance(parent, ResearchReview):
             return
         event.stop()
@@ -2153,6 +2185,22 @@ class StratosphereApp(App[None]):
         self.action_select_view("reports")
 
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
+        if job_id.startswith("yahoo:"):
+            self.selected_report_key = job_id
+            preview = self.query_one("#report-preview", Static)
+            preview.update("Verifying retained Yahoo report…")
+            try:
+                await self.yahoo.require_online()
+                value = self.yahoo.report(job_id.removeprefix("yahoo:"))
+                preview.update(Markdown(safe_text(yahoo_report_markdown(value)), hyperlinks=False))
+            except ResearchError, ValueError, OSError:
+                preview.update("Yahoo report unavailable or invalid. Evidence was retained.")
+                raise
+            self.query_one("#reports-empty").display = False
+            self.select_report_row()
+            if focus:
+                self.action_select_view("reports")
+            return
         if job_id.startswith("report-analysis:"):
             value = await self.report_analyses.open(job_id.removeprefix("report-analysis:"))
             self.selected_report_key = job_id
@@ -2212,7 +2260,9 @@ class StratosphereApp(App[None]):
     async def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         try:
             key = str(event.row_key.value)
-            if event.data_table.id == "strategies":
+            if key.startswith("yahoo:"):
+                await self.handle_yahoo_command("yahoo-show", (key.removeprefix("yahoo:"),))
+            elif event.data_table.id == "strategies":
                 await self.show_strategy_agent(key)
             elif event.data_table.id == "tests":
                 await self.handle_research_command("show", (key,))
@@ -2222,6 +2272,114 @@ class StratosphereApp(App[None]):
             await self.add_message(
                 "That retained record cannot be verified or opened. Evidence was kept."
             )
+
+    async def handle_yahoo_command(self, action, args):
+        try:
+            if action == "yahoo-show":
+                await self.yahoo.require_online()
+                job = args[0]
+                if self.yahoo.store.state(job) == "completed":
+                    await self.open_report_panel("yahoo:" + job)
+                    return
+                elif (self.yahoo.store.directory(job) / "plan.json").exists():
+                    plan = self.yahoo.plan(job)
+                    snapshot = YahooSnapshot.model_validate(
+                        self.yahoo.store.read(job, "snapshot.json")
+                    )
+                    text = yahoo_plan_markdown(job, plan, snapshot)
+                else:
+                    text = f"Yahoo job `{job}` · {self.yahoo.store.state(job)}. Evidence retained."
+                    if (self.yahoo.store.directory(job) / "quality.json").exists():
+                        quality = self.yahoo.store.read(job, "quality.json")
+                        text += "\n\nData quality: " + json.dumps(quality)
+                await self.add_research_markdown(text, "Yahoo historical research:")
+                self.action_select_view("chat")
+                return
+            if action == "yahoo-cancel":
+                if self.yahoo.active_job == args[0] and self.research_worker:
+                    self.research_worker.cancel()
+                elif self.yahoo.store.state(args[0]) in {"awaiting_approval", "approved"}:
+                    with self.yahoo.store.lock(args[0]):
+                        self.yahoo.store.event(args[0], "canceled")
+                else:
+                    raise ResearchError("That Yahoo operation cannot be canceled or replayed.")
+                self.refresh_research_views()
+                return
+            if self.research_busy or (
+                self.response_worker and not self.response_worker.is_finished
+            ):
+                raise ResearchError("Pause or cancel the current operation first.")
+            if self.setup or self.research_form:
+                raise ResearchError("Complete or cancel the current form first.")
+            if action == "yahoo":
+                self.research_form = YahooForm()
+                self.query_one("#prompt", Input).disabled = True
+                self.query_one("#composer").display = False
+                await self.query_one("#conversation", VerticalScroll).mount(self.research_form)
+                self.action_select_view("chat")
+            else:
+                self.yahoo.approve(args[0], args[1])
+                self.research_worker = self.run_yahoo(args[0])
+        except ResearchError, ValueError, OSError:
+            await self.add_message(
+                "Yahoo request failed validation or access. Retained evidence was kept."
+            )
+
+    async def on_yahoo_form_finished(self, event: YahooForm.Finished):
+        event.stop()
+        form, self.research_form = self.research_form, None
+        if form:
+            await form.remove()
+        self.query_one("#prompt", Input).disabled = False
+        self.query_one("#composer").display = True
+        if event.request is not None:
+            if self.contains_session_credential(event.request.model_dump_json().encode()):
+                await self.add_message("Remove credentials from research input.")
+                return
+            self.research_worker = self.prepare_yahoo(event.request)
+
+    @work(group="research", exclusive=True)
+    async def prepare_yahoo(self, request):
+        self.update_status("YAHOO · Downloading historical observations")
+        try:
+            job, plan = await self.yahoo.prepare(request)
+            snapshot = YahooSnapshot.model_validate(self.yahoo.store.read(job, "snapshot.json"))
+            await self.add_research_markdown(
+                yahoo_plan_markdown(job, plan, snapshot), "Yahoo plan:"
+            )
+            await self.query_one("#conversation", VerticalScroll).mount(
+                YahooReview(job, plan.digest)
+            )
+            self.update_status("YAHOO · Awaiting approval")
+        except asyncio.CancelledError:
+            self.update_status("YAHOO · Canceled")
+            raise
+        except ResearchError as error:
+            await self.add_message(str(error))
+            self.update_status("YAHOO · Failed; evidence retained")
+        except ValueError, OSError:
+            await self.add_message("Yahoo acquisition or validation failed; no backtest started.")
+            self.update_status("YAHOO · Failed; evidence retained")
+        finally:
+            self.refresh_research_views()
+
+    @work(group="research", exclusive=True)
+    async def run_yahoo(self, job):
+        self.update_status("YAHOO · Running approved native backtests")
+        try:
+            report = await self.yahoo.run(job)
+            await self.add_research_markdown(yahoo_report_markdown(report), "Yahoo report:")
+            self.refresh_research_views()
+            await self.open_report_panel("yahoo:" + job, focus=False)
+            self.update_status("READY")
+        except asyncio.CancelledError:
+            self.update_status("YAHOO · Canceled; consumed starts retained")
+            raise
+        except ResearchError, ValueError, OSError:
+            await self.add_message("Yahoo backtest failed. Consumed starts cannot silently replay.")
+            self.update_status("YAHOO · Failed; evidence retained")
+        finally:
+            self.refresh_research_views()
 
     def set_research_context(self, job_id: str, report: dict) -> None:
         if self.session:
@@ -2240,6 +2398,8 @@ class StratosphereApp(App[None]):
     async def action_quit(self) -> None:
         from textual.worker import WorkerCancelled, WorkerFailed
 
+        if self.yahoo.active_job:
+            self.yahoo.stop_state = "canceled"
         if self.active_research_service.active_job:
             self.active_research_service.stop_state = "paused"
         for worker in (

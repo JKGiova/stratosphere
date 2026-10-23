@@ -328,7 +328,7 @@ DataTable > .datatable--header {
     color: #ff6666;
 }
 
-#research-form, #study-form {
+#research-form, #study-form, #yahoo-form {
     height: auto;
     margin: 1;
     padding: 1;
@@ -342,14 +342,14 @@ DataTable > .datatable--header {
     background: #111111;
 }
 
-#research-form Input, #study-form Input {
+#research-form Input, #study-form Input, #yahoo-form Input {
     height: 1;
     padding: 0 1;
     border: none;
     background: #111111;
 }
 
-#research-form Input:focus, #study-form Input:focus {
+#research-form Input:focus, #study-form Input:focus, #yahoo-form Input:focus {
     background: #333333;
 }
 

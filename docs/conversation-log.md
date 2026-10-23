@@ -5081,3 +5081,40 @@ Billing, hosted application login, multi-user databases and Alpaca are **outside
 The next agreed step remains the intermediate bug-fixing session. The conversation log is synchronized to GitHub.
 
 ---
+
+### 603 — User
+
+what do u think about removingh the custom agent structure and implementing an harness like deepseek one?
+
+---
+
+### 604 — Assistant (progress update)
+
+I’ll check how our current agents are structured and what DeepSeek provides as a harness, then assess what we could simplify while preserving strategy isolation and approval controls.
+
+---
+
+### 605 — Assistant
+
+**Yes—I think a shared harness is a good direction for stratosphere. I’d replace the custom orchestration gradually, while keeping each strategy’s identity, private history and evidence.**
+
+DeepSeek Harness makes models, tools, sessions, storage and agent loops composable plugins, with traceable session events. That is useful inspiration for our architecture. [Official overview](https://www.deepseek.com/harness/en/)
+
+For us, the structure would become:
+
+| Component | Responsibility |
+| --- | --- |
+| **Shared agent harness** | Model calls, tool selection, streaming, context limits, cancellation and execution traces |
+| **Strategy sessions** | Separate identity, history and permitted evidence for each strategy, using the same harness |
+| **Trading/research tools** | Narrow operations such as inspect a report, propose a study or request an approved backtest |
+| **Application controls** | Validate every operation, enforce approval/budgets/risk, retain evidence and protect credentials |
+
+This means we can have one reusable agent engine instead of growing separate orchestration paths for every workflow. A strategy specialist becomes a session with its own context and tools; it does not need a separately maintained engine.
+
+**I would not delete the current structure and directly substitute DeepSeek Harness yet.** Its repository warns of breaking changes, and its safety notice says it is experimental and unaudited. Its Node.js launch also introduces integration work alongside our Python/Textual application. These are reasons to evaluate it before committing to a migration. [Repository](https://github.com/deepseek-ai/deepseek-harness), [safety notice](https://github.com/deepseek-ai/deepseek-harness/blob/master/SAFETY.md)
+
+My recommendation is a small comparison prototype: run the same report-analysis task through our current implementation and a harness, then compare correctness, tool boundaries, restart behavior, latency and maintenance effort. Keep the TUI, registry, reports, credential storage and deterministic gates intact during that experiment.
+
+A harness could simplify agent development. It would not supply Liquid’s missing feed, paper adapter or reconciliation. This is an architectural proposal; I haven’t changed the implementation.
+
+---

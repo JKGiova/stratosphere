@@ -50,8 +50,17 @@ HELP = """/help — Show commands
 /create <brief> — Delegate a bounded Yahoo SMA research campaign to strategy agents
 /flow — List new strategy-agent research campaigns
 /flow-show <campaign-id> — Review all candidate plans or the completed report
-/flow-approve <campaign-id> <plan-sha256> — Approve the complete finite campaign
+/flow-approve <campaign-id> <plan-sha256> — Legacy v1 campaign approval only
 /flow-cancel <campaign-id> — Cancel a campaign; consumed starts cannot replay
+/portfolios — Inspect Alpaca paper and Liquid paper readiness
+/alpaca-paper-connect — Enter paper keys in a masked native-storage form
+/alpaca-paper-forget — Forget saved paper keys; retain positions and evidence
+/strategy-finish <campaign> <strategy-or-job> <provider> [four limits] — Final paper review
+/strategy-show <package> — Review exact final strategy, evidence and limits
+/strategy-approve <package> <sha256> — Single final approval and automatic paper runner
+/portfolio-run <alpaca|liquid> — Start approved paper strategies; never backfill missed bars
+/portfolio-stop — Stop monitoring/submission; positions remain open
+/portfolio-orders — Inspect retained automatic paper order outcomes
 /study [strategy-id|parent-job-id] — Review a bounded SMA study with a separate final holdout
 /assess [market symbol interval-seconds] — Record dated applicability for the selected agent
 /recommend <market> <symbol> <interval-seconds> — Ask each local strategy agent for candidates
@@ -76,7 +85,8 @@ HELP = """/help — Show commands
 /clear — Clear in-memory conversation
 /quit — Exit
 Other text is sent to your selected online model.
-Research requires explicit plan approval; no live execution exists."""
+New research runs automatically within finite limits.
+Finished strategies need one user approval; no live execution exists."""
 
 
 @dataclass(frozen=True)
@@ -89,6 +99,46 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name in {
+        "/portfolios",
+        "/alpaca-paper-connect",
+        "/alpaca-paper-forget",
+        "/portfolio-stop",
+        "/portfolio-orders",
+    }:
+        return (
+            Command(name[1:])
+            if len(words) == 1
+            else Command("message", "Use /help for paper commands.")
+        )
+    if name == "/portfolio-run":
+        return (
+            Command(name[1:], args=(words[1],))
+            if len(words) == 2 and words[1] in {"alpaca", "liquid"}
+            else Command("message", "Usage: /portfolio-run <alpaca|liquid>")
+        )
+    if name == "/strategy-finish":
+        if (
+            len(words) in {4, 8}
+            and re.fullmatch(r"[a-f0-9]{32}", words[1])
+            and re.fullmatch(r"(?:[0-9]{24}|[a-f0-9]{32})", words[2])
+            and words[3] in {"alpaca", "liquid"}
+        ):
+            return Command(name[1:], args=tuple(words[1:]))
+        return Command(
+            "message",
+            "Usage: /strategy-finish <campaign> <strategy-or-job> <provider> "
+            "[strategy-cap position-cap risk-cap daily-loss]",
+        )
+    if name in {"/strategy-show", "/strategy-approve", "/strategy-reject"}:
+        count = 3 if name == "/strategy-approve" else 2
+        if (
+            len(words) == count
+            and re.fullmatch(r"[a-f0-9]{32}", words[1])
+            and (count == 2 or re.fullmatch(r"[a-f0-9]{64}", words[2]))
+        ):
+            return Command(name[1:], args=tuple(words[1:]))
+        return Command("message", "Use /help for final-strategy command arguments.")
     if name in {"/flow", "/flow-show", "/flow-approve", "/flow-cancel"}:
         expected = {"/flow": 1, "/flow-show": 2, "/flow-approve": 3, "/flow-cancel": 2}
         if len(words) == expected[name]:

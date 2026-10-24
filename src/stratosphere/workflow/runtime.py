@@ -19,24 +19,28 @@ from stratosphere.phase0.contracts import Contract
 from stratosphere.report_analysis import analysis_markdown, natural_analysis_request
 from stratosphere.report_evidence import natural_report_query
 from stratosphere.research.store import ResearchError
+from stratosphere.sources.registration import RegistrationRequest, registration_markdown
+from stratosphere.sources.review import review_markdown
 from stratosphere.workflow.contracts import ResearchProposal
-from stratosphere.workflow.research import ResearchCampaigns, plan_markdown
+from stratosphere.workflow.research import ResearchCampaigns, report_markdown
 from stratosphere.yahoo.service import YahooBacktests
 
 BRIDGE_PROMPT = """You are stratosphere's user-facing bridge to strategy specialists.
 Explain capabilities and clarify intent. Strategy research and conclusions belong to the exact
 strategy's agent. Research is historical Yahoo only. /create proposes a bounded SMA research
-campaign; /flow reviews retained campaigns. Models cannot approve, register acquired code,
-change portfolio budgets or send orders. Portfolio/broker execution is not yet connected.
+campaign that runs under finite app limits; /flow reviews retained campaigns. Models cannot approve,
+register acquired code, change portfolio budgets or send orders. Finished strategy approval is a
+separate explicit user operation.
 Do not claim to have performed any action unless application context supplies its result.
 No credentials, account diagnostics or other strategy conversations belong in model context.
 """
 SPECIALIST_PROMPT = """You are the stable specialist for exactly the supplied strategy.
 Receive user intent from the orchestrator. Analyze only this strategy's own definition and
 verified supplied reports. Distinguish evidence from hypotheses; a profitable result is not
-execution readiness. The app can prepare finite Yahoo SMA comparisons and requires human
-approval before native starts. Never invent performance, approve work, send orders or read
-accounts. 'Best' is relative to the reviewed candidate/window/cost universe, not all markets.
+execution readiness. The app prepares finite Yahoo SMA comparisons and enforces research budgets.
+Only finished strategies require user approval. Never invent performance, approve work, send orders
+or read accounts. 'Best' is relative to the reviewed candidate/window/cost universe.
+Do not claim coverage of all markets.
 No autonomous model-generated tools, code, SQL or shell. Ask for missing constraints.
 """
 PROPOSAL_PROMPT = """Act as a strategy research planner receiving a brief from the orchestrator.
@@ -104,6 +108,7 @@ class Orchestrator(HistoricalServices):
             secret_check=self.sources.store.has_secret,
         )
         self.general = ChatSession(self.provider, system_prompt=BRIDGE_PROMPT)
+        self.active_campaign = None
 
     def agent(self, public_id=None):
         identity = public_id or self.active_strategy
@@ -238,6 +243,47 @@ class Orchestrator(HistoricalServices):
                 self.last_action = {"action": "paper_inspection", "args": inspection}
                 yield "Opening the retained authored account view."
                 return
+            registration = re.fullmatch(
+                r"\s*(?:please\s+)?register\s+source\s+([a-f0-9]{32})\s*",
+                text,
+                re.I,
+            )
+            if registration:
+                value = await self.register_source(RegistrationRequest(source_id=registration[1]))
+                self.last_action = {
+                    "action": "source_registration",
+                    "id": value.id,
+                    "receipt": value,
+                }
+                yield registration_markdown(value)
+                return
+            source_review = re.fullmatch(
+                r"\s*(?:please\s+)?review\s+source\s+([a-f0-9]{32})\s*",
+                text,
+                re.I,
+            )
+            if source_review:
+                if selected is None:
+                    yield "Select the exact strategy before requesting a source review."
+                    return
+                snapshot = await self.sources.open(source_review[1])
+                self.responding_strategy = selected
+                value = await self.agent(selected).review_source(snapshot.id, text)
+                self.last_action = {"action": "source_review", "id": value.id}
+                yield review_markdown(value, snapshot)
+                return
+            # Explicit authored-account inspection stays outside all model routing.
+            if re.fullmatch(
+                r"\s*(?:(?:please|can you|could you)\s+)?(?:review|assess)\s+(?:the\s+)?"
+                r"(?:authored\s+)?paper\s+(?:(?:account|portfolio)\s+)?"
+                r"(?:budget\s+and\s+risk|risk\s+and\s+budget)\s*[?.!]*\s*",
+                text,
+                re.I,
+            ):
+                await self.research.require_online()
+                self.last_action = {"action": "paper_review"}
+                yield "Opening the separate authored-account advisory review; no order authority."
+                return
             analysis_request = natural_analysis_request(text)
             if analysis_request is not None:
                 owner = self.database.strategy_for_job(analysis_request.job_id)["public_id"]
@@ -267,24 +313,29 @@ class Orchestrator(HistoricalServices):
                     yield proposal.status + ": " + "\n".join(proposal.questions)
                     return
                 identity, plan = await self.campaigns.prepare(
-                    brief, proposal, parent=owner if route.action == "research" else None
+                    brief,
+                    proposal,
+                    parent=owner if route.action == "research" else None,
+                    automatic=True,
                 )
                 for pin in plan.candidates:
                     self.agent(pin.strategy_id)
                 if self.active_strategy == selected:
                     self.select(plan.candidates[0].strategy_id)
-                self.last_action = {
-                    "action": "flow_review",
-                    "id": identity,
-                    "digest": plan.digest,
-                    "simulations": plan.native_starts,
-                }
-                yield plan_markdown(identity, plan, self.yahoo)
-                blocked = self.campaigns.store.read(identity, "blocked.json")["attempts"]
-                if blocked:
-                    yield "\n\nBlocked attempts:\n" + "\n".join(
-                        f"- {r['request']['symbol']}: {r['error']}" for r in blocked
-                    )
+                yield (
+                    f"Research campaign `{identity}`: running {plan.native_starts} bounded native "
+                    "starts automatically. No trading is authorized.\n\n"
+                )
+                self.active_campaign = identity
+                self.campaigns.authorize_research(identity)
+                report = await self.campaigns.run(identity)
+                self.last_action = {"action": "flow_completed", "id": identity}
+                yield report_markdown(report)
+                yield (
+                    "\n\nReview a successful exact candidate, then use "
+                    f"`/strategy-finish {identity} <strategy-id> alpaca` to prepare its final "
+                    "paper approval. `/portfolios` shows both paper portfolios and blockers."
+                )
                 return
             if route.action == "catalog":
                 yield "\n".join(
@@ -304,4 +355,5 @@ class Orchestrator(HistoricalServices):
             async for delta in self.general.respond(text):
                 yield delta
         finally:
+            self.active_campaign = None
             self.busy = False

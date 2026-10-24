@@ -384,11 +384,11 @@ async def test_active_bridge_creates_yahoo_campaign_not_retired_creator(
         Provider(), campaigns.database, research, yahoo=campaigns.yahoo, campaigns=campaigns
     )
     text = "".join([delta async for delta in bridge.respond("/create an SMA strategy")])
-    assert "Strategy-agent research plan" in text
-    assert bridge.last_action["action"] == "flow_review"
+    assert "Strategy-agent research report" in text
+    assert bridge.last_action["action"] == "flow_completed"
     assert bridge.active_strategy is not None
     assert not bridge.creator.store.jobs()
-    assert campaigns.calls == ["fetch"]
+    assert campaigns.calls == ["fetch", "simulate", "simulate"]
     assert bridge.agent().public_id == bridge.active_strategy
 
 
@@ -421,7 +421,7 @@ async def test_model_route_cannot_invent_creation_or_approval(campaigns, tmp_pat
 
 
 @pytest.mark.engine
-async def test_tui_new_campaign_approval_report_and_restart(campaigns, request_spec, tmp_path):
+async def test_tui_automatic_campaign_report_and_restart(campaigns, request_spec, tmp_path):
     from test_research_tui import connect, send
     from textual.widgets import DataTable
 
@@ -446,14 +446,10 @@ async def test_tui_new_campaign_approval_report_and_restart(campaigns, request_s
         await send(app, pilot, "/create an hourly crossover research comparison")
         await app.workers.wait_for_complete()
         await pilot.pause()
-        review = app.query_one(CampaignReview)
-        identity = review.identity
-        assert app.campaigns.store.state(identity) == "awaiting_approval"
-        assert campaigns.calls == ["fetch"]
-        review.query_one("#flow-approve").focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        await app.workers.wait_for_complete()
+        assert not app.query(CampaignReview)
+        identity = app.campaigns.store.jobs()[0]
+        assert app.campaigns.plan(identity).schema_version == "agent-research-plan/2"
+        assert app.campaigns.store.read(identity, "approval.json")["human_approval"] is False
         assert app.campaigns.store.state(identity) == "completed"
         assert campaigns.calls.count("simulate") == 2
         assert app.query_one("#reports", DataTable).row_count >= 1
@@ -540,3 +536,60 @@ async def test_bridge_cannot_choose_between_duplicate_display_names(
     with pytest.raises(ModelError, match="unambiguous"):
         await bridge.route("Analyze Authored comparison")
     assert bridge.active_strategy is None
+
+
+@pytest.mark.engine
+async def test_automatic_policy_freezes_budget_without_human_receipts(campaigns, request_spec):
+    identity, plan = await campaigns.prepare("Automatic", proposal(request_spec), automatic=True)
+    assert plan.native_starts == 2 and plan.max_native_starts == 24
+    with pytest.raises(ResearchError, match="application policy"):
+        campaigns.approve(identity, plan.digest)
+    campaigns.authorize_research(identity)
+    result = await campaigns.run(identity)
+    assert result["results"][0]["state"] == "completed"
+    child = campaigns.yahoo.store.read(plan.candidates[0].job_id, "approval.json")
+    assert child["human_approval"] is False and child["order_authority"] is False
+    assert child["campaign_sha256"] == plan.digest
+    with pytest.raises(ResearchError):
+        campaigns.authorize_research(identity)
+    with pytest.raises(ResearchError):
+        await campaigns.run(identity)
+    assert campaigns.calls == ["fetch", "simulate", "simulate"]
+
+
+async def test_automatic_research_authority_tamper_prevents_native_starts(campaigns, request_spec):
+    identity, _ = await campaigns.prepare("Automatic", proposal(request_spec), automatic=True)
+    campaigns.authorize_research(identity)
+    path = campaigns.store.directory(identity) / "approval.json"
+    receipt = json.loads(path.read_text())
+    receipt["order_authority"] = True
+    path.write_text(json.dumps(receipt))
+    with pytest.raises(ResearchError, match="authorization changed"):
+        await campaigns.run(identity)
+    assert campaigns.calls == ["fetch"]
+
+
+@pytest.mark.engine
+async def test_native_campaign_to_final_approval_and_paper_pipeline(
+    campaigns, request_spec, tmp_path
+):
+    from test_paper_portfolios import ACCOUNT, warmup
+
+    from stratosphere.workflow.portfolios import PaperPortfolios
+
+    identity, _ = await campaigns.prepare("Native to paper", proposal(request_spec), automatic=True)
+    campaigns.authorize_research(identity)
+    report = await campaigns.run(identity)
+    owner = report["results"][0]["strategy_id"]
+    portfolios = PaperPortfolios(
+        tmp_path / "paper.sqlite3", campaigns=campaigns, database=campaigns.database
+    )
+    portfolios.bind("alpaca", ACCOUNT)
+    package = portfolios.prepare(identity, owner, "alpaca")
+    assert package.research_metrics == report["results"][0]["report"]["metrics"]
+    assert package.attempted_candidates == 1
+    runner, adapter, models = await warmup((portfolios, package))
+    assert len(await runner.tick()) == 1
+    assert len(adapter.posts) == 1 and len(models.calls) == 3
+    assert campaigns.report(identity) == report
+    assert campaigns.calls == ["fetch", "simulate", "simulate"]

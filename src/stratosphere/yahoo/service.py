@@ -228,6 +228,37 @@ class YahooBacktests:
             self.store.write(job, "approval.json", {"plan_sha256": digest})
             self.store.event(job, "approved")
 
+    def authorize_campaign(self, job, digest, *, campaign_id, campaign_sha256):
+        """Application-only bounded campaign receipt; not a human decision or trading mandate."""
+        import re
+
+        if not re.fullmatch(r"[a-f0-9]{32}", campaign_id) or not re.fullmatch(
+            r"[a-f0-9]{64}", campaign_sha256
+        ):
+            raise ResearchError("Invalid application research authorization")
+        with self.store.lock(job):
+            plan = self.plan(job)
+            if (
+                self.store.state(job) != "awaiting_approval"
+                or digest != plan.digest
+                or plan.implementation_sha256 != implementation_digest()
+            ):
+                raise ResearchError("Only the unchanged pending candidate can be authorized")
+            self.store.write(
+                job,
+                "approval.json",
+                {
+                    "schema_version": "research-policy-authorization/1",
+                    "authority": "application_research_policy/1",
+                    "plan_sha256": digest,
+                    "campaign_id": campaign_id,
+                    "campaign_sha256": campaign_sha256,
+                    "human_approval": False,
+                    "order_authority": False,
+                },
+            )
+            self.store.event(job, "approved", "Application research policy")
+
     async def run(self, job):
         if self.active_job or self.preparing:
             raise ResearchError("A Yahoo operation is already active")

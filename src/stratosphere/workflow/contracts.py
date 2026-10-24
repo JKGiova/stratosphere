@@ -64,6 +64,16 @@ class CampaignPlan(Contract):
         return fingerprint(self)
 
 
+class AutomaticCampaignPlan(CampaignPlan):
+    """New authorization semantics; never reinterpret retained v1 human decisions."""
+
+    schema_version: Literal["agent-research-plan/2"] = "agent-research-plan/2"
+    authorization: Literal["application_research_policy/1"] = "application_research_policy/1"
+    max_candidates: Literal[12] = 12
+    max_native_starts: Literal[24] = 24
+    selection_policy: Literal["review_all_attempts_no_holdout"] = "review_all_attempts_no_holdout"
+
+
 class PortfolioDefinition(Contract):
     schema_version: Literal["portfolio-definition/1"] = "portfolio-definition/1"
     name: str = Field(min_length=1, max_length=100)

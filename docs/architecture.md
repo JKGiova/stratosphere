@@ -11,7 +11,8 @@
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
 | Source/evidence services | Acquisition, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
-| Provider diagnostics | Fixed read-only Liquid connection/catalog/address operations | `src/stratosphere/connectors/` |
+| Provider boundaries | Fixed Liquid read diagnostics, Alpaca paper/data HTTP and Liquid paper capability blocker | `src/stratosphere/connectors/` |
+| Operational paper workflow | Final packages/approval, global paper journal, binary/wallet reviews, signals, reservations and order reconciliation | `src/stratosphere/workflow/portfolios.py`, `execution.py` |
 | Authored account/runtime | Journals, reservations, risk gates, observation processing and inspection | `src/stratosphere/paper/` |
 
 Application services are authoritative. Natural-language and slash routes must reuse their
@@ -23,7 +24,8 @@ The replacement research-to-portfolio lifecycle is described in [agent workflow]
 - Local SQLite stores definitions, provenance, private strategy histories and job/report references.
 - Private files retain source bytes, plans, approvals, native artifacts and reports.
 - Separate account/service journals retain observations, reservations, fills, faults and worker state.
-- Native OS secure storage holds selected model settings/key and the fixed Liquid read grant.
+- Native OS secure storage holds selected model settings/key, the fixed Liquid read grant and Alpaca paper keys.
+- The personal paper portfolio journal uses a fixed native state directory across research-root overrides.
 - Callback codes, PKCE/state, active MCP session identifiers and active credentials stay in memory.
 
 `STRATOSPHERE_RESEARCH_DIR` selects a research root. Defaults are the user's Application Support
@@ -37,7 +39,9 @@ and executable verification remain unfinished.
 
 The authored observation worker is separate from the TUI and requires its own approved streams,
 queue and OS ownership lock. It has no real provider feed or order transport. Reading status never
-starts or modifies it. Liquid paper/live transport remains unimplemented.
+starts or modifies it. The separate Alpaca paper runner lives in the TUI process and starts only
+from an exact final approval or an explicit run command. Liquid submission and all live transport
+remain unavailable.
 
 ## Compatibility
 

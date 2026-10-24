@@ -23,10 +23,12 @@ See [setup and usage](docs/usage.md) for installation and the research workflow.
 - Bounded variant studies and retained reports with explicit costs, failures and holdout attribution.
 - Partial source intake and reviews; arbitrary strategy conversion is unfinished.
 - Liquid read-only connection, catalog inspection and an address diagnostic.
-- Internal simulated-account and observation-worker foundations; no connected paper or live trading.
+- Final-strategy approval and an Alpaca paper runner for crypto spot, tested with authored accounts/models/HTTP.
+- Separate Liquid paper portfolio with execution blocked on missing paper-only submission capability. Live is unavailable.
 
-The [agent workflow rebuild](docs/agent-workflow.md) is in progress. Connected portfolios, final
-strategy assignment and operational signal/risk execution remain unfinished. Software tests,
+The [agent workflow rebuild](docs/agent-workflow.md) is in progress. New research is automatic;
+one final strategy approval binds paper limits. Real provider verification and operational recovery/exit
+controls remain unfinished. Software tests,
 actual model behavior and provider readiness are separate checks. There is no release deadline.
 
 ## Development

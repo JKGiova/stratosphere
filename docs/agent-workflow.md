@@ -1,118 +1,126 @@
 # Agent workflow
 
-## Target lifecycle
+## Approval and authority
 
-The orchestrator is the user's bridge. Strategy reasoning belongs to one stable specialist per
-exact strategy; wallet reasoning belongs to one separate risk agent per portfolio. Agents use
-configured model providers with isolated contexts, not separately trained models.
+Research runs automatically under application limits. The user approves a **finished strategy once**,
+including its exact evidence, implementation, paper account, instrument, sizing policy and wallet
+limits. That approval permits automatic paper orders within those limits; individual signals do
+not prompt for approval. Models cannot approve research, approve deployment or submit orders.
+Live trading and FTMO execution remain unavailable.
 
 ```mermaid
 flowchart TD
     U[User] --> O[Orchestrator bridge]
-    O --> S[Strategy agent]
-    S --> P[Bounded research plan]
-    P --> A{User approves full plan and budget}
-    A --> B[Validated historical backtests and research]
-    B --> R[Report of all attempts and exact candidate definitions]
-    R --> F{User approves final strategy and portfolio assignment}
-    F --> W[Portfolio with its own risk-management agent]
-    W --> C[Available capital per strategy]
-    T[Closed-bar strategy trigger] --> V[Owning strategy agent: reliable / not_reliable]
-    V -->|reliable| Z[Portfolio agent proposes position capital]
-    V -->|not_reliable or unavailable| D[No entry]
+    O --> S[Exact strategy agent]
+    S --> P[Application freezes finite research budget]
+    P --> B[Historical backtests]
+    B --> R[Report: every candidate and failure]
+    R --> F{One user approval of finished strategy and paper limits}
+    F --> W[Paper portfolio and stable risk agent]
+    W --> C[Available strategy capital]
+    T[Current closed-bar trigger] --> V[Strategy agent: reliable / not_reliable]
+    V -->|reliable| Z[Wallet agent proposes capital and position size]
+    V -->|negative, invalid or unavailable| D[No entry]
     C --> Z
-    Z --> G[Application validates limits and reserves capital]
-    G --> X[Verified provider adapter and reconciliation]
+    Z --> G[Application validates and reserves]
+    G --> X[Paper-only adapter]
+    X --> Q[Provider read-back and reconciliation]
+    E[Owned exit crossing] --> G
 ```
 
-Research approval and final strategy approval are different decisions. A research report is not
-an order mandate. A binary model verdict is advisory and cannot override deterministic gates.
-Protective exits and emergency controls must not depend on a model's availability.
+## Automatic research
 
-## Implemented replacement: research handoff
+The active TUI uses `workflow/runtime.py`. `/create <brief>` and explicit natural-language research
+requests produce typed Yahoo SMA candidates, stable exact owners, duplicate reuse and variant
+lineage. The supported family is long-only SMA crossover; other strategy families remain unsupported.
+Models cannot substitute SMA for a requested different strategy or execute imported code.
 
-The TUI uses `workflow/runtime.py`. Its narrow route delegates or creates a reviewed research
-campaign; the retired natural-language action router and January-2025 creation flow are no longer
-the active chat workflow. Existing services and historical agent modules remain compatibility
-helpers for explicit legacy commands, identities, reports and tests. Do not delete retained data
-or change old evidence to make it look like the new workflow.
+New `agent-research-plan/2` campaigns freeze at most twelve candidates and twenty-four native starts,
+two per eligible dataset (base/stress). Application policy authorizes these starts without a human
+prompt. Receipts explicitly say `human_approval=false` and `order_authority=false`; native candidate
+receipts pin the parent campaign. There is no recursive optimization loop or automatic retry of
+consumed starts. Blocked datasets, failed/canceled/interrupted attempts and exact ownership survive.
 
-`/create <brief>` sends the brief to a typed research planner. The application currently compiles
-only supported long-only SMA crossover definitions. Proposals can compare up to twelve explicit
-Yahoo requests across supported assets, intervals, periods, windows and costs. Other strategy
-families need their own implementation and conformance tests; a model cannot substitute SMA for
-them. Hourly/daily acquisition and dataset gates remain those of the [Yahoo guide](yahoo-backtesting.md).
+`/flow` lists campaigns; `/flow-show <id>` verifies their plans/reports. `/flow-cancel <id>` or Ctrl+K
+cancels work without replay. Tests and Reports show campaign rows. Specialists receive only their
+own verified candidate evidence. No automatic global-best or independent-holdout claim is made.
 
-The application registers exact definitions, reuses duplicate strategy agents, and records lineage
-for new variants. Each candidate's snapshot, definition, implementation and two native starts are
-pinned. Dataset failures remain visible and consume no native starts. One human approval binds
-the complete campaign and every eligible candidate. The application derives individual native
-approvals from that retained human decision; models have no approval operation.
+Historical `agent-research-plan/1` campaigns retain their original approval contract and
+`/flow-approve` compatibility path. Explicit `/yahoo`, `/new` and `/study` commands retain their
+historical manual protocols. Their saved approvals are never relabeled as the new policy.
 
-Use `/flow` to list campaigns, `/flow-show <id>` to review them, and
-`/flow-approve <id> <sha256>` to execute the exact finite plan. An inline approval button uses the
-same service. `/flow-cancel <id>` cancels pending/running work. Restart never resumes consumed
-starts. Legacy `/new`, `/study`, `/show`, `/report` and source commands remain explicit compatibility
-operations; the new bridge does not silently route requests into them.
+## Final strategy and paper use
 
-Tests and Reports include campaign rows. The report retains all completed, failed and acquisition-
-blocked attempts, each attributed to its exact definition. Specialist chat receives only its own
-verified candidate reports. The report does not select a winner, claim an independent holdout,
-promote a strategy or assign it to an account. Cross-market raw returns cannot establish a global
-"best asset" when position sizing, windows, currencies or market semantics differ.
+1. Finish a successful research campaign and inspect its full report.
+2. Run `/alpaca-paper-connect`. Enter **paper** keys in the masked form; they use native OS secure
+   storage. Connection checks the fixed paper endpoint and binds the exact returned account.
+   Connection alone grants no strategy authority.
+3. Run `/strategy-finish <campaign-id> <strategy-id-or-candidate-job-id> alpaca`. Use a job ID when
+   multiple windows share the same exact strategy identity. Four optional decimal fractions specify
+   strategy capital, position capital, full-loss risk and daily loss, in that order. Defaults are
+   0.25, 0.05, 0.01 and 0.02. All assigned strategies share the same wallet policy.
+4. Review the final package: exact selected evidence, all-attempt reference, implementation, symbol,
+   account, behavior, limits and limitations. Approve with its button or
+   `/strategy-approve <package-id> <sha256>`. This is the only new-workflow human approval.
+   `/strategy-show <package-id>` reopens it; rejection grants no authority.
+5. The paper runner warms up and monitors while the TUI is open. `/portfolio-stop` stops it and
+   keeps positions. `/portfolio-run alpaca` explicitly restarts an approved runner; it does not
+   approve anything. Saved approvals do not start trading automatically on application launch.
 
-## Advisory portfolio contracts and validation
+Only identical base/USD **crypto spot** mappings are executable initially, for example Yahoo
+`BTC-USD` to Alpaca `BTC/USD`. The signal kernel uses exact rational SMA crossings and continuous
+closed hourly/daily bars. Warmup emits no historical order. Missing/revised bars, gaps after a stop,
+stale quotes/signals or an inconsistent account stop processing rather than backfilling trades.
 
-`workflow/contracts.py` describes portfolio identity/mode/limits, minimal risk snapshots, binary
-strategy verdicts and capital proposals. `workflow/risk.py` provides isolated structured model
-calls plus deterministic checks for exact ownership, current/reconciled snapshots, assigned-only
-capital, aggregate equity, per-strategy caps, locked committed capital, available cash, position
-caps, nominal stop risk and quantity increments.
+The versioned `cash_long_bounded_quantity_ioc/1` execution policy is separate from the historical
+fixed-quantity simulation. The wallet agent can reduce size below the tested quantity; it cannot
+exceed it. This changes returns and must never inherit the backtest performance label. The policy
+has no leverage, shorts, reinforcement or stop orders. The **entire reserved entry capital counts
+as risk**, including an explicit fee buffer. Opposite crossings exit the reconciled owned quantity
+without an LLM. Price-bounded IOC orders can fill partially or not fill; an exit is not guaranteed.
+These limits and differences are displayed before approval.
 
-These are advisory/preview services, not a connected portfolio lifecycle. They do not persist an
-approved allocation, reserve funds, submit orders or attest provider state. A position preview
-always has `execution_authorized=false`. Snapshots used in tests are authored fixtures. A model
-verdict of "reliable" does not demonstrate actual probability of success.
+Each buy trigger has at most three structured model calls: binary specialist review, wallet capital
+allocation and position capital. Literal evidence references, exact owner/snapshot pins and current
+account limits are checked by application code. The separate advisory preview API remains a preview;
+its `execution_authorized=false` result is not an order receipt.
 
-Before connecting these services, implement and test the following boundaries:
+## Account state and recovery
 
-1. A final strategy package binds the exact implementation, instrument mapping, entry/exit/sizing
-   rules, research evidence, limitations and supported account environment. Human approval of its
-   digest precedes assignment. Backtest definitions are not silently rewritten by portfolio sizing.
-2. Each portfolio has a stable risk-agent context, explicit user risk policy and a provider account
-   binding. Strategies share an authoritative account-wide ledger for exposure, positions and
-   reservations; duplicate logical portfolios cannot double-spend the same account.
-3. Strategy capital is a ceiling. Capital already committed or reserved remains claimed until
-   reconciled terminal evidence. Models cannot replenish budgets or discard failed attempts.
-4. A closed-bar trigger binds the exact deployed strategy, instrument, observation and finite
-   freshness. Its own specialist returns reliable/not_reliable with application-owned evidence.
-   Unavailable, malformed, stale or mismatched reviews deny new entries.
-5. For a reliable entry, the portfolio agent proposes position capital. Application code validates
-   current policy, account state, nominal/gap risk, correlation/concentration, open and pending
-   exposure, provider increments, fees and daily/drawdown limits before an atomic reservation.
-6. An idempotent adapter submits only an approved reserved intent. Acknowledgments, partial fills,
-   cancellations, ambiguous outcomes, restart and shutdown are reconciled against retained evidence.
-   No model has generic broker, credential, SQL, shell or imported-code capabilities.
+`/portfolios` shows separate Alpaca paper and Liquid paper identities and stable risk-agent IDs.
+`/portfolio-orders` shows retained order outcomes. The Positions panel shows the runner's reconciled
+quantities, strategy capital and committed reservations. The legacy `/paper` view remains an authored
+fixture journal with its own labels and evidence rules.
 
-## Connector scope
+A native-state SQLite journal outside the research-root override coordinates the personal paper
+account across project directories. One OS account lease covers inference and dispatch; SQLite
+transactions persist consumed signals, approvals, review receipts and order intents. One instrument
+has one assigned owner, avoiding ambiguous attribution of a provider's netted position. Pending
+orders and occupied capital lock the corresponding strategy allocation.
 
-The user has explicitly reopened Alpaca alongside Liquid and requested an FTMO two-step Swing
-route. Separate adapter/environment identities are required for Alpaca paper/live, Liquid
-paper/live and FTMO evaluation. These are planned connections; only the prior Liquid read-only
-diagnostics currently exist. No account is connected or activated by declaring a portfolio.
-Live transport needs separate activation after verification. Do not purchase a challenge or
-change provider scopes as part of architecture work.
+The application writes a reservation/client order ID before POST. A timeout/cancellation is uncertain,
+not permission to retry. Read back that same ID; even a subsequent 404 does not authorize a second
+submission. Partial fills retain reservations; confirmed terminal orders and provider positions must
+agree before further entries. Keep changed confirmations and conflicting exposure evidence. Unknown
+orders, external/late positions, mismatched accounts and observed loss limits halt entries.
+No inferred fill notional or fee is labeled as actual broker economics.
 
-FTMO two-step Swing is a platform-backed evaluation route, not an assumed generic broker REST API.
-Bind its actual platform/account and versioned rules. Verify loss calculations, timezone resets,
-challenge phase and contract sizes using the user's actual account configuration. The official
-[2-Step page](https://ftmo.com/en/2-step-challenge/) describes the evaluation and Swing holding/news
-policies. Alpaca documents separate paper credentials and endpoint in its
-[authentication guide](https://docs.alpaca.markets/us/v1.1/docs/authentication-1).
+Automatic halt clearing, safe stream rewarming after a gap, approval retirement/upgrades, emergency
+close-all and full keep/close-on-quit controls remain unfinished. `/portfolio-stop` and quitting keep
+positions and stop monitoring. Changing/forgetting the model also stops the runner. Do not advertise
+unattended or release-ready operation before these acceptance cases are complete.
 
-## Remaining work
+## Liquid and other environments
 
-Final strategy packaging/approval/assignment, persisted portfolio state and model review receipts,
-verified feeds and providers, automated recurring research, regime/trend analysis, true holdout
-selection, operational signal review and execution are unfinished. No phase or release is complete
-because the replacement research handoff or advisory fixtures pass.
+The retained Liquid read catalog exposes a paper-order **review link**, not paper-only submission.
+Its wallet-wide paper-mode setting can also be changed by another client and is not per-request
+isolation. The Liquid paper portfolio therefore displays a capability blocker and cannot execute.
+Read-only OAuth is never upgraded or reused as trade permission. Liquid perpetuals also need separate
+margin/funding/liquidation research; Yahoo spot results cannot establish that behavior.
+
+Alpaca transport uses only the fixed [paper endpoint](https://docs.alpaca.markets/us/docs/paper-trading),
+[order API](https://docs.alpaca.markets/us/reference/postorder) and
+[client-ID read-back](https://docs.alpaca.markets/us/reference/getorderbyclientorderid).
+Crypto bars/quotes use Alpaca's data host. Actual account/feed access and sustained paper execution
+have not been verified by fixture tests. No paid feed, account purchase, live order or FTMO challenge
+activation is authorized here.

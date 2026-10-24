@@ -157,7 +157,7 @@ class AdvisoryAgents:
             raise ResearchError("Strategy signal review references invalid evidence or ownership")
         return verdict
 
-    async def capital(self, definition, snapshot, *, at_ns):
+    async def capital(self, definition, snapshot, *, at_ns, strategies=None):
         current_snapshot(definition, snapshot, at_ns)
         proposal = await self.call(
             "You are the risk-management agent for this exact portfolio. Propose strategy capital "
@@ -169,6 +169,7 @@ class AdvisoryAgents:
                 "definition": definition.model_dump(mode="json"),
                 "snapshot": snapshot.model_dump(mode="json"),
                 "snapshot_sha256": snapshot.digest,
+                "approved_strategy_evidence": strategies or {},
             },
             CapitalProposal,
         )

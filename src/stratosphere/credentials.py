@@ -158,7 +158,7 @@ class CredentialStore:
         try:
             import fcntl
 
-            if name not in {"model", "liquid"}:
+            if name not in {"model", "liquid", "alpaca-paper"}:
                 raise ValueError
             self.lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
             if self.lock_root.is_symlink():

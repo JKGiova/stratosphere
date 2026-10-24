@@ -7,7 +7,7 @@ These are focused reference guides, not separate roadmaps.
 | --- | --- |
 | [Usage](usage.md) | Installation, startup, commands and supported workflow |
 | [Architecture](architecture.md) | Components, state ownership and code locations |
-| [Agent workflow](agent-workflow.md) | Replacement research-to-portfolio lifecycle, implemented handoff and remaining stages |
+| [Agent workflow](agent-workflow.md) | Automatic research, final approval, paper portfolios, commands and execution limits |
 | [Yahoo backtesting](yahoo-backtesting.md) | Historical Yahoo setup, supported models and data limitations |
 | [Research](research.md) | Supported strategy, approval, studies and report evidence |
 | [Sources](sources.md) | Actual intake capabilities, provenance and conversion limits |

@@ -169,7 +169,7 @@ async def test_corrupted_report_cannot_become_applicability_evidence(studies, tm
     assert not studies.database.assessments()
 
 
-async def test_agent_and_command_assessments_reports_privacy_and_responsive_ui(studies, tmp_path):
+async def test_explicit_assessments_reports_privacy_and_responsive_ui(studies, tmp_path):
     from test_research_tui import connect, send
     from textual.widgets import DataTable
 
@@ -242,10 +242,11 @@ async def test_agent_and_command_assessments_reports_privacy_and_responsive_ui(s
         assert table.cursor_row == table.get_row_index(key)
         visible_rows = max(1, table.content_size.height - table.header_height)
         assert table.scroll_y <= table.cursor_row < table.scroll_y + visible_rows
-        await send(app, pilot, "Assess the current applicability of this selected strategy")
-        await app.response_worker.wait()
+        # The replacement bridge does not reactivate the retired model "assess" action.
+        await send(app, pilot, "/assess")
+        await app.research_worker.wait()
         await pilot.pause()
-        assert app.session.last_action["action"] == "assessment" and len(provider.requests) == 1
+        assert app.database.assessments(a["public_id"]) and provider.requests == []
         assert "alpha-private" not in json.dumps(provider.requests)
         assert "beta-private" not in json.dumps(provider.requests)
 

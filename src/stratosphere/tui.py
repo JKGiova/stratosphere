@@ -74,7 +74,7 @@ from stratosphere.studies.widgets import StudyForm
 from stratosphere.workflow.research import plan_markdown as campaign_plan_markdown
 from stratosphere.workflow.research import report_markdown as campaign_report_markdown
 from stratosphere.workflow.runtime import Orchestrator
-from stratosphere.workflow.widgets import CampaignReview
+from stratosphere.workflow.widgets import CampaignReview, FinishedReview
 from stratosphere.workspace import CHROME_HEIGHT, choose_layout
 from stratosphere.yahoo.contracts import YahooSnapshot
 from stratosphere.yahoo.service import YahooBacktests
@@ -347,6 +347,8 @@ class StratosphereApp(App[None]):
         paper_inspector=None,
         credential_store=None,
         yahoo_service=None,
+        portfolio_service=None,
+        paper_adapter_factory=None,
     ):
         super().__init__()
         self.console.push_theme(
@@ -365,6 +367,10 @@ class StratosphereApp(App[None]):
                 }
             )
         )
+        self.portfolio_service = portfolio_service
+        self.paper_adapter_factory = paper_adapter_factory
+        self.paper_adapter = None
+        self.paper_worker = None
         self.provider_factory = provider_factory
         self.credentials = credential_store if credential_store is not None else CredentialStore()
         self.liquid = liquid_connection or LiquidConnection(credential_store=self.credentials)
@@ -776,6 +782,8 @@ class StratosphereApp(App[None]):
         self.action_focus_pane("chat")
 
     def set_model(self, settings):
+        if self.paper_worker and not self.paper_worker.is_finished:
+            self.paper_worker.cancel()
         self.settings = settings
         self.session = Orchestrator(
             self.provider_factory(settings),
@@ -825,6 +833,8 @@ class StratosphereApp(App[None]):
                 or json.dumps(key, ensure_ascii=False)[1:-1].encode() in content
             )
 
+        if self.paper_adapter is not None and self.paper_adapter.keys.contains(content):
+            return True
         if self.liquid.contains_credential(content):
             return True
         if self.settings and matches(self.settings.api_key.get_secret_value()):
@@ -848,7 +858,12 @@ class StratosphereApp(App[None]):
             command = route_command(text)
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
-            if command.action.startswith("flow"):
+            if (
+                command.action.startswith(("strategy-", "portfolio-", "alpaca-paper-"))
+                or command.action == "portfolios"
+            ):
+                await self.handle_portfolio_command(command.action, command.args)
+            elif command.action.startswith("flow"):
                 await self.handle_flow_command(command.action, command.args)
             elif command.action.startswith("yahoo"):
                 await self.handle_yahoo_command(command.action, command.args)
@@ -983,6 +998,14 @@ class StratosphereApp(App[None]):
                     )
                 else:
                     try:
+                        if self.paper_worker and not self.paper_worker.is_finished:
+                            self.paper_worker.cancel()
+                            from textual.worker import WorkerCancelled, WorkerFailed
+
+                            try:
+                                await self.paper_worker.wait()
+                            except WorkerCancelled, WorkerFailed:
+                                pass
                         await credential_io(self.credentials.delete, "model")
                         self.session = None
                         self.settings = None
@@ -1118,7 +1141,9 @@ class StratosphereApp(App[None]):
                 self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
             self.update_status("READY")
             action = self.session.last_action
-            if action and action["action"] == "flow_review":
+            if action and action["action"] == "flow_completed":
+                self.refresh_research_views()
+            elif action and action["action"] == "flow_review":
                 await self.query_one("#conversation", VerticalScroll).mount(
                     CampaignReview(action["id"], action["digest"], action["simulations"])
                 )
@@ -1432,7 +1457,8 @@ class StratosphereApp(App[None]):
             value.page(section, number)
             positions, _ = value.page("positions", number if section == "positions" else 1)
             table = self.query_one("#positions", DataTable)
-            table.clear()
+            table.clear(columns=True)
+            table.add_columns("BTC", "Settled USDT", "Reserved USDT", "Strategy", "Instance")
             for row in positions:
                 table.add_row(
                     row["base"],
@@ -2149,6 +2175,14 @@ class StratosphereApp(App[None]):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         parent = event.button.parent
+        if isinstance(parent, FinishedReview):
+            event.stop()
+            action = (
+                "strategy-approve" if event.button.id == "strategy-approve" else "strategy-reject"
+            )
+            await self.handle_portfolio_command(action, (parent.identity, parent.digest))
+            await parent.remove()
+            return
         if isinstance(parent, CampaignReview):
             event.stop()
             action = "flow-approve" if event.button.id == "flow-approve" else "flow-cancel"
@@ -2311,6 +2345,287 @@ class StratosphereApp(App[None]):
                 "That retained record cannot be verified or opened. Evidence was kept."
             )
 
+    def portfolios_service(self):
+        if self.portfolio_service is None:
+            from stratosphere.workflow.portfolios import PaperPortfolios, default_portfolio_path
+
+            self.portfolio_service = PaperPortfolios(
+                default_portfolio_path(),
+                campaigns=self.campaigns,
+                database=self.database,
+                secret_check=self.contains_session_credential,
+            )
+        return self.portfolio_service
+
+    async def paper_setup_done(self, keys):
+        if keys is None:
+            return
+        from stratosphere.connectors.alpaca_paper import AlpacaPaper
+
+        try:
+            adapter = (
+                self.paper_adapter_factory(keys)
+                if self.paper_adapter_factory
+                else AlpacaPaper(keys)
+            )
+            self.paper_adapter = (
+                adapter  # Include credentials in redaction before any response/storage.
+            )
+            account = await adapter.account()
+            self.portfolios_service().bind("alpaca", account["account_id"])
+            with self.credentials.lease("alpaca-paper"):
+                await credential_io(
+                    self.credentials.put,
+                    "alpaca-paper",
+                    {
+                        "version": 1,
+                        "key": keys.key.get_secret_value(),
+                        "secret": keys.secret.get_secret_value(),
+                        "account_id": account["account_id"],
+                    },
+                )
+            await self.add_message(
+                "Alpaca paper account connected; keys saved in native secure storage. "
+                "No strategy was approved or activated. Use /strategy-finish after research."
+            )
+        except ResearchError, ValueError, OSError:
+            self.paper_adapter = None
+            await self.add_message(
+                "Paper connection or secure storage failed; no trading was activated."
+            )
+
+    async def restore_paper_adapter(self):
+        if self.paper_adapter is not None:
+            return self.paper_adapter
+        from stratosphere.connectors.alpaca_paper import AlpacaPaper, PaperKeys
+
+        with self.credentials.lease("alpaca-paper"):
+            saved = await credential_io(self.credentials.read, "alpaca-paper")
+        if (
+            not saved
+            or set(saved) != {"version", "key", "secret", "account_id"}
+            or type(saved["version"]) is not int
+            or saved["version"] != 1
+            or any(not isinstance(saved[name], str) for name in ("key", "secret", "account_id"))
+        ):
+            raise ResearchError("Use /alpaca-paper-connect to save valid paper keys first")
+        keys = PaperKeys(key=SecretStr(saved["key"]), secret=SecretStr(saved["secret"]))
+        adapter = (
+            self.paper_adapter_factory(keys) if self.paper_adapter_factory else AlpacaPaper(keys)
+        )
+        self.paper_adapter = adapter
+        try:
+            account = await adapter.account()
+            if account["account_id"] != saved["account_id"]:
+                raise ResearchError("Saved paper credentials resolve to another account")
+            self.portfolios_service().bind("alpaca", account["account_id"])
+            return adapter
+        except BaseException:
+            self.paper_adapter = None
+            raise
+
+    async def handle_portfolio_command(self, action, args):
+        from stratosphere.connectors.alpaca_paper import LiquidPaper
+        from stratosphere.workflow.portfolios import PaperLimits, package_markdown
+        from stratosphere.workflow.setup import PaperSetup
+
+        try:
+            if action == "portfolio-stop":
+                if self.paper_worker:
+                    self.paper_worker.cancel()
+                    from textual.worker import WorkerCancelled, WorkerFailed
+
+                    try:
+                        await self.paper_worker.wait()
+                    except WorkerCancelled, WorkerFailed:
+                        pass
+                await self.add_message(
+                    "Paper runner stopped. Positions remain open; monitoring stops."
+                )
+                return
+            if action == "alpaca-paper-forget":
+                if self.paper_worker and not self.paper_worker.is_finished:
+                    raise ResearchError("Stop the paper runner before forgetting credentials")
+                with self.credentials.lease("alpaca-paper"):
+                    await credential_io(self.credentials.delete, "alpaca-paper")
+                self.paper_adapter = None
+                await self.add_message(
+                    "Saved Alpaca paper keys forgotten. "
+                    "Positions and account evidence were retained."
+                )
+                return
+            await self.research.require_online()
+            if action == "alpaca-paper-connect":
+                if self.paper_worker and not self.paper_worker.is_finished:
+                    raise ResearchError("Stop the paper runner before replacing credentials")
+                self.push_screen(PaperSetup(), self.paper_setup_done)
+                return
+            service = self.portfolios_service()
+            if action == "portfolios":
+                text = "# Paper portfolios\n\n"
+                for p in service.portfolios():
+                    text += (
+                        f"- **{p['provider']} paper** · `{p['id']}` · "
+                        f"risk agent `{p['agent_id']}` · "
+                        f"{'account bound' if p['account_id'] else 'not connected'}\n"
+                    )
+                    if p["halted"]:
+                        text += f"  Entry halt: {p['halted']}\n"
+                    if p["blocker"]:
+                        text += f"  {p['blocker']}\n"
+                text += "\nApproved packages:\n" + "\n".join(
+                    f"- `{p.package_id}` · `{p.strategy_id}` · {p.provider} paper"
+                    for p in service.packages(approved=True)
+                )
+                await self.add_research_markdown(text, "Portfolios:")
+            elif action == "portfolio-orders":
+                with service.transaction() as db:
+                    rows = [
+                        dict(r)
+                        for r in db.execute(
+                            "SELECT id,package_id,state,observation FROM paper_orders "
+                            "ORDER BY created_ns DESC LIMIT 100"
+                        )
+                    ]
+                text = "# Paper orders\n\n" + "\n".join(
+                    f"- `{r['id']}` · package `{r['package_id']}` · {r['state']}"
+                    + (
+                        f" · {json.loads(r['observation'])['status']}"
+                        if r["observation"]
+                        else " · awaiting reconciliation"
+                    )
+                    for r in rows
+                )
+                await self.add_research_markdown(text, "Paper journal:")
+            elif action == "strategy-finish":
+                if args[2] == "liquid":
+                    raise ResearchError(LiquidPaper.blocker)
+                adapter = await self.restore_paper_adapter()
+                limits = (
+                    PaperLimits()
+                    if len(args) == 3
+                    else PaperLimits(
+                        **dict(
+                            zip(
+                                (
+                                    "max_strategy_fraction",
+                                    "max_position_fraction",
+                                    "max_risk_fraction",
+                                    "max_daily_loss_fraction",
+                                ),
+                                args[3:],
+                                strict=True,
+                            )
+                        )
+                    )
+                )
+                package = service.prepare(args[0], args[1], args[2], limits=limits)
+                await adapter.asset(package.symbol)
+                await self.add_research_markdown(package_markdown(package), "Final strategy:")
+                await self.query_one("#conversation", VerticalScroll).mount(
+                    FinishedReview(package.package_id, package.digest)
+                )
+            elif action == "strategy-show":
+                await self.add_research_markdown(
+                    package_markdown(service.package(args[0])), "Final strategy:"
+                )
+            elif action == "strategy-reject":
+                with service.transaction() as db:
+                    db.execute(
+                        "UPDATE paper_packages SET state='rejected' WHERE id=? AND state='pending'",
+                        (args[0],),
+                    )
+                await self.add_message(
+                    "Finished strategy rejected; no execution authority granted."
+                )
+            elif action in {"strategy-approve", "portfolio-run"}:
+                if self.paper_worker and not self.paper_worker.is_finished:
+                    raise ResearchError(
+                        "Stop the current paper runner before changing its assignments"
+                    )
+                if action == "portfolio-run" and args[0] == "liquid":
+                    raise ResearchError(LiquidPaper.blocker)
+                if not self.session:
+                    raise ResearchError(
+                        "Configure the model used for binary and wallet reviews first"
+                    )
+                adapter = await self.restore_paper_adapter()
+                if action == "strategy-approve":
+                    service.approve(args[0], args[1])
+                    await self.add_message(
+                        "Finished strategy and limits approved once. Starting automatic "
+                        "paper processing."
+                    )
+                self.paper_worker = self.run_paper_portfolio(
+                    service, adapter, self.session.provider
+                )
+        except ResearchError as error:
+            await self.add_message(str(error))
+        except ValueError, OSError:
+            await self.add_message("Paper workflow failed validation; retained state was kept.")
+
+    def update_paper_view(self, view):
+        table = self.query_one("#positions", DataTable)
+        table.clear(columns=True)
+        table.add_columns("Asset / quantity", "Capital USD", "Committed USD", "Strategy", "Package")
+        for row in view["strategies"]:
+            table.add_row(
+                row["symbol"] + " / " + row["quantity"],
+                row["capital"],
+                row["committed"],
+                row["strategy_id"],
+                row["package_id"],
+                key=row["package_id"],
+            )
+        table.styles.height = min(5, table.row_count + 1)
+        self.query_one("#positions-empty").display = not view["strategies"]
+        account = view["account"]
+        from datetime import UTC, datetime
+
+        captured = datetime.fromtimestamp(view["as_of_ns"] / 1e9, UTC).isoformat()
+        self.query_one("#portfolio-status", Static).update(
+            "Alpaca paper · captured " + captured + " · account " + account["account_id"]
+        )
+        self.query_one("#portfolio-preview", Static).update(
+            f"Equity {account['equity']} USD · cash {account['cash']} USD. "
+            "Paper simulation; quotes/fills are provider observations. "
+            "Use /portfolio-orders for retained order state."
+        )
+
+    def clear_paper_view(self):
+        self.query_one("#positions", DataTable).clear()
+        self.query_one("#positions-empty").display = True
+        self.query_one("#positions-empty", Static).update("Current provider positions unavailable")
+        self.query_one("#portfolio-status", Static).update(
+            "Alpaca paper · runner stopped or halted"
+        )
+        self.query_one("#portfolio-preview", Static).update(
+            "No current verified account snapshot displayed. Positions were not closed. "
+            "Use /portfolio-orders for retained evidence; "
+            "/portfolio-run alpaca reconciles before processing."
+        )
+
+    @work(group="paper-portfolio", exclusive=True)
+    async def run_paper_portfolio(self, service, adapter, provider):
+        from stratosphere.workflow.execution import PaperRunner
+
+        try:
+            await self.add_message(
+                "Paper runner active. Warmup emits no historical orders. /portfolio-stop "
+                "stops it and keeps positions."
+            )
+            await PaperRunner(service, adapter, provider, on_update=self.update_paper_view).run()
+        except asyncio.CancelledError:
+            raise
+        except ResearchError, ValueError, OSError:
+            await self.add_message(
+                "Paper runner halted. Check /portfolios and /portfolio-orders; uncertain orders "
+                "remain reserved and are never automatically resubmitted. No live orders exist."
+            )
+        finally:
+            if self.is_running and self.query("#positions"):
+                self.clear_paper_view()
+
     async def handle_flow_command(self, action, args):
         try:
             await self.yahoo.require_online()
@@ -2323,12 +2638,19 @@ class StratosphereApp(App[None]):
                 return
             identity = args[0]
             if action == "flow-cancel":
-                if self.flow_job_id == identity and self.research_worker:
+                if (
+                    self.session
+                    and getattr(self.session, "active_campaign", None) == identity
+                    and self.response_worker
+                ):
+                    self.response_worker.cancel()
+                elif self.flow_job_id == identity and self.research_worker:
                     self.research_worker.cancel()
                 else:
                     with self.campaigns.store.lock(identity):
                         if self.campaigns.store.state(identity) not in {
                             "awaiting_approval",
+                            "policy_ready",
                             "approved",
                         }:
                             raise ResearchError("That campaign cannot be canceled here")
@@ -2530,6 +2852,7 @@ class StratosphereApp(App[None]):
             self.response_worker,
             self.research_worker,
             self.liquid_worker,
+            self.paper_worker,
         ):
             if worker and not worker.is_finished:
                 worker.cancel()

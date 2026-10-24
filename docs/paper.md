@@ -1,7 +1,8 @@
 # Internal account and runtime foundations
 
 These components process authored software-test data. They are not a Liquid adapter, real feed,
-running broker paper service or order transport.
+running broker paper service or order transport. The separate new Alpaca paper runner is described
+in [agent workflow](agent-workflow.md); it does not replace or relabel these authored journals.
 
 ## Existing components
 
@@ -10,7 +11,7 @@ running broker paper service or order transport.
 - Reviewed decisions consume exact crossings and reserve capital through deterministic gates.
 - Budget/risk models provide separate advisory reviews over explicit read-only frozen snapshots.
 - A durable observation queue and separately approved worker retain ownership, progress and halts.
-- `/paper` and Positions inspect existing journals; missing/unreadable accounts stay unavailable.
+- `/paper` opens existing authored journals in Positions; missing/unreadable accounts stay unavailable.
 
 The worker is a development service over existing approved state. It does not create/fund accounts,
 approve streams, fetch provider data or activate trading. Its environment excludes credentials.

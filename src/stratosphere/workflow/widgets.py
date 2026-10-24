@@ -14,3 +14,13 @@ class CampaignReview(Horizontal):
             f"Approve {self.starts} research simulations", id="flow-approve", variant="primary"
         )
         yield Button("Cancel campaign", id="flow-reject")
+
+
+class FinishedReview(Horizontal):
+    def __init__(self, identity, digest):
+        super().__init__(classes="research-review")
+        self.identity, self.digest = identity, digest
+
+    def compose(self):
+        yield Button("Approve paper strategy", id="strategy-approve", variant="primary")
+        yield Button("Reject", id="strategy-reject")

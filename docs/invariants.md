@@ -25,8 +25,8 @@ provenance; behavioral variants have distinct identities and recorded lineage.
 
 ## Application authority
 
-Strategy agents own analysis, evidence lookup, approved testing and measured reports through the
-same validated application operations as slash commands. Keep plan approval and deterministic
+Strategy agents own analysis, evidence lookup, application-authorized testing and measured reports
+through the same validated application operations as slash commands. Keep plan approval and deterministic
 runtime/risk gates outside model authority. Model output must not execute arbitrary SQL, imported
 code or live orders. Database service credentials must never reach the TUI, model prompts or native
 workers.
@@ -49,11 +49,13 @@ not prove executable identity, quote authenticity, approval or full risk/reconci
 
 ## Liquid read scope
 
-The former Liquid-only scope is superseded by the explicit request for Alpaca, Liquid and FTMO two-step Swing. The old Alpaca implementation remains removed; a new adapter requires its own verification. Optional connector OAuth
+The former Liquid-only scope is superseded by Alpaca, Liquid and FTMO two-step Swing.
+The new Alpaca paper adapter requires its own real-provider verification; never restore retired
+code or infer live acceptance. Optional connector OAuth
 remains provider authorization; application login is retired. Request only read access for catalog
 inspection; never treat OAuth/catalog success as verified account identity, feed entitlement, paper
-isolation or an execution mandate. Credential policy permits model settings/API keys and Liquid
-access/refresh grants only in the native OS credential store, with no plaintext/chained backend
+isolation or an execution mandate. Model settings/API keys, Alpaca paper keys and Liquid
+access/refresh grants use only the native OS credential store, with no plaintext/chained backend
 fallback. Keep callback codes, PKCE/state and MCP session identifiers in memory; exclude all
 credentials from prompts/artifacts/workers and preserve provider confirmations. A persistent
 account-wide paper-mode setting is not per-request protection against a switch to live mode by
@@ -251,9 +253,9 @@ provider ownership, reconciliation, current P/L or execution permission from ret
 ## Connector scope
 
 Keep each authorized provider/account/environment separate: Alpaca paper/live, Liquid paper/live,
-and FTMO two-step Swing evaluation. The user has authorized this expanded adapter scope, but no
-new account connection or live activation. Liquid read-only catalog/address diagnostics do not
-implement a feed, perpetual paper adapter or order transport. Do not blindly restore retired
+and FTMO two-step Swing evaluation. Paper-only setup and automatic orders within an exact finished
+strategy approval are authorized. Live activation remains separate. Liquid read-only catalog/address
+diagnostics do not implement a feed, perpetual paper adapter or order transport. Do not blindly restore retired
 connector code, credentials or commands; verify new adapters independently. Preserve historical
 diagnostic files without loading them as a connection or mandate. Keep spot research, perpetual
 definitions and their measured evidence separate; native increments, actual fee currencies,
@@ -270,26 +272,40 @@ and separate live lock probes from historical heartbeat/session evidence. This d
 grants no provider feed, order authority, global executable attestation or production-duration
 reliability; reading health must not start, acknowledge, reset or stop it.
 
-## Deferred bounded tool runtime
+## Historical bounded tool runtime
 
 Freeze strategy ownership before model waits. Use typed capabilities over the existing validated
 services, count nested calls against the same total budget/deadline and retain safe failed/canceled/
-interrupted traces without automatic replay. Study/test requests stop for human review; models
-cannot approve, resume or start native work. Keep account/Liquid/credential, registration and
+interrupted traces without automatic replay. Historical study/test protocols retain human review;
+new v2 agent research uses application authorization as specified below. Models cannot approve
+or replenish budgets or resume consumed work. Keep account/Liquid/credential, registration and
 arbitrary shell/SQL/file/code capabilities outside the strategy tool set. Preserve historical
 reader/format contracts and distinguish fixture behavior from actual model reliability.
 
-## Replacement research-to-portfolio workflow
+## Research and automatic paper workflow
 
-Use the orchestrator only as a bridge to exact strategy owners. New research campaigns bind every
-candidate, rejected attempt, snapshot, implementation and finite start budget before human approval.
-Do not silently select a profitable candidate or claim a final holdout from a comparison report.
-Final-strategy approval and portfolio assignment must bind an exact implementation and verified
-provider instrument/environment; a research report does not grant order authority.
+The orchestrator bridges exact strategy owners. New v2 research campaigns use finite application
+authorization, not human or model approval. Freeze every candidate/rejected attempt, dataset,
+cost/window, code and at most twelve candidates/twenty-four native starts. Receipts explicitly grant
+no order authority. Historical v1/manual protocols keep their approval contracts. No silent consumed-
+start replay, recursive budget replenishment, profitability-only selection or invented final holdout.
 
-Keep one risk-agent context per portfolio, separated from private strategy histories and credentials.
-Strategy capital and per-position capital are distinct; both remain constrained by application-owned
-limits and account-wide reservations. A strategy signal model may return reliable/not_reliable only
-for pinned facts; positive output is advisory and does not bypass freshness, risk or reconciliation.
-Unavailable or invalid entry reviews deny entry. Protective exits must not wait for model inference.
-Preview arithmetic and authored snapshots never establish a connected account or executable mandate.
+Only the user approves the finished strategy, evidence, implementation, provider instrument/account
+and full paper limits. That one approval permits automatic paper orders within those limits. Verify
+sealed exact candidate evidence; never transfer fixed-quantity Yahoo returns to a variable-size
+provider policy. Local hashes/fixtures do not establish connected account or executable attestation.
+
+Keep one risk-agent context per portfolio, separate from private strategy histories and credentials.
+Strategy capital and position capital remain distinct and constrained by application limits and
+account-wide reservations. Models only propose reliable/not_reliable for pinned signal facts,
+strategy capital and position capital. Recheck ownership, freshness, assignments, account exposure,
+policy and available funds after inference and before reservation. Invalid/unavailable entry reviews
+deny entry. Deterministic protective exits must not depend on an LLM.
+
+Paper credentials use native storage only. Keep one personal account journal and OS lease across
+research roots/strategies. Persist consumed signals and reserved client IDs before submission; never
+retry an uncertain POST, including after a 404 read-back. Preserve changed provider confirmations,
+partial/late/conflicting fills and reserved capital until reconciliation. External/unknown exposure,
+stream gaps/revisions, stale data and observed loss stops cannot silently clear across restart.
+Keep Alpaca fixed to its paper origin. Liquid read-only OAuth/catalogs and global paper mode do not
+authorize or isolate automatic orders; display the missing capability and block submission.

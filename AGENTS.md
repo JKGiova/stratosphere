@@ -23,6 +23,8 @@
 ## Authority and privacy
 
 - Models propose and interpret. Application code owns validation, approvals, budgets and risk gates.
+- New agent research runs automatically under finite frozen application budgets. Require one user approval of the finished strategy, exact paper account, implementation and limits; then allow automatic paper orders within those limits. Preserve historical research approval contracts.
+- Implement both Alpaca paper and Liquid paper portfolio identities. Liquid execution remains blocked until a verified paper-only submission capability exists; a read grant or global mode switch is insufficient. Live remains inactive.
 - Keep one stable agent per exact strategy, isolated histories, exact duplicate reuse and explicit variant lineage.
 - Model output cannot approve plans, run arbitrary SQL/acquired code or submit orders.
 - Keep account diagnostics and credential access outside strategy-model tools.
@@ -35,7 +37,7 @@
 - Preserve versioned schemas, applied migrations, sealed reports, local journals and historical readers.
 - Documentation cleanup does not authorize deleting operational evidence or hosted resources.
 - Preserve exact candidate/window/cost ownership, all attempted variants and selected-only holdout results.
-- Approval binds the complete plan, implementation and finite budget. No silent retries of consumed native or holdout slots.
+- Final approval binds the complete strategy, evidence, account, implementation and limits. Application research authorization binds its complete frozen plan and finite budget. No silent retries of consumed native or holdout slots.
 - Source acquisition and valid citations do not establish faithful conversion, profitability or execution authority.
 - Local hashes and authored fixtures do not establish provider rights, account ownership or executable attestation.
 - Detailed subsystem rules in [docs/invariants.md](docs/invariants.md) remain mandatory for affected changes.

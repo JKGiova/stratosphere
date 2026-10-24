@@ -46,9 +46,14 @@ hosted resources or grant clients service-key access as part of local cleanup.
 
 ## Replacement workflow contracts
 
-`workflow/contracts.py` owns `agent-research-proposal/1`, `agent-research-plan/1`,
+`workflow/contracts.py` owns `agent-research-proposal/1`, historical `agent-research-plan/1`,
+automatic `agent-research-plan/2`,
 `portfolio-definition/1`, `portfolio-risk-snapshot/1`, `strategy-signal-verdict/1`,
 `portfolio-capital-proposal/1` and `portfolio-position-proposal/1`. Campaign reports use
 `agent-research-report/1`; validated sizing previews use `position-preview/1`.
 These formats do not migrate or relabel legacy strategy, research, study or account evidence.
-See [agent workflow](agent-workflow.md) for implemented scope and the unfinished deployment stages.
+`workflow/portfolios.py` adds `finished-paper-strategy/1`, pinning exact research evidence,
+provider/account/mode, implementation, execution policy and full limits. Application research receipts
+use `research-policy-authorization/1` and explicitly grant no order authority. The new personal
+paper SQLite journal has its own version 1; historical authored-paper journals are unchanged.
+See [agent workflow](agent-workflow.md) for behavior and verification limits.

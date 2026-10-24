@@ -2,7 +2,7 @@
 
 ## Save and forget
 
-The selected model/provider/official endpoint/key and optional fixed Liquid read grant use macOS
+The selected model/provider/official endpoint/key, Alpaca paper keys and optional fixed Liquid read grant use macOS
 Keychain or Linux Secret Service through `keyring`. There is no plaintext, config-file or chained
 backend fallback. Only the selected model configuration is retained, not a provider password library.
 
@@ -10,6 +10,8 @@ backend fallback. Only the selected model configuration is retained, not a provi
 - `/model-forget` removes saved model access when no operation is running.
 - `/liquid-connect` explicitly authorizes read access in the browser and saves a supported grant.
 - `/liquid-disconnect` waits for connector writes, cancels work and forgets active/saved access.
+- `/alpaca-paper-connect` uses a masked form, fixed paper endpoint and native storage.
+- `/alpaca-paper-forget` removes saved paper keys after the runner stops; it never closes positions.
 - Quitting retains saved credentials. Provider revocation is managed separately with Liquid.
 
 Unavailable/unlocked secure storage is reported explicitly; access may remain session-only after

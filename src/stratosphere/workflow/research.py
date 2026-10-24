@@ -8,7 +8,12 @@ from pathlib import Path
 
 from stratosphere.phase0.contracts import fingerprint
 from stratosphere.research.store import ResearchError, ResearchStore
-from stratosphere.workflow.contracts import CampaignPlan, CandidatePin, ResearchProposal
+from stratosphere.workflow.contracts import (
+    AutomaticCampaignPlan,
+    CampaignPlan,
+    CandidatePin,
+    ResearchProposal,
+)
 from stratosphere.yahoo.contracts import YahooSnapshot, implementation_digest
 from stratosphere.yahoo.service import plan_markdown as yahoo_plan_markdown
 
@@ -48,7 +53,7 @@ class ResearchCampaigns:
             except ResearchError:
                 continue
 
-    async def prepare(self, brief, proposal: ResearchProposal, *, parent=None):
+    async def prepare(self, brief, proposal: ResearchProposal, *, parent=None, automatic=False):
         if proposal.status != "ready":
             raise ResearchError("Resolve proposal questions before preparing a campaign")
         self.clean({"brief": brief, "proposal": proposal.model_dump(mode="json")})
@@ -109,7 +114,7 @@ class ResearchCampaigns:
                 if not pins:
                     self.store.event(identity, "blocked", "No validated candidate dataset")
                     raise ResearchError("All candidate datasets were blocked; evidence retained")
-                plan = CampaignPlan(
+                plan = (AutomaticCampaignPlan if automatic else CampaignPlan)(
                     campaign_id=identity,
                     proposal_sha256=fingerprint(proposal),
                     implementation_sha256=workflow_digest(),
@@ -118,7 +123,7 @@ class ResearchCampaigns:
                     native_starts=2 * len(pins),
                 )
                 self.store.write(identity, "plan.json", plan.model_dump(mode="json"))
-                self.store.event(identity, "awaiting_approval")
+                self.store.event(identity, "policy_ready" if automatic else "awaiting_approval")
                 return identity, plan
         except asyncio.CancelledError:
             self.store.event(identity, "canceled", "Preparation evidence retained")
@@ -128,7 +133,13 @@ class ResearchCampaigns:
         directory = self.store.directory(identity)
         if directory.is_symlink() or any(p.is_symlink() for p in directory.iterdir()):
             raise ResearchError("Workflow evidence cannot contain redirected paths")
-        plan = CampaignPlan.model_validate(self.store.read(identity, "plan.json"))
+        value = self.store.read(identity, "plan.json")
+        contract = (
+            AutomaticCampaignPlan
+            if value.get("schema_version") == "agent-research-plan/2"
+            else CampaignPlan
+        )
+        plan = contract.model_validate(value)
         proposal = ResearchProposal.model_validate(self.store.read(identity, "proposal.json"))
         if plan.campaign_id != identity or plan.proposal_sha256 != fingerprint(proposal):
             raise ResearchError("Campaign proposal changed")
@@ -152,6 +163,10 @@ class ResearchCampaigns:
     def approve(self, identity, digest):
         with self.store.lock(identity):
             plan = self.plan(identity)
+            if isinstance(plan, AutomaticCampaignPlan):
+                raise ResearchError(
+                    "New research uses application policy; approve only the finished strategy"
+                )
             if self.store.state(identity) != "awaiting_approval" or plan.digest != digest:
                 raise ResearchError("Approve the exact pending campaign once")
             if plan.implementation_sha256 != workflow_digest() or any(
@@ -165,6 +180,36 @@ class ResearchCampaigns:
             self.store.write(identity, "approval.json", {"plan_sha256": digest})
             self.store.event(identity, "approved")
 
+    def authorize_research(self, identity):
+        """Application policy only: finite frozen research, with no order authority."""
+        with self.store.lock(identity):
+            plan = self.plan(identity)
+            if not isinstance(plan, AutomaticCampaignPlan):
+                raise ResearchError("Historical campaigns keep their original approval contract")
+            if self.store.state(identity) != "policy_ready":
+                raise ResearchError("Research policy cannot replay an authorized campaign")
+            if plan.implementation_sha256 != workflow_digest() or any(
+                c.implementation_sha256 != implementation_digest() for c in plan.candidates
+            ):
+                raise ResearchError("Research implementation changed")
+            if any(
+                self.yahoo.store.state(c.job_id) != "awaiting_approval" for c in plan.candidates
+            ):
+                raise ResearchError("A candidate was independently approved or consumed")
+            self.store.write(
+                identity,
+                "approval.json",
+                {
+                    "schema_version": "research-policy-authorization/1",
+                    "authority": plan.authorization,
+                    "plan_sha256": plan.digest,
+                    "native_starts": plan.native_starts,
+                    "human_approval": False,
+                    "order_authority": False,
+                },
+            )
+            self.store.event(identity, "approved", "Application research policy; no human approval")
+
     async def run(self, identity):
         with self.store.lock(identity):
             plan = self.plan(identity)
@@ -173,6 +218,17 @@ class ResearchCampaigns:
                 or self.store.read(identity, "approval.json")["plan_sha256"] != plan.digest
             ):
                 raise ResearchError("The exact campaign needs human approval before execution")
+            if isinstance(plan, AutomaticCampaignPlan):
+                expected = {
+                    "schema_version": "research-policy-authorization/1",
+                    "authority": plan.authorization,
+                    "plan_sha256": plan.digest,
+                    "native_starts": plan.native_starts,
+                    "human_approval": False,
+                    "order_authority": False,
+                }
+                if self.store.read(identity, "approval.json") != expected:
+                    raise ResearchError("Application research authorization changed")
             if plan.implementation_sha256 != workflow_digest() or any(
                 c.implementation_sha256 != implementation_digest() for c in plan.candidates
             ):
@@ -183,8 +239,16 @@ class ResearchCampaigns:
             try:
                 for pin in plan.candidates:
                     try:
-                        # This approval derives only from the retained human-approved full campaign.
-                        self.yahoo.approve(pin.job_id, pin.plan_sha256)
+                        if isinstance(plan, AutomaticCampaignPlan):
+                            self.yahoo.authorize_campaign(
+                                pin.job_id,
+                                pin.plan_sha256,
+                                campaign_id=identity,
+                                campaign_sha256=plan.digest,
+                            )
+                        else:
+                            # Compatibility: this derives from the historical human decision.
+                            self.yahoo.approve(pin.job_id, pin.plan_sha256)
                         report = await self.yahoo.run(pin.job_id)
                         results.append(
                             {
@@ -272,6 +336,12 @@ def plan_markdown(identity, plan, yahoo):
         )
         snapshot = YahooSnapshot.model_validate(yahoo.store.read(pin.job_id, "snapshot.json"))
         lines += ["", yahoo_plan_markdown(pin.job_id, yahoo.plan(pin.job_id), snapshot)]
+    if isinstance(plan, AutomaticCampaignPlan):
+        return "\n".join(lines) + (
+            "\n\nApplication research policy: at most 12 candidates / 24 native starts. "
+            "No research approval is requested. Only the finished strategy and its paper limits "
+            "can receive user approval; this campaign grants no execution authority."
+        )
     lines += [
         "",
         f"Workflow implementation `{plan.implementation_sha256}`.",

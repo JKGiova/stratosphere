@@ -22,7 +22,9 @@ Tab/Shift+Tab switch panels. Layout adapts to terminal dimensions; forms use the
 navigation. The app does not resize, maximize or make the terminal enter native fullscreen.
 Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are the main views.
 
-## Supported research path
+## Legacy manual research path
+
+For new automatic campaigns, see the agent workflow below. The legacy path remains available:
 
 1. Use `/new` with a complete supported SMA description. Include exact periods, quantity, instrument,
    closed-bar entry/exit and next-open execution assumptions.
@@ -40,7 +42,8 @@ Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are 
 | Models/chat | `/model`, `/model-forget`, `/cancel`, `/clear` |
 | Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
 | Yahoo historical research | `/yahoo`, `/yahoo-show`, `/yahoo-approve`, `/yahoo-cancel` ([guide](yahoo-backtesting.md)) |
-| Agent research | `/create <brief>`, `/flow`, `/flow-show`, `/flow-approve`, `/flow-cancel` |
+| Agent research | `/create <brief>`, `/flow`, `/flow-show`, `/flow-cancel` (v1 `/flow-approve` only for compatibility) |
+| Paper portfolios | `/portfolios`, `/alpaca-paper-connect`, `/alpaca-paper-forget`, `/strategy-finish`, `/strategy-show`, `/strategy-approve`, `/portfolio-run`, `/portfolio-stop`, `/portfolio-orders` |
 | Legacy research | `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
 | Evidence | `/report <job>`, `/report-data`, `/analyze-report`, `/report-analyses`, `/report-analysis-show` |
 | Sources | `/source`, `/source-text`, `/source-file`, `/source-captions`, `/sources`, `/source-show` |
@@ -53,8 +56,8 @@ Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are 
 | Exit | `/quit` |
 
 `/clear` clears the selected conversation, including saved strategy chat where applicable; immutable
-research/source evidence remains. Positions and paper commands currently inspect authored local
-journals, not a Liquid trading account. Missing accounts are unavailable, not zero balances.
+research/source evidence remains. The legacy `/paper` commands inspect authored journals. The automatic Alpaca runner updates Positions
+with reconciled provider quantities; Liquid paper execution remains blocked. Missing accounts are unavailable, not zero balances.
 
 To propose research, use `/create` with the strategy rules and requested Yahoo symbols, intervals
 and historical windows. The supported family and approval sequence are described in
@@ -66,11 +69,12 @@ Approved research pauses on quit and retains checkpoints; interrupted jobs are n
 started on launch. Saved credentials remain until forgotten. An actual trading-position keep/close
 exit workflow is planned but not implemented. Disconnecting Liquid never closes a position.
 
-## Replacement agent research
+## Replacement agent research and paper approval
 
-Use `/create <brief>` for a bounded Yahoo SMA research campaign. Review all candidate plans and
-blocked datasets, then approve the full campaign once. `/flow`, `/flow-show <id>`,
-`/flow-approve <id> <sha256>` and `/flow-cancel <id>` inspect/control it. Each eligible candidate
-uses two native starts, base and stress; canceled/consumed work never silently resumes. Campaigns
-appear in Tests and Reports. Final strategy deployment and connected portfolios remain unfinished.
-See [agent workflow](agent-workflow.md) for the canonical scope and limitations.
+Use `/create <brief>` for an automatically executed bounded Yahoo SMA campaign. All attempts appear
+in Tests and Reports; no research approval is requested for new v2 campaigns. After reviewing a
+successful exact candidate, prepare its final package with `/strategy-finish`, then approve it once.
+That approval allows automatic paper orders within its displayed limits. See
+[agent workflow](agent-workflow.md) for exact command arguments, native paper-key setup, scope and
+recovery limitations. `/portfolio-stop` and quitting keep positions and stop monitoring; no live
+execution exists. Existing v1/manual research commands retain their original approval protocols.

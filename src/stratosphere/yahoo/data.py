@@ -32,10 +32,14 @@ def normalize(raw, request: YahooRequest):
     ):
         raise YahooValidationError("Yahoo returned-frame version or request identity mismatch")
     metadata = raw["metadata"]
-    expected_type = {"equity": "EQUITY", "crypto_spot": "CRYPTOCURRENCY", "forex": "CURRENCY"}
+    expected_types = {
+        "equity": {"EQUITY", "ETF"},
+        "crypto_spot": {"CRYPTOCURRENCY"},
+        "forex": {"CURRENCY"},
+    }
     if (
         metadata["symbol"] != request.symbol
-        or metadata["instrument_type"] != expected_type[request.asset_class]
+        or metadata["instrument_type"] not in expected_types[request.asset_class]
     ):
         raise YahooValidationError("Yahoo returned a different instrument or asset class")
     currency = metadata["currency"]

@@ -63,7 +63,7 @@ def raw_frame(req):
             "exchange": "fixture",
             "instrument_type": {
                 "crypto_spot": "CRYPTOCURRENCY",
-                "equity": "EQUITY",
+                "equity": "ETF" if req.symbol == "GLD" else "EQUITY",
                 "forex": "CURRENCY",
             }[req.asset_class],
             "timezone": "UTC",
@@ -137,7 +137,13 @@ def test_bad_data_never_becomes_backtest_prices(req, mutation):
 @pytest.mark.parametrize("interval", ["1h", "1d"])
 @pytest.mark.parametrize(
     "asset,symbol",
-    [("crypto_spot", "BTC-USD"), ("equity", "AAPL"), ("forex", "EURUSD=X"), ("forex", "USDJPY=X")],
+    [
+        ("crypto_spot", "BTC-USD"),
+        ("equity", "AAPL"),
+        ("equity", "GLD"),
+        ("forex", "EURUSD=X"),
+        ("forex", "USDJPY=X"),
+    ],
 )
 def test_native_prices_fills_and_equity_match_independent_ledger(req, asset, symbol, interval):
     req = YahooRequest.model_validate(
@@ -535,3 +541,12 @@ async def test_cancel_during_spawn_waits_for_child_and_cleans_cache(tmp_path, mo
     with pytest.raises(asyncio.CancelledError):
         await task
     assert process.killed and not caches[0].exists()
+
+
+@pytest.mark.parametrize("asset,symbol", [("crypto_spot", "BTC-USD"), ("forex", "EURUSD=X")])
+def test_etf_metadata_cannot_be_reclassified_as_crypto_or_fx(req, asset, symbol):
+    req = YahooRequest.model_validate(req.model_dump() | {"asset_class": asset, "symbol": symbol})
+    raw = raw_frame(req)
+    raw["metadata"]["instrument_type"] = "ETF"
+    with pytest.raises(ValueError, match="different instrument or asset class"):
+        normalize(raw, req)

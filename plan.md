@@ -1,6 +1,6 @@
 # stratosphere development plan
 
-Updated: October 23, 2026. This is the only active development plan.
+Updated: October 24, 2026. This is the only active development plan.
 
 ## Product scope
 
@@ -20,7 +20,7 @@ The repository stays private. There is no release deadline.
 | --- | --- | --- |
 | Terminal/models | Responsive panels, Tab navigation, inline setup, Markdown and 13 model adapters | Consistent forms, cancellation/restart and actual-provider reliability |
 | Library/agents | Exact identities, duplicate reuse, provenance, lineage and isolated saved histories; generated SMA creation, initial specialist analysis and reviewed test handoff | Generic model/tool loop and broader autonomous experiments remain deferred |
-| Research | Legacy approved BTC/USDT runs/studies; separate Yahoo historical SMA price research for equities, crypto spot and fully funded FX, hourly/daily and longer explicit windows | Corporate-action accounting, verified equity/FX calendars, Yahoo agent/study integration, broader strategies and faithful source conversion |
+| Research | Legacy approved BTC/USDT runs/studies; separate Yahoo historical SMA price research for equities/ETFs, crypto spot and fully funded FX, hourly/daily and longer explicit windows | Corporate-action accounting, verified equity/FX calendars, Yahoo agent/study integration, broader strategies and faithful source conversion |
 | Sources | Supplied text/files/captions, pinned GitHub material and limited public readers | Complete authorized acquisition and faithful conversion; Instagram, media and Pine coverage remain incomplete |
 | Reports | Retained research/study evidence, detailed inspection and advisory reviews | Reliable interpretations and consistent presentation of exact ownership, failures and limitations |
 | Credentials | Native secure storage and read-only Liquid grant renewal logic | Actual user refresh/rotation and Linux native-store verification |

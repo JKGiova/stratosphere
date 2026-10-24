@@ -7,10 +7,11 @@ start date, exclusive end date, hourly/daily interval, SMA periods, fixed units 
 capital/costs. Defaults cover the last twelve complete calendar months. No model or Yahoo key
 is required. Yahoo is not a live quote source, trading connector or fallback for Liquid.
 
-Supported price-research models are long-only SMA crossings for equities, crypto spot and fully
+Supported price-research models are long-only SMA crossings for equities (including exchange-traded funds), crypto spot and fully
 funded FX. Examples: `AAPL` (whole shares), `BTC-USD` (BTC units), `EURUSD=X` or `USDJPY=X`
 (base-currency units with at most two decimals). Currency support is limited to the native engine's
-known currencies. Yahoo identity and quote currency remain distinct from Binance BTCUSDT and
+known currencies. ETFs retain their Yahoo ETF metadata and use whole-share, cash-funded equity
+accounting; futures remain unsupported. Yahoo identity and quote currency remain distinct from Binance BTCUSDT and
 Liquid perpetual contracts; no strategy/result is silently relabeled across markets.
 
 This is a separate manual research path. `/create`, `/new`, bounded studies, automatic specialist

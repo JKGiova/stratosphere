@@ -31,7 +31,6 @@ from textual.widgets import (
 )
 from textual.worker import Worker
 
-from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.catalog.contracts import AssessmentTarget
 from stratosphere.catalog.service import assessment_markdown, recommendations_markdown
 from stratosphere.commands import PANELS, route_command
@@ -72,6 +71,10 @@ from stratosphere.studies.reporting import protocol_markdown
 from stratosphere.studies.service import StudyService
 from stratosphere.studies.store import StudyStore
 from stratosphere.studies.widgets import StudyForm
+from stratosphere.workflow.research import plan_markdown as campaign_plan_markdown
+from stratosphere.workflow.research import report_markdown as campaign_report_markdown
+from stratosphere.workflow.runtime import Orchestrator
+from stratosphere.workflow.widgets import CampaignReview
 from stratosphere.workspace import CHROME_HEIGHT, choose_layout
 from stratosphere.yahoo.contracts import YahooSnapshot
 from stratosphere.yahoo.service import YahooBacktests
@@ -408,8 +411,16 @@ class StratosphereApp(App[None]):
         )
         self.paper_view_loaded = False
         self.workspace_bridge = Orchestrator(
-            None, self.database, self.research, studies=self.studies, sources=self.sources
+            None,
+            self.database,
+            self.research,
+            studies=self.studies,
+            sources=self.sources,
+            yahoo=self.yahoo,
         )
+        self.campaigns = self.workspace_bridge.campaigns
+        self.campaigns.recover()
+        self.flow_job_id = None
         self.assessments = self.workspace_bridge.assessments
         self.report_analyses = self.workspace_bridge.report_analyses
         self.source_reviews = self.workspace_bridge.source_reviews
@@ -774,6 +785,8 @@ class StratosphereApp(App[None]):
             studies=self.studies,
             assessments=self.assessments,
             sources=self.sources,
+            yahoo=self.yahoo,
+            campaigns=self.campaigns,
         )
         self.session.sync_research()
         self.update_status("MODEL SET · NOT YET VERIFIED")
@@ -835,7 +848,9 @@ class StratosphereApp(App[None]):
             command = route_command(text)
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
-            if command.action.startswith("yahoo"):
+            if command.action.startswith("flow"):
+                await self.handle_flow_command(command.action, command.args)
+            elif command.action.startswith("yahoo"):
                 await self.handle_yahoo_command(command.action, command.args)
             elif command.action == "create":
                 if not self.session:
@@ -1103,7 +1118,11 @@ class StratosphereApp(App[None]):
                 self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
             self.update_status("READY")
             action = self.session.last_action
-            if action and action["action"] == "new":
+            if action and action["action"] == "flow_review":
+                await self.query_one("#conversation", VerticalScroll).mount(
+                    CampaignReview(action["id"], action["digest"], action["simulations"])
+                )
+            elif action and action["action"] == "new":
                 self.call_after_refresh(self.handle_research_command, "new", (action["source"],))
             elif action and action["action"] == "review":
                 await self.query_one("#conversation", VerticalScroll).mount(
@@ -1213,8 +1232,20 @@ class StratosphereApp(App[None]):
                 self.yahoo.store.state(job),
                 key="yahoo:" + job,
             )
+        for identity in self.campaigns.store.jobs():
+            jobs.add_row(
+                identity[:12],
+                "Strategy-agent research",
+                self.campaigns.store.state(identity),
+                key="flow:" + identity,
+            )
         reports = self.query_one("#reports", DataTable)
         reports.clear()
+        for identity in self.campaigns.store.jobs():
+            if self.campaigns.store.state(identity) == "completed":
+                reports.add_row(
+                    "Strategy-agent research", identity[:12], "Retained", key="flow:" + identity
+                )
         for job in self.yahoo.store.jobs():
             if self.yahoo.store.state(job) == "completed":
                 reports.add_row(
@@ -2118,6 +2149,11 @@ class StratosphereApp(App[None]):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         parent = event.button.parent
+        if isinstance(parent, CampaignReview):
+            event.stop()
+            action = "flow-approve" if event.button.id == "flow-approve" else "flow-cancel"
+            await self.handle_flow_command(action, (parent.identity, parent.digest))
+            return
         if isinstance(parent, YahooReview):
             event.stop()
             action = "yahoo-approve" if event.button.id == "yahoo-approve" else "yahoo-cancel"
@@ -2260,7 +2296,9 @@ class StratosphereApp(App[None]):
     async def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         try:
             key = str(event.row_key.value)
-            if key.startswith("yahoo:"):
+            if key.startswith("flow:"):
+                await self.handle_flow_command("flow-show", (key.removeprefix("flow:"),))
+            elif key.startswith("yahoo:"):
                 await self.handle_yahoo_command("yahoo-show", (key.removeprefix("yahoo:"),))
             elif event.data_table.id == "strategies":
                 await self.show_strategy_agent(key)
@@ -2272,6 +2310,92 @@ class StratosphereApp(App[None]):
             await self.add_message(
                 "That retained record cannot be verified or opened. Evidence was kept."
             )
+
+    async def handle_flow_command(self, action, args):
+        try:
+            await self.yahoo.require_online()
+            if action == "flow":
+                text = "# Strategy-agent campaigns\n\n" + "\n".join(
+                    f"- `{identity}` · {self.campaigns.store.state(identity)}"
+                    for identity in self.campaigns.store.jobs()
+                )
+                await self.add_research_markdown(text, "Research workflow:")
+                return
+            identity = args[0]
+            if action == "flow-cancel":
+                if self.flow_job_id == identity and self.research_worker:
+                    self.research_worker.cancel()
+                else:
+                    with self.campaigns.store.lock(identity):
+                        if self.campaigns.store.state(identity) not in {
+                            "awaiting_approval",
+                            "approved",
+                        }:
+                            raise ResearchError("That campaign cannot be canceled here")
+                        self.campaigns.store.event(identity, "canceled", "No automatic replay")
+                self.refresh_research_views()
+                return
+            if action == "flow-show":
+                self.query_one("#report-preview", Static).update(
+                    "Loading verified workflow evidence…"
+                )
+                if self.campaigns.store.state(identity) == "completed":
+                    text = campaign_report_markdown(self.campaigns.report(identity))
+                    self.query_one("#report-preview", Static).update(
+                        Markdown(safe_text(text), hyperlinks=False)
+                    )
+                    self.query_one("#reports-empty").display = False
+                    self.selected_report_key = "flow:" + identity
+                    self.action_select_view("reports")
+                    return
+                directory = self.campaigns.store.directory(identity)
+                if (directory / "plan.json").exists():
+                    plan = self.campaigns.plan(identity)
+                    text = campaign_plan_markdown(identity, plan, self.yahoo)
+                else:
+                    text = f"Campaign `{identity}` · {self.campaigns.store.state(identity)}"
+                await self.add_research_markdown(text, "Research workflow:")
+                if (directory / "blocked.json").exists():
+                    blocked = self.campaigns.store.read(identity, "blocked.json")["attempts"]
+                    if blocked:
+                        await self.add_research_markdown(
+                            "\n".join(f"- {r['request']['symbol']}: {r['error']}" for r in blocked),
+                            "Blocked attempts:",
+                        )
+                return
+            if self.research_busy or (
+                self.response_worker and not self.response_worker.is_finished
+            ):
+                raise ResearchError("Cancel or finish the active operation first")
+            if self.setup or self.research_form:
+                raise ResearchError("Complete or cancel the active form first")
+            self.campaigns.approve(identity, args[1])
+            self.research_worker = self.run_flow(identity)
+        except ResearchError, ValueError, OSError:
+            await self.add_message(
+                "Workflow request failed validation; retained evidence was kept."
+            )
+
+    @work(group="research", exclusive=True)
+    async def run_flow(self, identity):
+        self.flow_job_id = identity
+        self.update_status("RESEARCH · Strategy-agent campaign")
+        try:
+            report = await self.campaigns.run(identity)
+            await self.add_research_markdown(campaign_report_markdown(report), "Research results:")
+            await self.handle_flow_command("flow-show", (identity,))
+            self.update_status("READY")
+        except asyncio.CancelledError:
+            self.update_status("CANCELED")
+            raise
+        except ResearchError, ValueError, OSError:
+            await self.add_message(
+                "Campaign failed; consumed starts were retained and cannot replay."
+            )
+            self.update_status("RESEARCH · Failed")
+        finally:
+            self.flow_job_id = None
+            self.refresh_research_views()
 
     async def handle_yahoo_command(self, action, args):
         try:

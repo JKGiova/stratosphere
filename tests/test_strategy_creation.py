@@ -206,7 +206,7 @@ async def test_registration_transaction_rollback_and_exact_replay(app, monkeypat
     assert app.research.store.state(job) == "awaiting_approval"
 
 
-async def test_tui_create_shows_review_and_no_runner_calls(ui_service):
+async def test_tui_rejects_retired_creation_schema_without_running_legacy_workflow(ui_service):
     from test_research_tui import connect, send
 
     from stratosphere.research.widgets import ResearchReview
@@ -219,10 +219,10 @@ async def test_tui_create_shows_review_and_no_runner_calls(ui_service):
         await send(tui, pilot, "/create an hourly SMA candidate")
         await tui.workers.wait_for_complete()
         await pilot.pause()
-        assert tui.query(ResearchReview)
+        assert not tui.query(ResearchReview)
         assert ui_service.calls == []
-        job = tui.session.last_action["job_id"]
-        assert ui_service.store.state(job) == "awaiting_approval"
+        assert tui.session.last_action is None
+        assert not ui_service.store.jobs()
 
 
 @pytest.mark.engine

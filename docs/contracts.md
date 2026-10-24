@@ -43,3 +43,12 @@ Existing hosted wire schemas, SQL migrations and ownership tests are retained un
 `src/stratosphere/phase0/` and [supabase](../supabase/README.md). They are historical compatibility
 material, not an application login/database requirement. Do not edit applied migrations, delete
 hosted resources or grant clients service-key access as part of local cleanup.
+
+## Replacement workflow contracts
+
+`workflow/contracts.py` owns `agent-research-proposal/1`, `agent-research-plan/1`,
+`portfolio-definition/1`, `portfolio-risk-snapshot/1`, `strategy-signal-verdict/1`,
+`portfolio-capital-proposal/1` and `portfolio-position-proposal/1`. Campaign reports use
+`agent-research-report/1`; validated sizing previews use `position-preview/1`.
+These formats do not migrate or relabel legacy strategy, research, study or account evidence.
+See [agent workflow](agent-workflow.md) for implemented scope and the unfinished deployment stages.

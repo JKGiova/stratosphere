@@ -6,8 +6,8 @@
 - stratosphere is a personal tool in the tradingsphere suite. Keep both names lowercase.
 - Keep the repository private. Do not change visibility or licensing without an explicit request.
 - Do not add billing, application login, a hosted user database or automatic strategy sharing.
-- Liquid is the only trading connector. Do not restore Alpaca without a new instruction.
-- Stabilize existing workflows before adding features. Do not resume an interrupted feature task merely because its files remain in the working tree.
+- Authorized connector scope is Alpaca paper/live, Liquid paper/live and FTMO two-step Swing evaluation. Keep provider/account/mode identities separate; planning or connection never activates trading.
+- The requested workflow rebuild takes priority: orchestrator bridge → strategy research agents → reviewed final strategy → portfolio risk agent → binary signal review → position sizing. Preserve historical readers and evidence while replacing active routing. Do not resume unrelated interrupted features.
 
 ## Development workflow
 
@@ -26,7 +26,7 @@
 - Keep one stable agent per exact strategy, isolated histories, exact duplicate reuse and explicit variant lineage.
 - Model output cannot approve plans, run arbitrary SQL/acquired code or submit orders.
 - Keep account diagnostics and credential access outside strategy-model tools.
-- Persist model and Liquid credentials only in native OS secure storage, without plaintext or chained fallback.
+- Persist model and authorized connector credentials only in native OS secure storage, without plaintext or chained fallback.
 - Keep secrets out of Git, model contexts, artifacts and worker environments.
 - Never broaden provider scopes, purchase data/capacity or activate live trading without authorization.
 

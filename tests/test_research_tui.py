@@ -264,7 +264,7 @@ async def test_quit_pauses_an_approved_job_for_restart(
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_natural_test_request_uses_existing_approval_gate(
+async def test_explicit_legacy_commands_preserve_existing_approval_gate(
     ui_service,
     research_source,
     research_draft,
@@ -289,15 +289,14 @@ async def test_orchestrator_natural_test_request_uses_existing_approval_gate(
         job, _, plan = await ui_service.prepare(research_source, ResearchConfig(), provider)
         record = app.session.register_job(job)
         app.session.select(record["public_id"])
-        await send(app, pilot, "Run tests for the selected strategy")
-        await app.response_worker.wait()
+        await send(app, pilot, f"/show {job}")
         await pilot.pause()
-        assert app.query(ResearchReview) and ui_service.calls == []
+        assert ui_service.calls == []
+        assert app.response_worker is None
         assert ui_service.store.state(job) == "awaiting_approval"
         ui_service.approve(job, plan.digest)
         app.session.sync_research()
-        await send(app, pilot, "Run the already approved tests")
-        await app.response_worker.wait()
+        await send(app, pilot, f"/resume {job}")
         await pilot.pause()
         assert app.research_worker is not None
         await app.research_worker.wait()
@@ -306,13 +305,11 @@ async def test_orchestrator_natural_test_request_uses_existing_approval_gate(
         assert ui_service.calls == ["fetch", 1, 2]
         assert app.query_one("#reports", DataTable).row_count == 1
         provider.route = {"action": "report"}
-        await send(app, pilot, "Show this strategy's measured report")
-        await app.response_worker.wait()
+        await send(app, pilot, f"/report {job}")
         await pilot.pause()
         assert app.active_view == "reports"
         provider.route = {"action": "new", "source": research_source}
-        await send(app, pilot, research_source)
-        await app.response_worker.wait()
+        await send(app, pilot, "/new " + research_source)
         await pilot.pause()
         assert app.research_form is not None
         assert app.query_one("#research-source", TextArea).text == research_source

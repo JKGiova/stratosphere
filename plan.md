@@ -1,124 +1,119 @@
 # stratosphere development plan
 
-Updated: October 24, 2026. This is the only active development plan.
+Updated: October 24, 2026. This is the single active development plan.
 
 ## Product scope
 
-Build a reliable personal terminal workspace to research strategies, inspect measured evidence
-and eventually operate explicitly authorized trading through Liquid. Keep an English responsive
-TUI, agent chat, slash commands and inline setup. Linux and macOS come first; other operating
-systems and broader tradingsphere integration are later work.
+stratosphere is a private personal terminal workspace in tradingsphere. Linux and macOS come
+first. Keep English UI/docs, responsive panels, agent chat, slash commands, local SQLite,
+private research artifacts and native OS credential storage. No billing, application login,
+hosted user database, automatic strategy sharing or release deadline.
 
-Use local SQLite, private artifacts, separate strategy histories and native secure credential
-storage. No application account, hosted user database, platform fee or automatic sharing.
-Research/reporting require connectivity; local Ollama is the supported local-model exception.
-The repository stays private. There is no release deadline.
+Historical research uses Yahoo/yfinance. Planned portfolio connections are Alpaca paper/live,
+Liquid paper/live and FTMO two-step Swing evaluation. These are different provider/account/mode
+identities; declaring one never connects, funds or activates it. Live execution needs separate
+explicit activation. No paid data/capacity or challenge purchase is authorized by this plan.
 
-## Actual status
+## Requested agent architecture
 
-| Area | Available foundation | Missing or requiring verification |
+1. The **orchestrator** bridges user intent and strategy agents; it does not own their private
+   reasoning, approve work, allocate account money or issue orders.
+2. One **strategy agent per exact definition** receives the brief, proposes bounded research,
+   investigates candidate markets/assets/intervals/periods and interprets its own evidence.
+   Exact duplicates reuse the agent; behavioral variants retain explicit lineage.
+3. Application code freezes the candidate universe, datasets, costs, windows, implementations,
+   selection policy and finite native/model budgets. User approval precedes backtests.
+4. A report retains every attempted candidate and supports a precise final strategy package.
+   User approval of that package precedes assignment to a portfolio. Research approval is not
+   deployment approval, and a profitable comparison is not independent holdout validation.
+5. Each **portfolio risk agent** proposes how much account capital is available to each assigned
+   strategy, subject to explicit user policy and account-wide deterministic limits/reservations.
+6. On a verified strategy trigger, its strategy agent returns **reliable/not_reliable** against
+   pinned facts. Missing/invalid/stale reviews deny new entries. A reliable verdict is advisory,
+   not a probability guarantee or execution permission.
+7. For a reliable entry, the portfolio agent proposes position capital. Application code checks
+   current capital, cash, open/pending exposure, increments, fees, loss/drawdown/concentration and
+   stop/gap risk, then atomically reserves an approved intent. Only a verified adapter may send it.
+   Protective exits/emergency actions must not wait for inference.
+
+The canonical detailed workflow is [docs/agent-workflow.md](docs/agent-workflow.md).
+Mandatory behavior is in [docs/invariants.md](docs/invariants.md).
+
+## Current implementation
+
+| Area | Implemented or retained | Missing / verification limits |
 | --- | --- | --- |
-| Terminal/models | Responsive panels, Tab navigation, inline setup, Markdown and 13 model adapters | Consistent forms, cancellation/restart and actual-provider reliability |
-| Library/agents | Exact identities, duplicate reuse, provenance, lineage and isolated saved histories; generated SMA creation, initial specialist analysis and reviewed test handoff | Generic model/tool loop and broader autonomous experiments remain deferred |
-| Research | Legacy approved BTC/USDT runs/studies; separate Yahoo historical SMA price research for equities/ETFs, crypto spot and fully funded FX, hourly/daily and longer explicit windows | Corporate-action accounting, verified equity/FX calendars, Yahoo agent/study integration, broader strategies and faithful source conversion |
-| Sources | Supplied text/files/captions, pinned GitHub material and limited public readers | Complete authorized acquisition and faithful conversion; Instagram, media and Pine coverage remain incomplete |
-| Reports | Retained research/study evidence, detailed inspection and advisory reviews | Reliable interpretations and consistent presentation of exact ownership, failures and limitations |
-| Credentials | Native secure storage and read-only Liquid grant renewal logic | Actual user refresh/rotation and Linux native-store verification |
-| Liquid | Read-only OAuth/catalog and a fixed address diagnostic | Verified account/environment, feed eligibility, structured data, perpetual paper adapter and reconciliation |
-| Account/runtime | Internal authored account ledger, risk/reservation gates, inspection and observation worker | Provider integration, sustained operation and complete operational controls |
-| Live trading | Unavailable | Separate authorization and verification after paper acceptance |
+| New research bridge | TUI `/create` delegates a typed bounded Yahoo SMA campaign; stable exact owners, duplicate reuse and variant lineage | Broader strategy families, actual-provider model reliability, general research tools and regime/trend analysis |
+| Research campaign | Frozen eligible plans and blocked attempts; one exact campaign approval; finite base/stress starts; cancellation/restart without replay; Tests/Reports views | Independent holdout and selection protocol, richer comparative interpretation |
+| Strategy chat | Own registered definition/history and own verified campaign results | Full source/research tool loop and operational trigger consumer |
+| Portfolio risk layer | Typed provider/mode/limit/snapshot contracts, binary reviews, advisory capital proposals and deterministic position previews | Persisted portfolio lifecycle, review receipts, final-package approval/assignment and authoritative reservations |
+| Historical research | Yahoo hourly/daily long-only SMA native simulations; legacy Binance studies/readers | Dividends/splits, verified calendars, broader instruments and strategy conformance |
+| Credentials/models | Native secure storage; existing model transports and Liquid read-grant lifecycle | New connector credentials and environment/account binding; real Linux rotation checks |
+| Existing account services | Authored accounting, reservations, observation/runtime and advisory foundations | Provider reconciliation, operational agent integration and sustained feed-to-account verification |
+| Connectors | Liquid read-only catalog/address diagnostics | Alpaca paper/live, Liquid feed/paper/live, FTMO platform bridge; no order adapter is implemented |
+| Live execution | Unavailable | Explicit activation and operational acceptance after paper verification |
 
-“Authored” means deliberately constructed software-test inputs, not market-performance evidence.
-See [usage](docs/usage.md) for commands and [invariants](docs/invariants.md) for mandatory boundaries.
+The new research route supersedes the old natural-language action router and January-2025
+creation handoff in the active TUI. Historical agent modules and explicit legacy commands remain
+compatibility helpers. Preserve all versioned schemas, saved definitions, migrations, histories,
+sealed reports and journals. Do not delete evidence or rerun historical work during migration.
 
-## Immediate priority: stabilization
+## Implementation sequence
 
-The explicitly requested exception is a narrow generated-strategy handoff: BTC/USDT hourly spot
-SMA creation, stable agent assignment, initial critique and an approval-gated native plan. Cheaper
-Inference has a Qwen Flash preset; real authenticated availability remains unverified. Broader
-autonomous workflow implementation remains deferred.
+### 1. Research handoff replacement and stabilization — in progress
 
-Historical-only yfinance backtesting is implemented as a separate manual path, with versioned
-snapshots/plans and retained legacy evidence. Liquid stays the future real-time trading
-connector. Do not add Yahoo live quotes, account login, paid acquisition or provider fallback.
-The actual full-year hourly BTC check contains missing prices and is blocked; successful daily
-and shorter hourly acquisition is not proof of complete hourly coverage. See the
-[Yahoo guide](docs/yahoo-backtesting.md) for supported behavior and verification limits.
+- Exercise new creation → exact agent ownership → reviewed campaign → native runs → report.
+- Test duplicate/variant identities, blocked datasets, tampering, competing approvals, cancellation,
+  startup with another active client, damaged evidence and fresh-process report inspection.
+- Verify large/small TUI, model setup/change, forms, task cancellation and report-state clearing.
+- Keep every candidate/window/cost owner exact; never promote an earlier exploratory price replay
+  or selected sibling's result into the final strategy's evidence.
+- Run focused tests then relevant compatibility regressions. Distinguish authored fixtures,
+  actual model/provider checks and release readiness.
 
-1. Establish a clean-checkout baseline. Record revision, environment, native engine build and test results.
-   Review new creation changes separately; narrower checks do not establish release readiness.
-2. Reproduce each bug with the smallest useful case. Fix one coherent problem at a time, add a
-   meaningful regression check and exercise the actual user path.
-3. Test onboarding, secure-store errors, model changes, cancellation, navigation, resizing and
-   quit/restart. Failed refreshes must clear stale previews.
-4. Verify strategy ownership across model waits, forms, Library changes and restarts. Check
-   command/chat consistency, duplicate handling and incomplete operations.
-5. Exercise source → supported specification → approval → simulation → report, including unsupported
-   input, pause/resume, cancellation and evidence inspection without another simulation.
-6. Verify creation → stable specialist → reviewed test handoff, including duplicate reuse, generated
-   provenance, cancellation, failed analysis and restart. Keep the generic agent tool loop deferred.
-   Paused approved jobs offer explicit resume, never automatic replay or duplicate approval.
-7. Produce a short baseline report and update this status table. Keep unresolved defects explicit.
+### 2. Final strategy package and portfolio lifecycle
 
-Known verification limits: small local models can repeat tool calls or return invalid structured
-output; a localhost OAuth test needs listener permission in restricted environments; fixture tests
-and short worker checks do not prove production-duration operation or general model quality.
+- Define a versioned executable strategy package with exact entry/exit/sizing behavior, provider
+  instrument mapping, supported environment and research evidence/limitations.
+- Current backtests use fixed quantity. Dynamic portfolio sizing changes executable behavior;
+  implement and test a new sizing policy rather than silently relabel fixed-quantity results.
+- Add final-report review/approval, exact candidate selection and inactive portfolio assignment.
+- Persist stable portfolio risk-agent contexts, account bindings, policy approvals and immutable
+  model-review receipts. Preserve the distinction between advisory proposals and applied policy.
+- One physical account must have one authoritative exposure/reservation view across strategies
+  and logical portfolios. Include occupied, reserved, late and ambiguous exposure.
 
-### Completion criteria
+### 3. First real-feed paper portfolio
 
-- Required local checks pass for the exact revision; environmental exceptions are separately verified.
-- Supported installed-package workflows pass, including cancellation and fresh-process restart.
-- Large/small terminal checks pass without stale state, lost controls or strategy-context crossover.
-- Models cannot invent operations, grant approval, cross ownership boundaries or exceed budgets.
-- Known defects have reproducible cases and a visible disposition.
-- Documentation and `/help` agree with tested behavior.
+- Choose the first adapter (Alpaca paper, Liquid paper or FTMO two-step Swing platform route).
+  User preference and paper-order approval mode are pending; no account access has been requested.
+- Verify actual account/environment, permitted feed access and exact instruments. Preserve native
+  secure storage, credential-free research workers and isolated paper/live endpoints.
+- Integrate closed-bar triggers, binary specialist reviews and portfolio sizing with freshness,
+  finite inference budgets and deterministic account-wide limits.
+- Implement idempotent reservations/submission, partial fills, cancellations, rejections, expiry,
+  ambiguous outcomes and restart reconciliation. No silent retries of uncertain orders.
+- Test keep-positions versus close-all exit behavior, including failed closures and residual risk.
+- Verify sustained operation, outages, risk stops and recovery before advertising paper support.
 
-## Later milestones
+### 4. Other adapters and FTMO-specific acceptance
 
-Resume a milestone only after stabilization and a clear user-selected scope.
+- Add other provider/mode combinations with their own acceptance cases; never infer one from another.
+- FTMO needs the user's actual platform and a versioned two-step Swing rule/account binding.
+  Verify phase, contract sizes, commissions/swaps, daily-reset timezone and loss calculations.
+  Evaluation is not a generic live brokerage connection or an authorization to buy a challenge.
+- Research universal "best markets/trends" only within a frozen candidate and validation protocol;
+  reserve an independent holdout for a frozen selection, not repeated exploration.
 
-### 1. Research and source completeness
+### 5. Live execution and operational maturity
 
-- Extend strategy families with explicit behavioral conformance cases.
-- Mature YouTube, Instagram, X, TradingView and GitHub access, including supplied-material fallbacks.
-- Preserve source bytes, provenance, access limits, unsupported logic and all experiment attempts.
-- Verify market-specific rights, precision, quality, timing and instrument semantics.
-- Select using development/validation only; evaluate the frozen final holdout once.
-- Evaluate interpretation against actual evidence. Valid JSON/citations are insufficient.
-
-Complete when each advertised source/strategy/data combination has reproducible success and
-failure cases, exact inspectable reports and no inferred capabilities.
-
-### 2. Liquid real-feed paper trading
-
-- Verify account/environment, permitted personal data use and actual structured feed capabilities.
-- Implement perpetual increments, fee currencies, funding/margin, freshness, gaps and reconnect policy.
-- Bind instances to exact strategy/code/account/market/capital/mandate pins.
-- Use one idempotent paper gateway with partial fills, rejections, cancellations, expiry and ambiguity reconciliation.
-- Enforce aggregate capital/reservation/exposure/concentration/loss/quote gates independently of models.
-- Define concurrent-strategy netting, priority and attribution.
-- Verify outages, restart, damaged state, overnight/multi-day holdings and sustained operation.
-- Implement the settled exit choice: keep positions or request closure of all. Show actual closure
-  failures and residual exposure; stopping, canceling and closing remain distinct.
-- Display actual provider-backed positions, orders, limits, health and reconciliation state.
-
-Complete when paper isolation and the whole feed-to-account lifecycle pass independent sustained,
-restart, failure and shutdown checks. Read-only OAuth is not this milestone.
-
-### 3. Personal live execution
-
-Requires a new explicit activation instruction. Independently verify live transport, account
-permissions, emergency controls, partial fills, outages, reconciliation and shutdown. Paper mode
-or a linked account never implies live permission.
-
-### 4. Operational maturity
-
-Add backup/recovery, upgrade compatibility, drift monitoring and controlled implementation changes.
-Expand operating systems, adapters and suite interfaces only with their own acceptance cases.
+Requires separate explicit live activation after paper acceptance. Verify live credentials,
+transport, risk/emergency controls, reconciliation and shutdown independently. Add backup/restore,
+upgrade compatibility, drift monitoring and controlled implementation changes.
 
 ## Release gate
 
-No release based only on a green unit suite or profitable backtest. Require a stable installed
-client, reproducible research, reliable source/evidence handling, verified credential lifecycle
-and the operational acceptance appropriate to advertised features. State limitations plainly.
-Never advertise paper/live execution before it is implemented and verified.
+No phase/release is complete from fixture checks or a profitable replay. Require a stable installed
+client, reproducible research, reliable evidence ownership, verified credential lifecycle and
+operational acceptance for each advertised feature. State limitations plainly. Do not advertise
+connected portfolios, paper orders or live trading before they are implemented and verified.

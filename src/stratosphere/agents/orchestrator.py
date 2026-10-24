@@ -1,4 +1,4 @@
-"""Route to strategy specialists; operations remain application-validated and approval-gated."""
+"""Historical action routing and explicit service helpers; the TUI uses workflow.runtime."""
 
 import asyncio
 import json

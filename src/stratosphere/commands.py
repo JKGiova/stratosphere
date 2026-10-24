@@ -47,7 +47,11 @@ HELP = """/help — Show commands
 /yahoo-approve <job-id> <plan-sha256> — Approve and run the exact Yahoo plan
 /yahoo-cancel <job-id> — Cancel a pending or running Yahoo operation
 /new [text] — Draft a supported research plan in chat
-/create <brief> — Propose a BTC/USDT hourly SMA strategy and start its agent analysis
+/create <brief> — Delegate a bounded Yahoo SMA research campaign to strategy agents
+/flow — List new strategy-agent research campaigns
+/flow-show <campaign-id> — Review all candidate plans or the completed report
+/flow-approve <campaign-id> <plan-sha256> — Approve the complete finite campaign
+/flow-cancel <campaign-id> — Cancel a campaign; consumed starts cannot replay
 /study [strategy-id|parent-job-id] — Review a bounded SMA study with a separate final holdout
 /assess [market symbol interval-seconds] — Record dated applicability for the selected agent
 /recommend <market> <symbol> <interval-seconds> — Ask each local strategy agent for candidates
@@ -85,6 +89,11 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name in {"/flow", "/flow-show", "/flow-approve", "/flow-cancel"}:
+        expected = {"/flow": 1, "/flow-show": 2, "/flow-approve": 3, "/flow-cancel": 2}
+        if len(words) == expected[name]:
+            return Command(name[1:], args=tuple(words[1:]))
+        return Command("message", "Use /help for workflow command arguments.")
     if name == "/paper":
         if (
             len(words) <= 3

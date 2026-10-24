@@ -2,7 +2,8 @@
 
 ## Implemented access
 
-Liquid is the only trading connector. Current access is read-only:
+Liquid is the currently implemented provider diagnostic. The expanded planned connector scope
+is in [agent workflow](agent-workflow.md). Current Liquid access is read-only:
 
 - Browser OAuth authorization and secure grant retention.
 - Fresh MCP catalog negotiation, deterministic browsing and explicit private export.

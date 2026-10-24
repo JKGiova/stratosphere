@@ -14,10 +14,11 @@ known currencies. ETFs retain their Yahoo ETF metadata and use whole-share, cash
 accounting; futures remain unsupported. Yahoo identity and quote currency remain distinct from Binance BTCUSDT and
 Liquid perpetual contracts; no strategy/result is silently relabeled across markets.
 
-This is a separate manual research path. `/create`, `/new`, bounded studies, automatic specialist
-report analysis and their historical readers retain their existing supported Binance behavior.
-Yahoo jobs appear in Tests and Reports, with strategy identity/provenance in the local library;
-Yahoo report interpretation/study automation has not been added to the orchestrator.
+The manual `/yahoo` path is also used by the replacement `/create` research campaigns, whose
+strategy agents receive their own verified Yahoo results. `/new`, legacy studies and their
+historical readers retain existing Binance behavior. Yahoo jobs and campaigns appear in Tests
+and Reports. Autonomous repeated optimization, generic tool loops, regime analysis and final
+holdout selection are not implemented. See [agent workflow](agent-workflow.md).
 
 ## Review and run
 

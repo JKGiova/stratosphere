@@ -1,4 +1,4 @@
-"""Explicit model-generated ideas compiled by the application; never acquired-code conversion."""
+"""Historical January-2025 creation compatibility; not the active TUI creation workflow."""
 
 import asyncio
 import hashlib

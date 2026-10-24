@@ -49,7 +49,7 @@ not prove executable identity, quote authenticity, approval or full risk/reconci
 
 ## Liquid read scope
 
-Liquid is the only trading connector; the prior Alpaca route is removed. Optional connector OAuth
+The former Liquid-only scope is superseded by the explicit request for Alpaca, Liquid and FTMO two-step Swing. The old Alpaca implementation remains removed; a new adapter requires its own verification. Optional connector OAuth
 remains provider authorization; application login is retired. Request only read access for catalog
 inspection; never treat OAuth/catalog success as verified account identity, feed entitlement, paper
 isolation or an execution mandate. Credential policy permits model settings/API keys and Liquid
@@ -250,9 +250,11 @@ provider ownership, reconciliation, current P/L or execution permission from ret
 
 ## Connector scope
 
-Keep the trading integration Liquid-only. Its current read-only catalog/address diagnostics do not
-implement a feed, perpetual paper adapter or order transport. Do not restore the removed alternative
-connector, commands or credential form without a new user instruction. Preserve historical
+Keep each authorized provider/account/environment separate: Alpaca paper/live, Liquid paper/live,
+and FTMO two-step Swing evaluation. The user has authorized this expanded adapter scope, but no
+new account connection or live activation. Liquid read-only catalog/address diagnostics do not
+implement a feed, perpetual paper adapter or order transport. Do not blindly restore retired
+connector code, credentials or commands; verify new adapters independently. Preserve historical
 diagnostic files without loading them as a connection or mandate. Keep spot research, perpetual
 definitions and their measured evidence separate; native increments, actual fee currencies,
 funding/margin and paper isolation require independent verification.
@@ -276,3 +278,18 @@ interrupted traces without automatic replay. Study/test requests stop for human 
 cannot approve, resume or start native work. Keep account/Liquid/credential, registration and
 arbitrary shell/SQL/file/code capabilities outside the strategy tool set. Preserve historical
 reader/format contracts and distinguish fixture behavior from actual model reliability.
+
+## Replacement research-to-portfolio workflow
+
+Use the orchestrator only as a bridge to exact strategy owners. New research campaigns bind every
+candidate, rejected attempt, snapshot, implementation and finite start budget before human approval.
+Do not silently select a profitable candidate or claim a final holdout from a comparison report.
+Final-strategy approval and portfolio assignment must bind an exact implementation and verified
+provider instrument/environment; a research report does not grant order authority.
+
+Keep one risk-agent context per portfolio, separated from private strategy histories and credentials.
+Strategy capital and per-position capital are distinct; both remain constrained by application-owned
+limits and account-wide reservations. A strategy signal model may return reliable/not_reliable only
+for pinned facts; positive output is advisory and does not bypass freshness, risk or reconciliation.
+Unavailable or invalid entry reviews deny entry. Protective exits must not wait for model inference.
+Preview arithmetic and authored snapshots never establish a connected account or executable mandate.

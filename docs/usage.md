@@ -40,7 +40,8 @@ Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are 
 | Models/chat | `/model`, `/model-forget`, `/cancel`, `/clear` |
 | Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
 | Yahoo historical research | `/yahoo`, `/yahoo-show`, `/yahoo-approve`, `/yahoo-cancel` ([guide](yahoo-backtesting.md)) |
-| Research | `/create <brief>`, `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
+| Agent research | `/create <brief>`, `/flow`, `/flow-show`, `/flow-approve`, `/flow-cancel` |
+| Legacy research | `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
 | Evidence | `/report <job>`, `/report-data`, `/analyze-report`, `/report-analyses`, `/report-analysis-show` |
 | Sources | `/source`, `/source-text`, `/source-file`, `/source-captions`, `/sources`, `/source-show` |
 | Source interpretation/import | `/conformance`, `/source-review`, `/source-register` and their list/show commands |
@@ -55,12 +56,21 @@ Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are 
 research/source evidence remains. Positions and paper commands currently inspect authored local
 journals, not a Liquid trading account. Missing accounts are unavailable, not zero balances.
 
-To generate a candidate, try `/create an hourly BTC/USDT SMA strategy with fast 20, slow 50,
-quantity 0.001 BTC`. Its dedicated agent starts analysis and presents the exact backtest plan for
-approval. Generated ideas are limited to the supported SMA family. See [agent workflow](agent-workflow.md).
+To propose research, use `/create` with the strategy rules and requested Yahoo symbols, intervals
+and historical windows. The supported family and approval sequence are described in
+[agent workflow](agent-workflow.md).
 
 ## Quit and restart
 
 Approved research pauses on quit and retains checkpoints; interrupted jobs are not automatically
 started on launch. Saved credentials remain until forgotten. An actual trading-position keep/close
 exit workflow is planned but not implemented. Disconnecting Liquid never closes a position.
+
+## Replacement agent research
+
+Use `/create <brief>` for a bounded Yahoo SMA research campaign. Review all candidate plans and
+blocked datasets, then approve the full campaign once. `/flow`, `/flow-show <id>`,
+`/flow-approve <id> <sha256>` and `/flow-cancel <id>` inspect/control it. Each eligible candidate
+uses two native starts, base and stress; canceled/consumed work never silently resumes. Campaigns
+appear in Tests and Reports. Final strategy deployment and connected portfolios remain unfinished.
+See [agent workflow](agent-workflow.md) for the canonical scope and limitations.

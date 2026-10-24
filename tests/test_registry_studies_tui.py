@@ -166,7 +166,7 @@ async def test_inline_registry_form_pins_strategy_and_costs_through_approval_and
         assert not studies.database.reports(other["public_id"])
 
 
-async def test_natural_language_opens_a_registry_form_and_cancel_creates_no_study(
+async def test_explicit_legacy_study_form_preserves_owner_and_cancel_without_model_routing(
     studies, tmp_path
 ):
     provider = ProposalProvider()
@@ -183,14 +183,15 @@ async def test_natural_language_opens_a_registry_form_and_cancel_creates_no_stud
     async with app.run_test(size=(144, 40)) as pilot:
         await connect(app, pilot)
         app.session.select(record["public_id"])
-        await send(app, pilot, "Propose a bounded experiment")
-        await app.response_worker.wait()
+        await send(app, pilot, "/study " + record["public_id"])
         await pilot.pause()
         assert isinstance(app.research_form, StudyForm) and app.research_form.registered
-        assert app.query_one("#study-candidates", Input).value == "3/8,4/10"
+        assert app.query_one("#study-candidates", Input).value == "3/8"
         await pilot.press("escape")
         await pilot.pause()
         assert not app.research_form and not studies.store.jobs() and not research.store.jobs()
+
+    assert provider.calls == []
 
 
 async def test_explicit_parameter_pairs_are_application_owned_and_the_model_cannot_rewrite_them(

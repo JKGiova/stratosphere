@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | TUI | Panels, inline forms, chat, explicit commands and job controls | `src/stratosphere/tui.py`, `commands.py`, `workspace.py` |
 | Model transport | Provider-specific text streaming and exact workflow-schema delivery | `src/stratosphere/models/`, `chat.py` |
-| Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/agents/` |
+| Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/workflow/` (active), `agents/` (compatibility helpers) |
 | Local library | Canonical identities, duplicate reuse, provenance, lineage, jobs and reports | `src/stratosphere/registry/` |
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
@@ -16,7 +16,7 @@
 
 Application services are authoritative. Natural-language and slash routes must reuse their
 validation and approval boundaries. Models cannot grant permission or mutate an active strategy.
-The creation handoff and deferred general runtime are described in [agent workflow](agent-workflow.md).
+The replacement research-to-portfolio lifecycle is described in [agent workflow](agent-workflow.md).
 
 ## State
 

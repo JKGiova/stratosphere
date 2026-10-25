@@ -52,13 +52,13 @@ HELP = """/help — Show commands
 /flow-show <campaign-id> — Review all candidate plans or the completed report
 /flow-approve <campaign-id> <plan-sha256> — Legacy v1 campaign approval only
 /flow-cancel <campaign-id> — Cancel a campaign; consumed starts cannot replay
-/portfolios — Inspect Alpaca paper and Liquid paper readiness
+/portfolios — Inspect Alpaca paper, planned Liquid live perpetuals and FTMO bridge
 /alpaca-paper-connect — Enter paper keys in a masked native-storage form
 /alpaca-paper-forget — Forget saved paper keys; retain positions and evidence
-/strategy-finish <campaign> <strategy-or-job> <provider> [four limits] — Final paper review
+/strategy-finish <campaign> <strategy-or-job> alpaca [four limits] — Final paper review
 /strategy-show <package> — Review exact final strategy, evidence and limits
 /strategy-approve <package> <sha256> — Single final approval and automatic paper runner
-/portfolio-run <alpaca|liquid> — Start approved paper strategies; never backfill missed bars
+/portfolio-run alpaca — Start approved paper strategies; never backfill missed bars
 /portfolio-stop — Stop monitoring/submission; positions remain open
 /portfolio-orders — Inspect retained automatic paper order outcomes
 /study [strategy-id|parent-job-id] — Review a bounded SMA study with a separate final holdout
@@ -114,20 +114,20 @@ def route_command(text: str) -> Command:
     if name == "/portfolio-run":
         return (
             Command(name[1:], args=(words[1],))
-            if len(words) == 2 and words[1] in {"alpaca", "liquid"}
-            else Command("message", "Usage: /portfolio-run <alpaca|liquid>")
+            if len(words) == 2 and words[1] in {"alpaca", "liquid", "ftmo"}
+            else Command("message", "Usage: /portfolio-run alpaca (paper only)")
         )
     if name == "/strategy-finish":
         if (
             len(words) in {4, 8}
             and re.fullmatch(r"[a-f0-9]{32}", words[1])
             and re.fullmatch(r"(?:[0-9]{24}|[a-f0-9]{32})", words[2])
-            and words[3] in {"alpaca", "liquid"}
+            and words[3] in {"alpaca", "liquid", "ftmo"}
         ):
             return Command(name[1:], args=tuple(words[1:]))
         return Command(
             "message",
-            "Usage: /strategy-finish <campaign> <strategy-or-job> <provider> "
+            "Usage: /strategy-finish <campaign> <strategy-or-job> alpaca "
             "[strategy-cap position-cap risk-cap daily-loss]",
         )
     if name in {"/strategy-show", "/strategy-approve", "/strategy-reject"}:

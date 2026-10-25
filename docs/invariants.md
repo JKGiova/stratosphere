@@ -252,10 +252,13 @@ provider ownership, reconciliation, current P/L or execution permission from ret
 
 ## Connector scope
 
-Keep each authorized provider/account/environment separate: Alpaca paper/live, Liquid paper/live,
-and FTMO two-step Swing evaluation. Paper-only setup and automatic orders within an exact finished
-strategy approval are authorized. Live activation remains separate. Liquid read-only catalog/address
-diagnostics do not implement a feed, perpetual paper adapter or order transport. Do not blindly restore retired
+Current roles are Alpaca paper, Liquid live perpetuals and FTMO two-step Swing evaluation via MT5 or
+a verified equivalent. Keep provider/account/environment separate. Alpaca live is deferred; Liquid
+paper identities and approvals are historical compatibility only and cannot be relabeled as live.
+Paper-only setup and automatic orders within an exact finished strategy approval are authorized
+only for Alpaca. Liquid live and FTMO activation require separate implementation, verification and
+explicit authorization. Liquid read-only catalog/address diagnostics do not implement a feed or
+order transport. Do not blindly restore retired
 connector code, credentials or commands; verify new adapters independently. Preserve historical
 diagnostic files without loading them as a connection or mandate. Keep spot research, perpetual
 definitions and their measured evidence separate; native increments, actual fee currencies,

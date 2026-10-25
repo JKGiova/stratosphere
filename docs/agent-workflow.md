@@ -2,6 +2,18 @@
 
 ## Approval and authority
 
+### Portfolio roles
+
+| Portfolio | Role | Current availability |
+| --- | --- | --- |
+| Alpaca paper | Simulated execution for development and validation | Paper workflow implemented; real-provider acceptance remains pending |
+| Liquid live perpetuals | Future real-money perpetual trading | Planned and inactive; current connection is read-only |
+| FTMO two-step Swing | Evaluation portfolio via MT5 or a verified equivalent | Planned and inactive; bridge/account/rules verification remains pending |
+
+Alpaca live is deferred. `/portfolios` displays these roles; planned identities do not represent
+connected accounts or active risk agents. Historical Liquid paper state remains readable through
+the retained journal services, outside the active setup, and cannot become live authority.
+
 Research runs automatically under application limits. The user approves a **finished strategy once**,
 including its exact evidence, implementation, paper account, instrument, sizing policy and wallet
 limits. That approval permits automatic paper orders within those limits; individual signals do
@@ -87,7 +99,7 @@ its `execution_authorized=false` result is not an order receipt.
 
 ## Account state and recovery
 
-`/portfolios` shows separate Alpaca paper and Liquid paper identities and stable risk-agent IDs.
+`/portfolios` shows the current roles above, separate identities and stable risk-agent IDs.
 `/portfolio-orders` shows retained order outcomes. The Positions panel shows the runner's reconciled
 quantities, strategy capital and committed reservations. The legacy `/paper` view remains an authored
 fixture journal with its own labels and evidence rules.
@@ -110,13 +122,19 @@ close-all and full keep/close-on-quit controls remain unfinished. `/portfolio-st
 positions and stop monitoring. Changing/forgetting the model also stops the runner. Do not advertise
 unattended or release-ready operation before these acceptance cases are complete.
 
-## Liquid and other environments
+## Liquid and FTMO boundaries
 
-The retained Liquid read catalog exposes a paper-order **review link**, not paper-only submission.
-Its wallet-wide paper-mode setting can also be changed by another client and is not per-request
-isolation. The Liquid paper portfolio therefore displays a capability blocker and cannot execute.
-Read-only OAuth is never upgraded or reused as trade permission. Liquid perpetuals also need separate
-margin/funding/liquidation research; Yahoo spot results cannot establish that behavior.
+Liquid targets live perpetuals. Its current implementation remains read-only diagnostics; there is
+no live feed/order transport or activation. Trading needs a separately verified capability, exact
+live account, appropriate authorization, perpetual-specific research and operational acceptance.
+Read-only OAuth is never upgraded or reused as trade permission. Yahoo spot results cannot establish
+margin/funding/liquidation behavior. The former Liquid paper identity and fail-closed adapter remain
+historical compatibility only; their journals/packages never become live approvals.
+
+FTMO targets the two-step Swing evaluation through MT5 or a verified equivalent. No bridge is
+implemented. Verify the actual platform, account/phase, instrument specifications, fees/swaps,
+dated loss/reset rules and bridge deployment on the supported OSes before implementation/activation.
+Evaluation is a separate environment, not an Alpaca paper or Liquid live account.
 
 Alpaca transport uses only the fixed [paper endpoint](https://docs.alpaca.markets/us/docs/paper-trading),
 [order API](https://docs.alpaca.markets/us/reference/postorder) and

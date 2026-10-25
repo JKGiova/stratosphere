@@ -2,17 +2,18 @@
 
 ## Implemented access
 
-Liquid is the currently implemented provider diagnostic. The expanded planned connector scope
-is in [agent workflow](agent-workflow.md). Current Liquid access is read-only:
+Liquid's target role is live perpetual trading. The portfolio setup is in
+[agent workflow](agent-workflow.md). Current Liquid access is read-only:
 
 - Browser OAuth authorization and secure grant retention.
 - Fresh MCP catalog negotiation, deterministic browsing and explicit private export.
 - A separate explicit address-read diagnostic using the reviewed fixed `get_account` request.
 
 Yahoo historical backtesting is separate; see [Yahoo backtesting](yahoo-backtesting.md).
-Liquid remains reserved for future real-time trading integration.
+Liquid remains reserved for future real-time live perpetual trading integration.
 
-No real-time structured feed, perpetual paper adapter or order transport is implemented.
+No real-time structured feed, perpetual execution adapter or order transport is implemented.
+Historical Liquid paper state is retained for compatibility, outside the active portfolio setup.
 An exported catalog or reported address does not verify legal account control, environment,
 feed entitlement, paper isolation or permission to trade.
 
@@ -40,5 +41,6 @@ text. Do not open returned links/widgets/resources. Historical observations neve
 
 A persistent wallet-wide paper setting is not per-request protection against another client
 switching to live mode. Existing BTC/USDT spot results cannot become Liquid perpetual evidence.
-Provider/native precision, fee currencies, funding/margin and paper isolation need separate tests.
+Provider/native precision, fee currencies, funding/margin/liquidation and live execution need
+separate implementation and verification. Role selection does not authorize live activation.
 The remaining work is in [plan.md](../plan.md).

@@ -57,7 +57,10 @@ For new automatic campaigns, see the agent workflow below. The legacy path remai
 
 `/clear` clears the selected conversation, including saved strategy chat where applicable; immutable
 research/source evidence remains. The legacy `/paper` commands inspect authored journals. The automatic Alpaca runner updates Positions
-with reconciled provider quantities; Liquid paper execution remains blocked. Missing accounts are unavailable, not zero balances.
+with reconciled provider quantities. `/portfolios` shows Alpaca paper, planned Liquid live perpetuals
+and planned FTMO evaluation via MT5 or an equivalent. Liquid and FTMO execution remain unavailable;
+historical Liquid paper journals are retained outside the active setup. Missing accounts are
+unavailable, not zero balances.
 
 To propose research, use `/create` with the strategy rules and requested Yahoo symbols, intervals
 and historical windows. The supported family and approval sequence are described in

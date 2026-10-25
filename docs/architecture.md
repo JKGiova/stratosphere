@@ -11,7 +11,8 @@
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
 | Source/evidence services | Acquisition, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
-| Provider boundaries | Fixed Liquid read diagnostics, Alpaca paper/data HTTP and Liquid paper capability blocker | `src/stratosphere/connectors/` |
+| Provider boundaries | Fixed Liquid read diagnostics, Alpaca paper/data HTTP and retained historical Liquid paper blocker | `src/stratosphere/connectors/` |
+| Portfolio roles | Alpaca paper, planned Liquid live perpetuals and planned FTMO/MT5 evaluation; no implicit activation | `src/stratosphere/workflow/portfolio_setup.py` |
 | Operational paper workflow | Final packages/approval, global paper journal, binary/wallet reviews, signals, reservations and order reconciliation | `src/stratosphere/workflow/portfolios.py`, `execution.py` |
 | Authored account/runtime | Journals, reservations, risk gates, observation processing and inspection | `src/stratosphere/paper/` |
 

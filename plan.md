@@ -1,6 +1,6 @@
 # stratosphere development plan
 
-Updated: October 24, 2026. This is the single active development plan.
+Updated: October 25, 2026. This is the single active development plan.
 
 ## Product and decisions
 
@@ -8,8 +8,11 @@ stratosphere is a private personal terminal tool in tradingsphere, initially for
 Keep English, responsive panels, chat/slash commands, local SQLite, private artifacts and native OS
 credential storage. No billing, app login, hosted user database, strategy sharing or release deadline.
 
-Historical research uses Yahoo/yfinance and NautilusTrader. Target connections are Alpaca paper/live,
-Liquid paper/live and FTMO two-step Swing evaluation, with separate provider/account/mode identities.
+Historical research uses Yahoo/yfinance and NautilusTrader. Portfolio roles are **Alpaca paper**,
+**Liquid live perpetuals** and **FTMO two-step Swing evaluation through MT5 or a verified equivalent**,
+with separate provider/account/mode identities. Alpaca live is deferred, not a current implementation
+target. Liquid paper remains historical compatibility only; do not convert its journals or approvals
+into live state. The selected roles do not claim adapter availability or authorize activation.
 Current execution authorization covers **paper only**. Never purchase data/capacity/challenges or
 activate live trading without an explicit request.
 
@@ -29,11 +32,11 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Orchestrator and specialists | Typed research routing, exact stable owners, isolated histories, duplicate reuse and variant lineage | Supported family is SMA; broader tools, faithful conversion and regime research remain unfinished |
 | Automatic research | New v2 campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports and TUI views | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
-| Paper portfolios | Separate persisted Alpaca/Liquid paper identities, stable wallet agents and exact account bindings | Liquid execution is blocked on provider capability; no paper/live equivalence |
+| Portfolio setup | Alpaca paper, planned Liquid live perpetuals and planned FTMO evaluation shown separately; retained paper journals and exact account bindings | Only Alpaca paper has an operational workflow; planned identities have no account binding or execution authority |
 | Alpaca paper | Fixed paper/data origins, native-stored keys, closed crypto bars, binary/capital/size calls, deterministic gates, reserved IOC orders, read-back, partial/uncertain states and account lease | Authored tests only until real account/feed/order checks; crypto spot only; not sustained or release-ready |
-| Liquid | Existing read-only connection/catalog/account diagnostics; explicit paper capability blocker | Current catalog has review links, not isolated automatic paper submission; perpetual research/transport is missing |
+| Liquid | Existing read-only connection/catalog/account diagnostics; historical paper blocker retained | Live perpetual feed, research semantics, permissions and order transport are missing; read access grants no trading authority |
 | Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Preserve ownership and old report bytes; do not present fixture journals as real provider accounts |
-| Live / FTMO | Scope and identity boundaries only | No live adapter/activation; actual FTMO platform/account and Swing evaluation rules need verification |
+| FTMO | Planned MT5 or equivalent bridge and separate evaluation identity | No bridge/activation; actual platform/account, evaluation phase and Swing rules need verification |
 
 ## Next development gates
 
@@ -45,16 +48,19 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
    access, exact instrument/precision, real order IDs/partial fills/fees, network ambiguity, competing
    clients, restart and sustained operation. Do not send a paper order before an exact final package
    is approved. Preserve provider evidence and failures. Fixtures are not provider acceptance.
-3. **Unblock Liquid paper separately.** Obtain/review an actual paper-only order capability with
-   per-request isolation and required provider authorization. Implement perpetual market semantics,
-   funding/margin/liquidation and faithful research before assigning spot research to that environment.
-   A global paper-mode toggle or a read catalog is insufficient.
+3. **Build Liquid live perpetual support separately.** Verify the actual feed/order capability,
+   scoped trading authorization and exact live account. Implement perpetual market semantics,
+   funding/margin/liquidation, faithful research and live-specific risk/reconciliation controls.
+   Historical spot research, paper approvals and the read-only grant cannot authorize this route.
+   Activation needs a separate explicit request after implementation and operational acceptance.
 4. **Broaden research and markets.** Implement additional strategy families and conformance, richer
    comparison reports, verified sessions/corporate actions for equities, Forex venue semantics,
    regimes and frozen-selection holdouts. Dynamic sizing needs its own measured simulation evidence.
-5. **Other environments.** FTMO needs the user's actual platform, two-step Swing account/phase,
-   contract/fee/swap details and dated loss/reset rules. Live execution requires separate explicit
-   activation and its own safety/operational acceptance after paper verification.
+5. **FTMO bridge.** Plan MT5 as the preferred bridge, with a verified equivalent if the actual
+   account/platform requires it. Verify Linux/macOS bridge deployment, two-step Swing account/phase,
+   contract/fee/swap details and dated loss/reset rules. Do not treat evaluation balances as ordinary
+   broker paper or personal live funds. Bridge activation and challenge purchases are separate actions.
+   Alpaca live remains deferred.
 
 ## Verification and release gate
 

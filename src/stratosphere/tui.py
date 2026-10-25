@@ -2425,7 +2425,10 @@ class StratosphereApp(App[None]):
             raise
 
     async def handle_portfolio_command(self, action, args):
-        from stratosphere.connectors.alpaca_paper import LiquidPaper
+        from stratosphere.workflow.portfolio_setup import (
+            configured_portfolios,
+            require_paper_provider,
+        )
         from stratosphere.workflow.portfolios import PaperLimits, package_markdown
         from stratosphere.workflow.setup import PaperSetup
 
@@ -2462,18 +2465,23 @@ class StratosphereApp(App[None]):
                 return
             service = self.portfolios_service()
             if action == "portfolios":
-                text = "# Paper portfolios\n\n"
-                for p in service.portfolios():
+                text = "# Portfolio setup\n\n"
+                for p in configured_portfolios(service):
                     text += (
-                        f"- **{p['provider']} paper** · `{p['id']}` · "
+                        f"- **{p['label']}** · `{p['id']}` · "
                         f"risk agent `{p['agent_id']}` · "
-                        f"{'account bound' if p['account_id'] else 'not connected'}\n"
+                        f"{'account bound' if p['account_id'] else 'not connected'} · "
+                        f"{p['bridge']}\n"
                     )
                     if p["halted"]:
                         text += f"  Entry halt: {p['halted']}\n"
                     if p["blocker"]:
                         text += f"  {p['blocker']}\n"
-                text += "\nApproved packages:\n" + "\n".join(
+                text += (
+                    "\nHistorical Liquid paper journals are retained outside this active setup. "
+                    "Alpaca live is deferred. Planned roles do not activate trading.\n"
+                    "\nApproved paper packages:\n"
+                ) + "\n".join(
                     f"- `{p.package_id}` · `{p.strategy_id}` · {p.provider} paper"
                     for p in service.packages(approved=True)
                 )
@@ -2498,8 +2506,7 @@ class StratosphereApp(App[None]):
                 )
                 await self.add_research_markdown(text, "Paper journal:")
             elif action == "strategy-finish":
-                if args[2] == "liquid":
-                    raise ResearchError(LiquidPaper.blocker)
+                require_paper_provider(args[2])
                 adapter = await self.restore_paper_adapter()
                 limits = (
                     PaperLimits()
@@ -2543,8 +2550,8 @@ class StratosphereApp(App[None]):
                     raise ResearchError(
                         "Stop the current paper runner before changing its assignments"
                     )
-                if action == "portfolio-run" and args[0] == "liquid":
-                    raise ResearchError(LiquidPaper.blocker)
+                if action == "portfolio-run":
+                    require_paper_provider(args[0])
                 if not self.session:
                     raise ResearchError(
                         "Configure the model used for binary and wallet reviews first"

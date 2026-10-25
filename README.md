@@ -24,7 +24,7 @@ See [setup and usage](docs/usage.md) for installation and the research workflow.
 - Partial source intake and reviews; arbitrary strategy conversion is unfinished.
 - Liquid read-only connection, catalog inspection and an address diagnostic.
 - Final-strategy approval and an Alpaca paper runner for crypto spot, tested with authored accounts/models/HTTP.
-- Separate Liquid paper portfolio with execution blocked on missing paper-only submission capability. Live is unavailable.
+- Portfolio roles: Alpaca paper, future Liquid live perpetuals and FTMO two-step Swing via MT5 or a verified equivalent. Liquid/FTMO execution is unavailable; Alpaca live is deferred. Historical Liquid paper state is retained.
 
 The [agent workflow rebuild](docs/agent-workflow.md) is in progress. New research is automatic;
 one final strategy approval binds paper limits. Real provider verification and operational recovery/exit

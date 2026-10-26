@@ -20,14 +20,21 @@ PINNED = {
 def engine_wheel_support(
     system: str, machine: str, os_version: str = "", libc: str = "", libc_version: str = ""
 ) -> tuple[bool, str]:
-    """Compatibility of the selected published wheels, not hypothetical source builds."""
+    """Selected wheel targets; availability does not establish runtime or artifact provenance."""
     if system == "Darwin":
-        if machine != "arm64":
-            return False, "The pinned release publishes no Intel macOS wheel."
         try:
             major = int(os_version.split(".")[0])
         except ValueError:
             return False, "macOS version could not be determined."
+        if machine == "x86_64":
+            if major < 13:
+                return False, "The external Intel wheel targets macOS 13 or newer."
+            return True, (
+                "External nautilus-trader-macos-intel wheel targets macOS 13+ x86_64; "
+                "runtime acceptance and installed artifact provenance are separate checks."
+            )
+        if machine != "arm64":
+            return False, "No selected macOS wheel for this architecture."
         if major < 26:
             return False, "The pinned macOS wheel requires macOS 26 or newer."
         return True, "Published macOS 26+ ARM64 wheel."
@@ -88,7 +95,9 @@ def inspect_runtime(require_engine: bool = False) -> dict:
         "engine_wheel_reason": reason,
         "engine_runtime_imported": engine_imported,
         "engine_distribution_kind": (
-            "published_platform"
+            "external_intel_release_candidate"
+            if supported and system == "Darwin" and machine == "x86_64"
+            else "published_platform"
             if supported
             else "custom_or_source_build"
             if engine_imported

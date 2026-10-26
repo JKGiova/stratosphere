@@ -13,6 +13,7 @@
 
 - Write code, comments, documentation and Git material in English.
 - Keep changes and their history on GitHub. Publish only the intended scope; preserve unrelated working-tree changes.
+- Keep NautilusTrader wheel builds/releases in `JKGiova/nautilus-trader-macos-intel`. This repository consumes pinned artifacts and validates application behavior; do not vendor wheels or reintroduce engine build tooling here.
 - Read relevant code and [behavioral invariants](docs/invariants.md) before changing a subsystem.
 - Update the focused guide and plan when behavior or priorities change. Keep one canonical description per topic.
 - Document requirements and verified behavior, not chronological conversations or repeated implementation diaries.

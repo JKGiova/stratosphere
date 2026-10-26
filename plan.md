@@ -1,12 +1,15 @@
 # stratosphere development plan
 
-Updated: October 25, 2026. This is the single active development plan.
+Updated: October 26, 2026. This is the single active development plan.
 
 ## Product and decisions
 
 stratosphere is a private personal terminal tool in tradingsphere, initially for Linux and macOS.
 Keep English, responsive panels, chat/slash commands, local SQLite, private artifacts and native OS
 credential storage. No billing, app login, hosted user database, strategy sharing or release deadline.
+NautilusTrader wheel production belongs to the separate `nautilus-trader-macos-intel` repository.
+stratosphere consumes its pinned Intel artifact and matching runtime dependencies; Linux and Apple
+Silicon retain upstream wheels. No engine build tooling or vendored wheel belongs in this project.
 
 Historical research uses Yahoo/yfinance and NautilusTrader. Portfolio roles are **Alpaca paper**,
 **Liquid live perpetuals** and **FTMO two-step Swing evaluation through MT5 or a verified equivalent**,
@@ -67,6 +70,8 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 Run focused tests for each change, then necessary integration/compatibility checks. Keep failed logs
 and environmental limits. Keep native integration tests in the engine-marked suite, including
 orchestrator/TUI paths; engine-free compatibility must not depend on an installed native engine.
+The cross-platform application matrix installs verified dependency wheels without compiling them;
+external wheel release readiness and application acceptance remain separate checks.
 Distinguish authored fixtures/native simulation, actual model calls,
 provider checks and installed-client readiness. No phase or release is complete from a narrower test,
 profitable replay or adapter implementation. Require sustained operation, recovery/exit controls,

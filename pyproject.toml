@@ -22,6 +22,30 @@ engine = ["nautilus_trader==1.231.0"]
 [dependency-groups]
 dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff==0.17.0"]
 
+[tool.uv.sources]
+nautilus-trader = [
+  { url = "https://github.com/JKGiova/nautilus-trader-macos-intel/releases/download/v1.231.0-intel.1/nautilus_trader-1.231.0-cp314-cp314-macosx_13_0_x86_64.whl", marker = "sys_platform == 'darwin' and platform_machine == 'x86_64'" },
+]
+
+[tool.uv]
+# Match the external release's runtime-cp314.txt on Intel macOS only.
+constraint-dependencies = [
+  "click==8.5.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "fsspec==2026.2.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "msgspec==0.22.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "numpy==2.5.4; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "pandas==3.1.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "portion==2.6.3; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "pyarrow==26.0.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "python-dateutil==3.0.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "pytz==2026.5; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "six==1.17.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "sortedcontainers==2.4.0; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "tqdm==4.70.1; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "tzdata==2026.5; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "uvloop==0.22.1; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

@@ -9,7 +9,11 @@ from stratosphere.phase0.compatibility import engine_wheel_support, inspect_runt
     [
         ("Darwin", "arm64", "26.5", "", "", True),
         ("Darwin", "arm64", "15.6", "", "", False),
-        ("Darwin", "x86_64", "26.5", "", "", False),
+        ("Darwin", "x86_64", "26.5", "", "", True),
+        ("Darwin", "x86_64", "13.0", "", "", True),
+        ("Darwin", "x86_64", "12.7", "", "", False),
+        ("Darwin", "x86_64", "unknown", "", "", False),
+        ("Darwin", "unknown", "26.5", "", "", False),
         ("Darwin", "arm64", "unknown", "", "", False),
         ("Linux", "x86_64", "", "glibc", "2.35", True),
         ("Linux", "aarch64", "", "glibc", "2.39", True),
@@ -32,7 +36,7 @@ def test_installed_core_matches_lock_and_does_not_claim_backtest_success():
     assert "separate" in report["scope"]
 
 
-def test_custom_intel_import_does_not_claim_published_wheel(monkeypatch):
+def test_intel_candidate_does_not_attest_installed_artifact_or_upstream_support(monkeypatch):
     monkeypatch.setattr(compatibility.platform, "system", lambda: "Darwin")
     monkeypatch.setattr(compatibility.platform, "machine", lambda: "x86_64")
     monkeypatch.setattr(compatibility.platform, "mac_ver", lambda: ("26.5", (), ""))
@@ -42,6 +46,7 @@ def test_custom_intel_import_does_not_claim_published_wheel(monkeypatch):
     )
     report = inspect_runtime(require_engine=True)
     assert report["errors"] == []
-    assert not report["engine_wheel_available"]
+    assert report["engine_wheel_available"]
     assert report["engine_runtime_imported"]
-    assert report["engine_distribution_kind"] == "custom_or_source_build"
+    assert report["engine_distribution_kind"] == "external_intel_release_candidate"
+    assert "provenance are separate" in report["engine_wheel_reason"]

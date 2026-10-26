@@ -2,15 +2,15 @@
 
 ## Environment
 
-The project targets Python 3.14 and uses `uv.lock`. On a supported platform with a published engine wheel:
+The project targets Python 3.14 and uses `uv.lock`. On supported Linux/macOS platforms:
 
 ```sh
-uv sync --locked --extra engine
+uv sync --locked --extra engine --no-build-package nautilus-trader
 .venv/bin/python -m stratosphere
 ```
 
-Intel macOS requires the [custom engine installation](intel-macos.md), not an ARM wheel or the
-normal upstream-wheel path. Use the existing configured environment if it is already installed.
+Intel macOS selects the [separate project's pinned engine wheel](intel-macos.md); Linux and Apple
+Silicon use upstream wheels. The external Intel release must be published and downloadable.
 
 ## First run
 

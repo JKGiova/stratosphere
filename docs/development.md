@@ -2,7 +2,8 @@
 
 ## Commands
 
-Use the configured Python 3.14 environment and pinned dependencies. Intel engine setup is separate.
+Use the configured Python 3.14 environment and pinned dependencies. The Intel engine is an
+external wheel dependency; its build/release tooling lives in its own repository.
 
 ```sh
 .venv/bin/ruff check src tests
@@ -16,9 +17,10 @@ Some OAuth tests bind a localhost callback listener. A restricted sandbox may bl
 application behavior runs; verify that case separately with listener permission and record both
 outcomes. Do not mask genuine failures as environment issues. Native tests require the pinned engine.
 Mark every test that executes a native simulation with `@pytest.mark.engine`, including TUI and
-orchestrator integration tests with authored market data. The base Intel compatibility job runs
-without NautilusTrader; the separate native Intel build runs the complete suite with its verified
-custom wheel. Authored candles do not make a native simulation an engine-free test.
+orchestrator integration tests with authored market data. The `-m 'not engine'` subset must work
+without NautilusTrader. The compatibility matrix installs the
+external Intel wheel and runs both test groups, without compiling it. Authored candles do not make
+a native simulation an engine-free test.
 
 ## Bug-fix workflow
 

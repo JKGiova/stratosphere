@@ -19,7 +19,7 @@ These are focused reference guides, not separate roadmaps.
 | [Contracts](contracts.md) | Versioned formats and compatibility rules |
 | [Invariants](invariants.md) | Mandatory subsystem rules for development and bug fixes |
 | [Development](development.md) | Test commands, verification limits and defect workflow |
-| [Intel macOS](intel-macos.md) | Custom native-engine build/install path |
+| [Intel macOS](intel-macos.md) | Pinned external wheel dependency, installation and acceptance |
 
 Retired hosted database code remains under [supabase](../supabase/README.md), outside application
 requirements. Previous plans and development histories are available through Git history.

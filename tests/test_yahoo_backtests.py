@@ -271,6 +271,7 @@ def test_gap_findings_preserve_original_rows(req):
     assert raw == original and len(snapshot.gaps) == 1
 
 
+@pytest.mark.engine
 async def test_tui_yahoo_form_review_execution_and_restart(service, req, tmp_path):
     from test_research_tui import send
     from textual.widgets import Input

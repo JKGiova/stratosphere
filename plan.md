@@ -65,7 +65,9 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 ## Verification and release gate
 
 Run focused tests for each change, then necessary integration/compatibility checks. Keep failed logs
-and environmental limits. Distinguish authored fixtures/native simulation, actual model calls,
+and environmental limits. Keep native integration tests in the engine-marked suite, including
+orchestrator/TUI paths; engine-free compatibility must not depend on an installed native engine.
+Distinguish authored fixtures/native simulation, actual model calls,
 provider checks and installed-client readiness. No phase or release is complete from a narrower test,
 profitable replay or adapter implementation. Require sustained operation, recovery/exit controls,
 verified credentials and evidence ownership for every advertised feature.

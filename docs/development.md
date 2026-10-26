@@ -15,6 +15,10 @@ Use the configured Python 3.14 environment and pinned dependencies. Intel engine
 Some OAuth tests bind a localhost callback listener. A restricted sandbox may block this before
 application behavior runs; verify that case separately with listener permission and record both
 outcomes. Do not mask genuine failures as environment issues. Native tests require the pinned engine.
+Mark every test that executes a native simulation with `@pytest.mark.engine`, including TUI and
+orchestrator integration tests with authored market data. The base Intel compatibility job runs
+without NautilusTrader; the separate native Intel build runs the complete suite with its verified
+custom wheel. Authored candles do not make a native simulation an engine-free test.
 
 ## Bug-fix workflow
 

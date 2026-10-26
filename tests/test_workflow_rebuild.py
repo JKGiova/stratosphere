@@ -365,6 +365,7 @@ def test_reliable_signal_is_only_a_preview_not_order_authority(portfolio_basis):
         position_preview(definition, snapshot, verdict, p, **(kwargs | {"at_ns": 200}))
 
 
+@pytest.mark.engine
 async def test_active_bridge_creates_yahoo_campaign_not_retired_creator(
     campaigns, request_spec, tmp_path
 ):

@@ -1,8 +1,8 @@
 # Internal account and runtime foundations
 
 These components process authored software-test data. They are not a Liquid adapter, real feed,
-running broker paper service or order transport. The separate new Alpaca paper runner is described
-in [agent workflow](agent-workflow.md); it does not replace or relabel these authored journals.
+running broker paper service or order transport. The active MT5 connector is described in [MT5 connector](mt5-bridge.md); it does not replace
+or relabel these authored journals. Alpaca/Liquid active routing is retired.
 
 ## Existing components
 
@@ -46,7 +46,7 @@ unverified. See [invariants](invariants.md) for the full subsystem requirements.
 
 ## Missing integration
 
-The plan still requires an eligible structured Liquid feed, verified account/paper environment,
-perpetual accounting, an idempotent broker gateway, full reconciliation, portfolio attribution,
-sustained operation and the keep/request-all-closures exit flow. Current local fixtures prove
+Connecting these foundations to the active MT5 route still needs exact broker instrument/signal
+contracts, portfolio attribution, full reconciliation, FTMO controls, sustained operation and the
+keep/request-all-closures exit flow. Current local fixtures prove
 software behavior only.

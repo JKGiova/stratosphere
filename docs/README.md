@@ -12,8 +12,9 @@ These are focused reference guides, not separate roadmaps.
 | [Research](research.md) | Supported strategy, approval, studies and report evidence |
 | [Sources](sources.md) | Actual intake capabilities, provenance and conversion limits |
 | [Paper foundations](paper.md) | Internal accounting/runtime and missing provider integration |
-| [Liquid](liquid.md) | Read-only setup, diagnostics and current boundaries |
-| [MT5](mt5.md) | Manually launched read-only FTMO diagnostic and missing bridge capabilities |
+| [Legacy provider evidence](liquid.md) | Retained Liquid records; active connector retired |
+| [MT5 connector](mt5-bridge.md) | Active local data/order bridge, exact approvals, commands and limits |
+| [MT5 history probes](mt5.md) | Historical diagnostics, coverage exports and validation limits |
 | [Credentials](credentials.md) | Saving, restoring and forgetting access |
 | [Model providers](model-providers.md) | Selection, configuration and failure behavior |
 | [Data rights](data-source-rights.md) | Data-purpose and entitlement boundaries |

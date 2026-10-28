@@ -8,7 +8,7 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
-from stratosphere.connectors.alpaca_paper import DATA, PAPER, AlpacaPaper, LiquidPaper, PaperKeys
+from stratosphere.legacy.alpaca_paper import DATA, PAPER, AlpacaPaper, LiquidPaper, PaperKeys
 from stratosphere.registry.workspace import WorkspaceDatabase
 from stratosphere.research.store import ResearchError
 from stratosphere.workflow.execution import PaperRunner
@@ -567,74 +567,6 @@ async def test_real_http_shapes_for_account_instrument_bars_and_quotes():
     assert (await adapter.quote("BTC/USD"))["as_of_ns"] == now
 
 
-async def test_tui_final_review_masked_keys_one_approval_and_stop(portfolio, tmp_path, monkeypatch):
-    import asyncio
-
-    from conftest import MemoryCredentialBackend
-    from test_research_tui import connect, send
-    from textual.widgets import Input
-
-    from stratosphere.credentials import CredentialStore
-    from stratosphere.research.service import ResearchService
-    from stratosphere.research.store import ResearchStore
-    from stratosphere.tui import StratosphereApp
-    from stratosphere.workflow.setup import PaperSetup
-    from stratosphere.workflow.widgets import FinishedReview
-
-    service, package = portfolio
-    # This fixture has a pending package; the UI prepares another exact review after connection.
-    vault = CredentialStore(backend=MemoryCredentialBackend(), lock_root=tmp_path / "locks")
-    adapter = Adapter()
-
-    def factory(keys):
-        adapter.keys = keys
-        return adapter
-
-    async def online():
-        pass
-
-    started = []
-
-    async def run(self):
-        started.append(True)
-        await asyncio.Future()
-
-    monkeypatch.setattr(PaperRunner, "run", run)
-    app = StratosphereApp(
-        research_service=ResearchService(ResearchStore(tmp_path / "ui"), online_check=online),
-        credential_store=vault,
-        portfolio_service=service,
-        paper_adapter_factory=factory,
-        provider_factory=lambda settings: Models(),
-    )
-    async with app.run_test(size=(144, 40)) as pilot:
-        await connect(app, pilot)
-        await send(app, pilot, "/alpaca-paper-connect")
-        assert isinstance(app.screen, PaperSetup)
-        assert app.screen.query_one("#paper-key", Input).password
-        assert app.screen.query_one("#paper-secret", Input).password
-        app.screen.query_one("#paper-key", Input).value = "paper-fixture-key"
-        app.screen.query_one("#paper-secret", Input).value = "paper-fixture-secret"
-        await pilot.click("#paper-connect")
-        await pilot.pause()
-        assert vault.read("alpaca-paper")["account_id"] == ACCOUNT
-        assert started == [] and not service.packages(approved=True)
-        await send(app, pilot, f"/strategy-finish {'a' * 32} {package.strategy_id} alpaca")
-        review = app.query_one(FinishedReview)
-        identity = review.identity
-        assert not service.packages(approved=True)
-        review.query_one("#strategy-approve").focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        assert started == [True] and service.packages(approved=True)[0].package_id == identity
-        await send(app, pilot, "/portfolio-stop")
-        assert app.paper_worker.is_finished
-        await send(app, pilot, "/alpaca-paper-forget")
-        assert vault.read("alpaca-paper") is None
-        assert b"paper-fixture-secret" not in service.path.read_bytes()
-    assert adapter.posts == []
-
-
 async def test_equity_mark_moves_recheck_limits_without_false_account_conflict(portfolio):
     class MarkingModels(Models):
         async def stream(self, messages):
@@ -692,103 +624,6 @@ async def test_daily_loss_halt_still_allows_deterministic_owned_exit(portfolio):
     assert len(await runner.tick()) == 1
     assert adapter.posts[-1]["side"] == "sell" and len(models.calls) == 3
     assert "loss" in runner.store.portfolios()[0]["halted"]
-
-
-async def test_stopped_or_failed_paper_runner_clears_current_position_preview(
-    portfolio, tmp_path, monkeypatch
-):
-    from test_research_tui import connect
-    from textual.widgets import DataTable, Static
-
-    from stratosphere.research.service import ResearchService
-    from stratosphere.research.store import ResearchStore
-    from stratosphere.tui import StratosphereApp
-
-    service, package = portfolio
-
-    async def online():
-        pass
-
-    async def fail(self):
-        self.on_update(
-            {
-                "account": {"account_id": ACCOUNT, "equity": "10000", "cash": "9990"},
-                "as_of_ns": START,
-                "strategies": [
-                    {
-                        "package_id": package.package_id,
-                        "strategy_id": package.strategy_id,
-                        "symbol": "BTC/USD",
-                        "quantity": "0.1",
-                        "capital": "100",
-                        "committed": "10",
-                    }
-                ],
-            }
-        )
-        raise ResearchError("Authored feed failure")
-
-    monkeypatch.setattr(PaperRunner, "run", fail)
-    app = StratosphereApp(
-        research_service=ResearchService(ResearchStore(tmp_path / "ui"), online_check=online),
-        portfolio_service=service,
-        provider_factory=lambda settings: Models(),
-    )
-    async with app.run_test(size=(90, 28)) as pilot:
-        await connect(app, pilot)
-        worker = app.run_paper_portfolio(service, Adapter(), Models())
-        await worker.wait()
-        await pilot.pause()
-        assert app.query_one("#positions", DataTable).row_count == 0
-        assert "No current verified" in str(app.query_one("#portfolio-preview", Static).content)
-        assert "stopped or halted" in str(app.query_one("#portfolio-status", Static).content)
-
-
-async def test_saved_paper_keys_restore_without_reentry_and_failed_restore_is_not_cached(
-    portfolio, tmp_path
-):
-    from conftest import MemoryCredentialBackend
-
-    from stratosphere.credentials import CredentialStore
-    from stratosphere.tui import StratosphereApp
-
-    service, _ = portfolio
-    vault = CredentialStore(backend=MemoryCredentialBackend(), lock_root=tmp_path / "locks")
-    vault.put(
-        "alpaca-paper",
-        {"version": 1, "key": "fixture-paper", "secret": "fixture-secret", "account_id": ACCOUNT},
-    )
-    adapter = Adapter()
-
-    def factory(keys):
-        adapter.keys = keys
-        return adapter
-
-    app = StratosphereApp(
-        credential_store=vault, portfolio_service=service, paper_adapter_factory=factory
-    )
-    assert await app.restore_paper_adapter() is adapter
-    assert adapter.keys.secret.get_secret_value() == "fixture-secret"
-    app.paper_adapter = None
-    original = adapter.account
-
-    async def fail():
-        raise ResearchError("Authored provider failure")
-
-    adapter.account = fail
-    with pytest.raises(ResearchError):
-        await app.restore_paper_adapter()
-    assert app.paper_adapter is None
-    adapter.account = original
-    assert await app.restore_paper_adapter() is adapter
-    app.paper_adapter = None
-    vault.put(
-        "alpaca-paper",
-        {"version": 1, "key": 123, "secret": "fixture-secret", "account_id": ACCOUNT},
-    )
-    with pytest.raises(ResearchError, match="valid paper keys"):
-        await app.restore_paper_adapter()
-    assert app.paper_adapter is None
 
 
 @pytest.mark.parametrize("damage", ["schema", "portfolio", "version"])

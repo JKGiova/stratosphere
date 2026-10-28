@@ -7,7 +7,7 @@ import uuid
 from datetime import UTC, datetime
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
 
-from stratosphere.connectors.alpaca_paper import number
+from stratosphere.legacy.alpaca_paper import number
 from stratosphere.models.streaming import ModelError
 from stratosphere.phase0.signals import SmaCross
 from stratosphere.research.store import ResearchError

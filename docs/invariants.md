@@ -47,11 +47,11 @@ evidence. Use native reported quote notionals/fees and reconcile currency roundi
 balances; unrounded price multiplication is insufficient. Reference pins and caller timestamps do
 not prove executable identity, quote authenticity, approval or full risk/reconciliation readiness.
 
-## Liquid read scope
+## Historical Liquid read scope
 
-The former Liquid-only scope is superseded by Alpaca, Liquid and FTMO two-step Swing.
-The new Alpaca paper adapter requires its own real-provider verification; never restore retired
-code or infer live acceptance. Optional connector OAuth
+Alpaca/Liquid active routing is retired in favor of MT5. The following requirements remain
+mandatory for retained historical readers/contracts and do not authorize restoring their network
+transports or credentials into active setup. Optional connector OAuth
 remains provider authorization; application login is retired. Request only read access for catalog
 inspection; never treat OAuth/catalog success as verified account identity, feed entitlement, paper
 isolation or an execution mandate. Model settings/API keys, Alpaca paper keys and Liquid
@@ -252,17 +252,24 @@ provider ownership, reconciliation, current P/L or execution permission from ret
 
 ## Connector scope
 
-Current roles are Alpaca paper, Liquid live perpetuals and FTMO two-step Swing evaluation via MT5 or
-a verified equivalent. Keep provider/account/environment separate. Alpaca live is deferred; Liquid
-paper identities and approvals are historical compatibility only and cannot be relabeled as live.
-Paper-only setup and automatic orders within an exact finished strategy approval are authorized
-only for Alpaca. Liquid live and FTMO activation require separate implementation, verification and
-explicit authorization. Liquid read-only catalog/address diagnostics do not implement a feed or
-order transport. Do not blindly restore retired
-connector code, credentials or commands; verify new adapters independently. Preserve historical
-diagnostic files without loading them as a connection or mandate. Keep spot research, perpetual
-definitions and their measured evidence separate; native increments, actual fee currencies,
-funding/margin and paper isolation require independent verification.
+MT5 is the sole active data/execution connector. Retire Alpaca and Liquid commands, credential
+restoration and active setup; preserve historical formats/readers and exact identities under
+legacy compatibility. Old paper approvals cannot authorize MT5. Keep the existing terminal login
+inside MT5; no password export, DLL/network fallback or credential-bearing worker environment.
+
+The local EA and application must bind exact server/login/mode/session. Native trading is disabled
+by default; real-account activation requires explicit authorization in both the app and terminal.
+Only an exact user-approved MT5 deployment binds strategy/evidence/implementation/EA and finite
+volume, cash-risk, margin, spread, equity and order-count limits. Mandatory native SL, one account
+position at a time and no reinforcement are current conservative execution constraints. Freeze
+request IDs before publication, claim natively before OrderSend, retain all confirmations and halt
+new entries on ambiguous outcomes. Never replay an uncertain request. Exact owned protective exits
+remain separate from entry expiry/revocation and do not depend on model availability.
+
+Broker snapshots, an EA source digest, native checks and fixtures do not prove executable
+attestation, faithful backtests, account ownership, complete archives, FTMO Swing profile or loss/reset
+compliance. The headless connector is not the automatic strategy-agent runner. Preserve raw server
+chart timestamps; no inferred historical UTC conversion or generic CFD-to-spot mapping.
 
 ## Observation worker ownership and recovery
 
@@ -310,5 +317,5 @@ research roots/strategies. Persist consumed signals and reserved client IDs befo
 retry an uncertain POST, including after a 404 read-back. Preserve changed provider confirmations,
 partial/late/conflicting fills and reserved capital until reconciliation. External/unknown exposure,
 stream gaps/revisions, stale data and observed loss stops cannot silently clear across restart.
-Keep Alpaca fixed to its paper origin. Liquid read-only OAuth/catalogs and global paper mode do not
-authorize or isolate automatic orders; display the missing capability and block submission.
+Historical Alpaca/Liquid paper contracts remain readers only; active orders use the separate MT5
+deployment/bridge contract above. No historical grant or paper mandate transfers authority.

@@ -14,15 +14,6 @@ PANELS = {
 }
 HELP = """/help — Show commands
 /data [provider-profile] [purpose] — Inspect data capabilities and unresolved requirements
-/liquid — Check public connection metadata; no account or tool access
-/liquid-connect — Open browser for read-only MCP catalog authorization
-/liquid-disconnect — Cancel connection and forget session and saved login
-/liquid-tools — Inspect the connected tool catalog; no tool calls
-/liquid-tool <name> — Inspect one exact tool definition
-/liquid-catalog-save — Save a private catalog snapshot; no credentials
-/liquid-account — Explicitly read the provider's reported trading-account address
-/liquid-account-reads — List private account diagnostic attempts
-/liquid-account-show <read-id> — Inspect a retained historical diagnostic online
 /paper-review — Ask budget/risk agents for an advisory authored-account review
 /paper-reviews — List paper-review attempts
 /paper-review-show <review-id> — Open a retained advisory report
@@ -52,13 +43,14 @@ HELP = """/help — Show commands
 /flow-show <campaign-id> — Review all candidate plans or the completed report
 /flow-approve <campaign-id> <plan-sha256> — Legacy v1 campaign approval only
 /flow-cancel <campaign-id> — Cancel a campaign; consumed starts cannot replay
-/portfolios — Inspect Alpaca paper, planned Liquid live perpetuals and FTMO bridge
-/alpaca-paper-connect — Enter paper keys in a masked native-storage form
-/alpaca-paper-forget — Forget saved paper keys; retain positions and evidence
-/strategy-finish <campaign> <strategy-or-job> alpaca [four limits] — Final paper review
+/portfolios — Inspect the active MT5 role; legacy evidence remains separate
+/mt5 — Show the headless data/order connector entry point
+/mt5-status — Inspect the attached MT5 account privately
+/mt5-quote <symbol> — Read the current MT5 bid/ask and quote age
+/mt5-symbol <symbol> — Read current native instrument specifications
+/mt5-positions — Read actual MT5 positions
+/mt5-orders — Read actual MT5 pending orders
 /strategy-show <package> — Review exact final strategy, evidence and limits
-/strategy-approve <package> <sha256> — Single final approval and automatic paper runner
-/portfolio-run alpaca — Start approved paper strategies; never backfill missed bars
 /portfolio-stop — Stop monitoring/submission; positions remain open
 /portfolio-orders — Inspect retained automatic paper order outcomes
 /study [strategy-id|parent-job-id] — Review a bounded SMA study with a separate final holdout
@@ -86,7 +78,7 @@ HELP = """/help — Show commands
 /quit — Exit
 Other text is sent to your selected online model.
 New research runs automatically within finite limits.
-Finished strategies need one user approval; no live execution exists."""
+MT5 trading requires its own exact user-approved deployment and native trading enablement."""
 
 
 @dataclass(frozen=True)
@@ -99,6 +91,26 @@ class Command:
 def route_command(text: str) -> Command:
     words = text.strip().split()
     name = words[0] if words else ""
+    if name.startswith(("/liquid", "/alpaca")) or name in {
+        "/portfolio-run",
+        "/strategy-finish",
+        "/strategy-approve",
+    }:
+        return Command(
+            "message",
+            "Alpaca/Liquid execution is retired. Use the MT5 connector; "
+            "historical approvals cannot activate it. See /mt5.",
+        )
+    if name == "/mt5":
+        return Command(
+            "message",
+            "MT5 data/order bridge: python -m stratosphere.mt5 --help. "
+            "Attach StratosphereBridge EA; trading is disabled by default.",
+        )
+    if name in {"/mt5-status", "/mt5-positions", "/mt5-orders"} and len(words) == 1:
+        return Command("mt5-read", args=(name.removeprefix("/mt5-"),))
+    if name in {"/mt5-quote", "/mt5-symbol"} and len(words) == 2:
+        return Command("mt5-read", args=(name.removeprefix("/mt5-"), words[1]))
     if name in {
         "/portfolios",
         "/alpaca-paper-connect",

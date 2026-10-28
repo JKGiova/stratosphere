@@ -13,3 +13,5 @@ reports/
 
 .DS_Store
 /supabase/.temp/
+
+/tools/mt5/*.ex5

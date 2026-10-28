@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlsplit
 import httpx
 import pytest
 
-from stratosphere.connectors.liquid import (
+from stratosphere.legacy.liquid import (
     ORIGIN,
     PROTOCOL,
     RESOURCE,

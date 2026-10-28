@@ -9,7 +9,7 @@ import pytest
 from test_liquid import CODE, TOKEN, Provider
 
 from stratosphere.connectors.catalog import CatalogError, LiquidCatalog
-from stratosphere.connectors.liquid import LiquidError
+from stratosphere.legacy.liquid import LiquidError
 
 
 def methods(provider):

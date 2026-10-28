@@ -1,46 +1,7 @@
-# Liquid integration
+# Retained Liquid evidence
 
-## Implemented access
-
-Liquid's target role is live perpetual trading. The portfolio setup is in
-[agent workflow](agent-workflow.md). Current Liquid access is read-only:
-
-- Browser OAuth authorization and secure grant retention.
-- Fresh MCP catalog negotiation, deterministic browsing and explicit private export.
-- A separate explicit address-read diagnostic using the reviewed fixed `get_account` request.
-
-Yahoo historical backtesting is separate; see [Yahoo backtesting](yahoo-backtesting.md).
-Liquid remains reserved for future real-time live perpetual trading integration.
-
-No real-time structured feed, perpetual execution adapter or order transport is implemented.
-Historical Liquid paper state is retained for compatibility, outside the active portfolio setup.
-An exported catalog or reported address does not verify legal account control, environment,
-feed entitlement, paper isolation or permission to trade.
-
-## Use
-
-1. Run `/liquid-connect`, approve only read access and inspect the result.
-2. Use `/liquid-tools` or `/liquid-tool <name>` to inspect definitions without invoking them.
-3. Use `/liquid-catalog-save` only when an explicit private diagnostic export is needed.
-4. Run `/liquid-account` explicitly for the fixed address diagnostic. List/open historical attempts
-   through `/liquid-account-reads` and `/liquid-account-show`.
-5. `/liquid-disconnect` forgets active and saved access; quitting retains the saved grant.
-
-Never paste tokens or callback codes into chat. See [credentials](credentials.md) for renewal.
-
-## Diagnostic boundaries
-
-Catalog definitions, schemas and annotations are untrusted data, outside model contexts/histories.
-Schema references never trigger network fetches. Catalog browsing has no invocation path.
-
-Only the separate explicit account reader may call the reviewed fixed tool shape with fixed
-arguments. Freeze the active read session, request IDs and schema pins before dispatch. Reject
-expired/changed sessions and credential echoes; do not refresh or reauthorize during a read.
-Retain failed/canceled dispatch uncertainty and plain provider confirmations as private untrusted
-text. Do not open returned links/widgets/resources. Historical observations never restore access.
-
-A persistent wallet-wide paper setting is not per-request protection against another client
-switching to live mode. Existing BTC/USDT spot results cannot become Liquid perpetual evidence.
-Provider/native precision, fee currencies, funding/margin/liquidation and live execution need
-separate implementation and verification. Role selection does not authorize live activation.
-The remaining work is in [plan.md](../plan.md).
+Liquid is retired from active setup, commands and automatic credential restoration. Its original
+versioned catalog/account readers and private snapshots are retained under `stratosphere.legacy`;
+no record or read grant activates MT5. Operational evidence and native-stored grants have not been
+deleted. Use [MT5 connector](mt5-bridge.md) for current data and execution. Historical implementation
+and command descriptions remain available through Git history.

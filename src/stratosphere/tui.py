@@ -34,9 +34,9 @@ from textual.worker import Worker
 from stratosphere.catalog.contracts import AssessmentTarget
 from stratosphere.catalog.service import assessment_markdown, recommendations_markdown
 from stratosphere.commands import PANELS, route_command
-from stratosphere.connectors.liquid import LiquidConnection
-from stratosphere.connectors.liquid_account import LiquidAccountReader, account_markdown
 from stratosphere.credentials import CredentialError, CredentialStore, credential_io
+from stratosphere.legacy.liquid import LiquidConnection
+from stratosphere.legacy.liquid_account import LiquidAccountReader, account_markdown
 from stratosphere.market_data.routing import capabilities_markdown
 from stratosphere.models import create_provider
 from stratosphere.models.settings import (
@@ -175,9 +175,9 @@ class ModelSetup(Vertical):
             "to this model provider and retains its advisory report locally. "
             "Research sources/results are saved privately on this computer. "
             "Strategies stay in your local library; there is no automatic publication "
-            "or application login. Optional read-only Liquid access uses /liquid-connect. "
+            "or application login. MT5 uses the local Expert Advisor bridge; see /mt5. "
             "There is no stratosphere platform fee; broker costs still apply. "
-            "Trading execution is not available yet."
+            "MT5 trading requires an exact deployment approval and native enablement."
         )
 
     def compose(self) -> ComposeResult:
@@ -373,7 +373,8 @@ class StratosphereApp(App[None]):
         self.paper_worker = None
         self.provider_factory = provider_factory
         self.credentials = credential_store if credential_store is not None else CredentialStore()
-        self.liquid = liquid_connection or LiquidConnection(credential_store=self.credentials)
+        # Historical readers remain; the normal app never restores retired provider credentials.
+        self.liquid = liquid_connection or LiquidConnection(credential_store=None)
         self.liquid.catalog_secret_check = self.contains_session_credential
         self.liquid_worker: Worker | None = None
         self.settings: ModelSettings | None = None
@@ -567,8 +568,6 @@ class StratosphereApp(App[None]):
             await self.add_message("Saved model loaded from secure storage; not yet verified.")
         else:
             await self.open_model_setup()
-        if self.liquid.credential_store is not None:
-            self.liquid_worker = self.restore_liquid()
 
     def on_resize(self, event: Resize) -> None:
         self.viewport = (event.size.width, event.size.height)
@@ -799,15 +798,27 @@ class StratosphereApp(App[None]):
         self.session.sync_research()
         self.update_status("MODEL SET · NOT YET VERIFIED")
 
+    @work(group="mt5", exclusive=True)
+    async def read_mt5(self, args):
+        from stratosphere.mt5.bridge import MT5Bridge
+
+        try:
+            operation = "account" if args[0] == "status" else args[0]
+            value = await MT5Bridge().read(
+                operation, **({"symbol": args[1]} if len(args) == 2 else {})
+            )
+            await self.add_research_markdown(
+                "# MT5 diagnostic\n\n```json\n" + json.dumps(value, indent=2) + "\n```",
+                "Private MT5 diagnostic:",
+            )
+        except (ResearchError, OSError, ValueError) as error:
+            await self.add_message(
+                str(error) if isinstance(error, ResearchError) else "MT5 diagnostic unavailable."
+            )
+
     @work(group="liquid", exclusive=True)
     async def restore_liquid(self):
-        try:
-            if await self.liquid.resume():
-                await self.add_message(
-                    "Saved Liquid read-only login restored; trading remains unavailable."
-                )
-        except ResearchError as error:
-            await self.add_message(str(error))
+        return None  # Retained method name; never restore retired credentials.
 
     async def add_message(self, text: str) -> Static:
         role = (
@@ -856,6 +867,9 @@ class StratosphereApp(App[None]):
         if text.startswith("/"):
             event.input.value = ""
             command = route_command(text)
+            if command.action == "mt5-read":
+                self.read_mt5(command.args)
+                return
             if command.action not in PANELS:
                 self.action_focus_pane("chat")
             if (
@@ -1046,81 +1060,15 @@ class StratosphereApp(App[None]):
     @work(group="liquid", exclusive=True)
     async def inspect_liquid(self, action: str, args=()):
         try:
-            if action == "liquid-connect":
-                if await self.liquid.resume():
-                    text = self.liquid.status_markdown()
-                else:
-                    await self.add_message(
-                        "Opening Liquid browser authorization for read-only catalog inspection. "
-                        "Approve only read access. No tool or order will be called. "
-                        "Use /liquid-disconnect to cancel; sign-in expires after four minutes."
-                    )
-                    text = await self.liquid.connect()
-            elif action == "liquid-account":
-                await self.liquid.ensure_session()
-                await self.add_message(
-                    "Requesting only Liquid get_account with read access. "
-                    "The result stays in private diagnostics; it cannot link or activate trading."
+            if action == "liquid-account-show":
+                await self.add_research_markdown(
+                    account_markdown(await self.liquid_accounts.open(args[0])),
+                    "Historical provider diagnostic:",
                 )
-                value = await self.liquid_accounts.read()
-                text = account_markdown(value) + (
-                    "\n\nPrivate observation: `"
-                    + str(self.liquid_accounts.store.directory(value.id) / "observation.json")
-                    + "`. Use `/liquid-account-show "
-                    + value.id
-                    + "` to inspect it later."
-                )
-            elif action == "liquid-account-show":
-                text = account_markdown(await self.liquid_accounts.open(args[0]))
-            elif action == "liquid-account-reads":
-                await self.research.require_online()
-                text = "# Liquid account diagnostic attempts\n\n" + (
-                    "\n\n".join(
-                        f"- `{r['id']}` · {r['state']}" for r in self.liquid_accounts.attempts()
-                    )
-                    or "No retained attempts."
-                )
-                text += (
-                    "\n\nHistorical diagnostics do not restore a connection or authorize trading."
-                )
-            elif action in {"liquid-tools", "liquid-tool", "liquid-catalog-save"}:
-                await self.research.require_online()
-                await self.liquid.ensure_session()
-                catalog = self.liquid.catalog_snapshot()
-                if catalog.contains_secret(self.contains_session_credential):
-                    raise ResearchError("Credential-bearing Liquid catalog was rejected.")
-                if action == "liquid-catalog-save":
-                    directory = await asyncio.to_thread(
-                        catalog.save, self.research.store.root / "liquid-catalogs"
-                    )
-                    text = (
-                        "# Liquid catalog exported\n\n"
-                        f"Private definitions: `{directory / 'catalog.json'}`\n\n"
-                        "The adjacent manifest verifies the saved digest. "
-                        "OAuth responses, headers and callbacks are not part of this export. "
-                        "The snapshot grants no permissions and does not verify an account "
-                        "or paper mode. No tool was called."
-                    )
-                else:
-                    text = catalog.markdown(args[0] if action == "liquid-tool" else None)
             else:
-                await self.liquid.discover()
-                text = self.liquid.status_markdown()
-            view = self.query_one("#focus-body", VerticalScroll)
-            await view.remove_children()
-            await view.mount(Static(Markdown(safe_text(text), hyperlinks=False)))
-            self.action_select_view("focus")
-        except asyncio.CancelledError:
-            self.liquid.disconnect()
-            raise
+                raise ResearchError("Liquid transport is retired; use MT5.")
         except ResearchError as error:
             await self.add_message(str(error))
-
-        except OSError:
-            await self.add_message(
-                "The Liquid diagnostic could not be stored or opened. "
-                "No account was linked; an in-flight read may have reached the provider."
-            )
 
     @work(group="chat", exclusive=True)
     async def generate_response(self, text: str) -> None:
@@ -2358,218 +2306,39 @@ class StratosphereApp(App[None]):
         return self.portfolio_service
 
     async def paper_setup_done(self, keys):
-        if keys is None:
-            return
-        from stratosphere.connectors.alpaca_paper import AlpacaPaper
-
-        try:
-            adapter = (
-                self.paper_adapter_factory(keys)
-                if self.paper_adapter_factory
-                else AlpacaPaper(keys)
-            )
-            self.paper_adapter = (
-                adapter  # Include credentials in redaction before any response/storage.
-            )
-            account = await adapter.account()
-            self.portfolios_service().bind("alpaca", account["account_id"])
-            with self.credentials.lease("alpaca-paper"):
-                await credential_io(
-                    self.credentials.put,
-                    "alpaca-paper",
-                    {
-                        "version": 1,
-                        "key": keys.key.get_secret_value(),
-                        "secret": keys.secret.get_secret_value(),
-                        "account_id": account["account_id"],
-                    },
-                )
-            await self.add_message(
-                "Alpaca paper account connected; keys saved in native secure storage. "
-                "No strategy was approved or activated. Use /strategy-finish after research."
-            )
-        except ResearchError, ValueError, OSError:
-            self.paper_adapter = None
-            await self.add_message(
-                "Paper connection or secure storage failed; no trading was activated."
-            )
+        raise ResearchError("Retired provider transport is disabled; use MT5.")
 
     async def restore_paper_adapter(self):
-        if self.paper_adapter is not None:
-            return self.paper_adapter
-        from stratosphere.connectors.alpaca_paper import AlpacaPaper, PaperKeys
-
-        with self.credentials.lease("alpaca-paper"):
-            saved = await credential_io(self.credentials.read, "alpaca-paper")
-        if (
-            not saved
-            or set(saved) != {"version", "key", "secret", "account_id"}
-            or type(saved["version"]) is not int
-            or saved["version"] != 1
-            or any(not isinstance(saved[name], str) for name in ("key", "secret", "account_id"))
-        ):
-            raise ResearchError("Use /alpaca-paper-connect to save valid paper keys first")
-        keys = PaperKeys(key=SecretStr(saved["key"]), secret=SecretStr(saved["secret"]))
-        adapter = (
-            self.paper_adapter_factory(keys) if self.paper_adapter_factory else AlpacaPaper(keys)
-        )
-        self.paper_adapter = adapter
-        try:
-            account = await adapter.account()
-            if account["account_id"] != saved["account_id"]:
-                raise ResearchError("Saved paper credentials resolve to another account")
-            self.portfolios_service().bind("alpaca", account["account_id"])
-            return adapter
-        except BaseException:
-            self.paper_adapter = None
-            raise
+        raise ResearchError("Retired provider transport is disabled; use MT5.")
 
     async def handle_portfolio_command(self, action, args):
-        from stratosphere.workflow.portfolio_setup import (
-            configured_portfolios,
-            require_paper_provider,
-        )
-        from stratosphere.workflow.portfolios import PaperLimits, package_markdown
-        from stratosphere.workflow.setup import PaperSetup
+        from stratosphere.workflow.portfolio_setup import configured_portfolios
+        from stratosphere.workflow.portfolios import package_markdown
 
-        try:
-            if action == "portfolio-stop":
-                if self.paper_worker:
-                    self.paper_worker.cancel()
-                    from textual.worker import WorkerCancelled, WorkerFailed
-
-                    try:
-                        await self.paper_worker.wait()
-                    except WorkerCancelled, WorkerFailed:
-                        pass
-                await self.add_message(
-                    "Paper runner stopped. Positions remain open; monitoring stops."
-                )
-                return
-            if action == "alpaca-paper-forget":
-                if self.paper_worker and not self.paper_worker.is_finished:
-                    raise ResearchError("Stop the paper runner before forgetting credentials")
-                with self.credentials.lease("alpaca-paper"):
-                    await credential_io(self.credentials.delete, "alpaca-paper")
-                self.paper_adapter = None
-                await self.add_message(
-                    "Saved Alpaca paper keys forgotten. "
-                    "Positions and account evidence were retained."
-                )
-                return
-            await self.research.require_online()
-            if action == "alpaca-paper-connect":
-                if self.paper_worker and not self.paper_worker.is_finished:
-                    raise ResearchError("Stop the paper runner before replacing credentials")
-                self.push_screen(PaperSetup(), self.paper_setup_done)
-                return
+        if action == "portfolios":
+            rows = configured_portfolios()
+            text = "# Active portfolio connector\n\n" + "\n".join(
+                f"- **{row['label']}** · {row['bridge']}\n  {row['blocker']}" for row in rows
+            )
+            await self.add_research_markdown(text, "MT5 setup:")
+        elif action == "strategy-show":
+            await self.add_research_markdown(
+                package_markdown(self.portfolios_service().package(args[0])),
+                "Historical package; grants no MT5 authority:",
+            )
+        elif action == "portfolio-orders":
             service = self.portfolios_service()
-            if action == "portfolios":
-                text = "# Portfolio setup\n\n"
-                for p in configured_portfolios(service):
-                    text += (
-                        f"- **{p['label']}** · `{p['id']}` · "
-                        f"risk agent `{p['agent_id']}` · "
-                        f"{'account bound' if p['account_id'] else 'not connected'} · "
-                        f"{p['bridge']}\n"
-                    )
-                    if p["halted"]:
-                        text += f"  Entry halt: {p['halted']}\n"
-                    if p["blocker"]:
-                        text += f"  {p['blocker']}\n"
-                text += (
-                    "\nHistorical Liquid paper journals are retained outside this active setup. "
-                    "Alpaca live is deferred. Planned roles do not activate trading.\n"
-                    "\nApproved paper packages:\n"
-                ) + "\n".join(
-                    f"- `{p.package_id}` · `{p.strategy_id}` · {p.provider} paper"
-                    for p in service.packages(approved=True)
-                )
-                await self.add_research_markdown(text, "Portfolios:")
-            elif action == "portfolio-orders":
-                with service.transaction() as db:
-                    rows = [
-                        dict(r)
-                        for r in db.execute(
-                            "SELECT id,package_id,state,observation FROM paper_orders "
-                            "ORDER BY created_ns DESC LIMIT 100"
-                        )
-                    ]
-                text = "# Paper orders\n\n" + "\n".join(
-                    f"- `{r['id']}` · package `{r['package_id']}` · {r['state']}"
-                    + (
-                        f" · {json.loads(r['observation'])['status']}"
-                        if r["observation"]
-                        else " · awaiting reconciliation"
-                    )
-                    for r in rows
-                )
-                await self.add_research_markdown(text, "Paper journal:")
-            elif action == "strategy-finish":
-                require_paper_provider(args[2])
-                adapter = await self.restore_paper_adapter()
-                limits = (
-                    PaperLimits()
-                    if len(args) == 3
-                    else PaperLimits(
-                        **dict(
-                            zip(
-                                (
-                                    "max_strategy_fraction",
-                                    "max_position_fraction",
-                                    "max_risk_fraction",
-                                    "max_daily_loss_fraction",
-                                ),
-                                args[3:],
-                                strict=True,
-                            )
-                        )
-                    )
-                )
-                package = service.prepare(args[0], args[1], args[2], limits=limits)
-                await adapter.asset(package.symbol)
-                await self.add_research_markdown(package_markdown(package), "Final strategy:")
-                await self.query_one("#conversation", VerticalScroll).mount(
-                    FinishedReview(package.package_id, package.digest)
-                )
-            elif action == "strategy-show":
-                await self.add_research_markdown(
-                    package_markdown(service.package(args[0])), "Final strategy:"
-                )
-            elif action == "strategy-reject":
-                with service.transaction() as db:
-                    db.execute(
-                        "UPDATE paper_packages SET state='rejected' WHERE id=? AND state='pending'",
-                        (args[0],),
-                    )
-                await self.add_message(
-                    "Finished strategy rejected; no execution authority granted."
-                )
-            elif action in {"strategy-approve", "portfolio-run"}:
-                if self.paper_worker and not self.paper_worker.is_finished:
-                    raise ResearchError(
-                        "Stop the current paper runner before changing its assignments"
-                    )
-                if action == "portfolio-run":
-                    require_paper_provider(args[0])
-                if not self.session:
-                    raise ResearchError(
-                        "Configure the model used for binary and wallet reviews first"
-                    )
-                adapter = await self.restore_paper_adapter()
-                if action == "strategy-approve":
-                    service.approve(args[0], args[1])
-                    await self.add_message(
-                        "Finished strategy and limits approved once. Starting automatic "
-                        "paper processing."
-                    )
-                self.paper_worker = self.run_paper_portfolio(
-                    service, adapter, self.session.provider
-                )
-        except ResearchError as error:
-            await self.add_message(str(error))
-        except ValueError, OSError:
-            await self.add_message("Paper workflow failed validation; retained state was kept.")
+            with service.transaction() as db:
+                rows = db.execute(
+                    "SELECT id,state FROM paper_orders ORDER BY created_ns DESC LIMIT 100"
+                ).fetchall()
+            await self.add_research_markdown(
+                "# Historical paper orders\n\n"
+                + "\n".join(f"- `{row['id']}` · {row['state']}" for row in rows),
+                "Historical evidence:",
+            )
+        else:
+            await self.add_message("Retired provider execution is disabled. Use the MT5 connector.")
 
     def update_paper_view(self, view):
         table = self.query_one("#positions", DataTable)
@@ -2614,24 +2383,7 @@ class StratosphereApp(App[None]):
 
     @work(group="paper-portfolio", exclusive=True)
     async def run_paper_portfolio(self, service, adapter, provider):
-        from stratosphere.workflow.execution import PaperRunner
-
-        try:
-            await self.add_message(
-                "Paper runner active. Warmup emits no historical orders. /portfolio-stop "
-                "stops it and keeps positions."
-            )
-            await PaperRunner(service, adapter, provider, on_update=self.update_paper_view).run()
-        except asyncio.CancelledError:
-            raise
-        except ResearchError, ValueError, OSError:
-            await self.add_message(
-                "Paper runner halted. Check /portfolios and /portfolio-orders; uncertain orders "
-                "remain reserved and are never automatically resubmitted. No live orders exist."
-            )
-        finally:
-            if self.is_running and self.query("#positions"):
-                self.clear_paper_view()
+        raise ResearchError("Retired provider transport is disabled; use MT5.")
 
     async def handle_flow_command(self, action, args):
         try:

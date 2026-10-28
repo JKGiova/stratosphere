@@ -11,9 +11,9 @@
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
 | Source/evidence services | Acquisition, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
-| Provider boundaries | Fixed Liquid read diagnostics, Alpaca paper/data HTTP and retained historical Liquid paper blocker | `src/stratosphere/connectors/` |
-| Portfolio roles | Alpaca paper, planned Liquid live perpetuals and planned FTMO/MT5 evaluation; no implicit activation | `src/stratosphere/workflow/portfolio_setup.py` |
-| Operational paper workflow | Final packages/approval, global paper journal, binary/wallet reviews, signals, reservations and order reconciliation | `src/stratosphere/workflow/portfolios.py`, `execution.py` |
+| Provider boundary | Typed local MT5 EA/client data and order gateway; retired provider compatibility | `src/stratosphere/mt5/`, `tools/mt5/`, `src/stratosphere/legacy/` |
+| Portfolio role | MT5 / FTMO, unbound until exact account read; no implicit activation | `src/stratosphere/workflow/portfolio_setup.py` |
+| Historical paper workflow | Retained packages/approval, journal, reviews, signals and fixtures; no active broker routing | `src/stratosphere/workflow/portfolios.py`, `execution.py` |
 | Authored account/runtime | Journals, reservations, risk gates, observation processing and inspection | `src/stratosphere/paper/` |
 
 Application services are authoritative. Natural-language and slash routes must reuse their
@@ -25,7 +25,8 @@ The replacement research-to-portfolio lifecycle is described in [agent workflow]
 - Local SQLite stores definitions, provenance, private strategy histories and job/report references.
 - Private files retain source bytes, plans, approvals, native artifacts and reports.
 - Separate account/service journals retain observations, reservations, fills, faults and worker state.
-- Native OS secure storage holds selected model settings/key, the fixed Liquid read grant and Alpaca paper keys.
+- Native OS secure storage holds selected model settings/key. Historical broker entries are not restored.
+- MT5 owns broker login; the local bridge journal/policies contain no passwords or API keys.
 - The personal paper portfolio journal uses a fixed native state directory across research-root overrides.
 - Callback codes, PKCE/state, active MCP session identifiers and active credentials stay in memory.
 
@@ -40,9 +41,10 @@ and executable verification remain unfinished.
 
 The authored observation worker is separate from the TUI and requires its own approved streams,
 queue and OS ownership lock. It has no real provider feed or order transport. Reading status never
-starts or modifies it. The separate Alpaca paper runner lives in the TUI process and starts only
-from an exact final approval or an explicit run command. Liquid submission and all live transport
-remain unavailable.
+starts or modifies it. The MT5 EA runs inside the existing terminal; the application invokes its local typed interface.
+Exact deployment approval and native enablement are separate from data access. See the
+[connector guide](mt5-bridge.md) for current lifecycle and verification limits. Historical Alpaca
+runner code is compatibility material and is no longer routed by the TUI.
 
 ## Compatibility
 

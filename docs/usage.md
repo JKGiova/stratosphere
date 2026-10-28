@@ -43,15 +43,12 @@ For new automatic campaigns, see the agent workflow below. The legacy path remai
 | Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
 | Yahoo historical research | `/yahoo`, `/yahoo-show`, `/yahoo-approve`, `/yahoo-cancel` ([guide](yahoo-backtesting.md)) |
 | Agent research | `/create <brief>`, `/flow`, `/flow-show`, `/flow-cancel` (v1 `/flow-approve` only for compatibility) |
-| Paper portfolios | `/portfolios`, `/alpaca-paper-connect`, `/alpaca-paper-forget`, `/strategy-finish`, `/strategy-show`, `/strategy-approve`, `/portfolio-run`, `/portfolio-stop`, `/portfolio-orders` |
 | Legacy research | `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
 | Evidence | `/report <job>`, `/report-data`, `/analyze-report`, `/report-analyses`, `/report-analysis-show` |
 | Sources | `/source`, `/source-text`, `/source-file`, `/source-captions`, `/sources`, `/source-show` |
 | Source interpretation/import | `/conformance`, `/source-review`, `/source-register` and their list/show commands |
 | Dated local assessments | `/assess`, `/recommend`, `/assessment` |
 | Data capabilities | `/data` |
-| Liquid read access | `/liquid`, `/liquid-connect`, `/liquid-disconnect`, `/liquid-tools`, `/liquid-tool`, `/liquid-catalog-save` |
-| Explicit Liquid diagnostic | `/liquid-account`, `/liquid-account-reads`, `/liquid-account-show` |
 | Internal account inspection | `/paper [positions|orders|fills|health] [page]`, `/paper-review`, `/paper-reviews`, `/paper-review-show` |
 | Exit | `/quit` |
 
@@ -81,3 +78,9 @@ That approval allows automatic paper orders within its displayed limits. See
 [agent workflow](agent-workflow.md) for exact command arguments, native paper-key setup, scope and
 recovery limitations. `/portfolio-stop` and quitting keep positions and stop monitoring; no live
 execution exists. Existing v1/manual research commands retain their original approval protocols.
+
+## MT5 connector
+
+MT5 is the active broker connector; use `/mt5` and `/mt5-status` for setup/read-only diagnostics.
+Headless data and exact-deployment order commands: [MT5 connector](mt5-bridge.md). Alpaca/Liquid
+commands and their automatic execution setup are retired. Historical reports remain readable.

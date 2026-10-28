@@ -12,7 +12,7 @@ from typing import Literal
 from pydantic import AwareDatetime, Field, ValidationError, model_validator
 
 from stratosphere.connectors.catalog import canonical, strict_json
-from stratosphere.connectors.liquid import PROTOCOL, RESOURCE, LiquidError, required
+from stratosphere.legacy.liquid import PROTOCOL, RESOURCE, LiquidError, required
 from stratosphere.phase0.contracts import Contract, Digest, fingerprint
 from stratosphere.research.store import ResearchError
 

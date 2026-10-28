@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "signal_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Signal Sha256",
+      "type": "string"
+    },
+    "side": {
+      "enum": [
+        "buy",
+        "sell"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "volume": {
+      "title": "Volume",
+      "type": "string"
+    },
+    "stop_loss": {
+      "title": "Stop Loss",
+      "type": "string"
+    },
+    "take_profit": {
+      "default": "0",
+      "title": "Take Profit",
+      "type": "string"
+    }
+  },
+  "required": [
+    "signal_sha256",
+    "side",
+    "volume",
+    "stop_loss"
+  ],
+  "title": "Order",
+  "type": "object"
+}

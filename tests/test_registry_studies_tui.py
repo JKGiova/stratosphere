@@ -236,7 +236,7 @@ async def test_escaped_credentials_in_registry_study_forms_are_rejected_before_s
 
     from pydantic import SecretStr
 
-    from stratosphere.connectors.liquid import ReadSession
+    from stratosphere.legacy.liquid import ReadSession
 
     provider = ProposalProvider()
     research = ResearchService(

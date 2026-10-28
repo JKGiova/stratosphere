@@ -6,7 +6,7 @@
 - stratosphere is a personal tool in the tradingsphere suite. Keep both names lowercase.
 - Keep the repository private. Do not change visibility or licensing without an explicit request.
 - Do not add billing, application login, a hosted user database or automatic strategy sharing.
-- Current portfolio roles are Alpaca paper, Liquid live perpetuals and FTMO two-step Swing evaluation through MT5 or a verified equivalent. Alpaca live is deferred; Liquid paper is historical compatibility only. Keep provider/account/mode identities separate; planning or connection never activates trading.
+- MT5 is the sole active data/execution connector, including the FTMO account. Alpaca and Liquid are retired from active routing; retain their historical readers, journals and evidence under legacy compatibility. Keep exact broker server/account/mode identities separate; connecting never activates trading.
 - The requested workflow rebuild takes priority: orchestrator bridge → strategy research agents → reviewed final strategy → portfolio risk agent → binary signal review → position sizing. Preserve historical readers and evidence while replacing active routing. Do not resume unrelated interrupted features.
 
 ## Development workflow
@@ -25,7 +25,7 @@
 
 - Models propose and interpret. Application code owns validation, approvals, budgets and risk gates.
 - New agent research runs automatically under finite frozen application budgets. Require one user approval of the finished strategy, exact paper account, implementation and limits; then allow automatic paper orders within those limits. Preserve historical research approval contracts.
-- Only Alpaca paper can use the current final-approval/order workflow. Liquid live perpetuals and the FTMO bridge remain planned and inactive pending separate implementation, verification and explicit activation. Preserve historical Liquid paper identities/readers without converting their state or approvals into live authority. A read grant is not trading permission.
+- MT5 orders require one exact deployment approval binding the finished strategy, evidence, account/server/mode, implementation/EA and finite limits. Native trading starts disabled. Real-account activation needs separate explicit authorization. Never convert historical Alpaca/Liquid approvals into MT5 authority or claim that connector tests complete the agent runner or verify FTMO rules. A data connection is not trading permission.
 - Keep one stable agent per exact strategy, isolated histories, exact duplicate reuse and explicit variant lineage.
 - Model output cannot approve plans, run arbitrary SQL/acquired code or submit orders.
 - Keep account diagnostics and credential access outside strategy-model tools.

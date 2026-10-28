@@ -57,3 +57,11 @@ provider/account/mode, implementation, execution policy and full limits. Applica
 use `research-policy-authorization/1` and explicitly grant no order authority. The new personal
 paper SQLite journal has its own version 1; historical authored-paper journals are unchanged.
 See [agent workflow](agent-workflow.md) for behavior and verification limits.
+
+## MT5 connector contracts
+
+`mt5/bridge.py` owns `stratosphere.mt5.bridge/1` typed request/response rows and a durable local
+request journal. `mt5/trading.py` owns exact `mt5-deployment/1` approvals. Neither interprets old
+`finished-paper-strategy/1` approvals as MT5 authority. The EA checks native policy/account/session
+pins before invoking an allowlisted operation. Source identifiers/local hashes are compatibility
+evidence, not independently verified executable identity. Details: [MT5 connector](mt5-bridge.md).

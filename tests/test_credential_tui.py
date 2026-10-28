@@ -10,10 +10,9 @@ from stratosphere.credentials import CredentialStore
 from stratosphere.tui import StratosphereApp
 
 
-async def test_model_and_liquid_survive_quit_then_explicit_forget_clears_both(ui_service, tmp_path):
+async def test_only_model_restores_and_retired_provider_does_not_connect(ui_service, tmp_path):
     vault = CredentialStore(backend=MemoryCredentialBackend(), lock_root=tmp_path / "locks")
     remote = RefreshProvider()
-    remote.connection.credential_store = vault
     app = StratosphereApp(
         research_service=ui_service,
         credential_store=vault,
@@ -21,44 +20,20 @@ async def test_model_and_liquid_survive_quit_then_explicit_forget_clears_both(ui
         provider_factory=FakeProvider,
     )
     async with app.run_test(size=(100, 30)) as pilot:
-        await app.liquid_worker.wait()
         await configure(app, pilot)
-        await send(app, pilot, "/new")
-        notice = str(app.research_form.query_one(".research-help").content)
-        assert "OS credential store" in notice and "key stays session-only" not in notice
-        await pilot.press("escape")
-        await pilot.pause()
-        await send(app, pilot, "/liquid-connect")
-        await app.liquid_worker.wait()
-        assert vault.load_model() is not None and vault.read("liquid") is not None
+        assert app.liquid_worker is None
         await app.action_quit()
-    assert vault.load_model() is not None and vault.read("liquid") is not None
-    before = len(remote.browser_urls)
     restarted = StratosphereApp(
         research_service=ui_service,
         credential_store=vault,
         liquid_connection=remote.restarted(vault),
         provider_factory=FakeProvider,
     )
-    async with restarted.run_test(size=(45, 12)) as pilot:
-        await restarted.liquid_worker.wait()
-        assert restarted.setup is None and restarted.session is not None
-        assert restarted.settings.api_key.get_secret_value() == "test-only-key"
-        assert not restarted.session.provider.requests and not restarted.session.history
-        assert len(remote.browser_urls) == before and restarted.liquid.session is not None
+    async with restarted.run_test(size=(100, 30)) as pilot:
+        assert restarted.session is not None and restarted.liquid_worker is None
+        assert not remote.browser_urls
         await send(restarted, pilot, "/model-forget")
-        assert restarted.session is None and vault.load_model() is None
-        await send(restarted, pilot, "/liquid-disconnect")
-        assert restarted.liquid.session is None and vault.read("liquid") is None
-    empty = StratosphereApp(
-        research_service=ui_service,
-        credential_store=vault,
-        liquid_connection=remote.restarted(vault),
-        provider_factory=FakeProvider,
-    )
-    async with empty.run_test(size=(100, 30)):
-        await empty.liquid_worker.wait()
-        assert empty.setup is not None and empty.session is None and empty.liquid.session is None
+        assert vault.load_model() is None
 
 
 async def test_unavailable_secure_storage_allows_session_only_model_without_silent_save(

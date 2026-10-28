@@ -333,8 +333,8 @@ class Orchestrator(HistoricalServices):
                 yield report_markdown(report)
                 yield (
                     "\n\nReview a successful exact candidate, then use "
-                    f"`/strategy-finish {identity} <strategy-id> alpaca` to prepare its final "
-                    "paper approval. `/portfolios` shows both paper portfolios and blockers."
+                    f"the MT5 connector to prepare a final deployment for campaign `{identity}`. "
+                    "It requires a separate exact approval. `/portfolios` shows the active role."
                 )
                 return
             if route.action == "catalog":

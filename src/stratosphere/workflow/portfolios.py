@@ -14,7 +14,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from stratosphere.connectors.alpaca_paper import LiquidPaper
+from stratosphere.legacy.alpaca_paper import LiquidPaper
 from stratosphere.phase0.contracts import Contract, Digest, decimal_text, fingerprint
 from stratosphere.research.store import ResearchError
 from stratosphere.workflow.contracts import PortfolioDefinition
@@ -27,7 +27,7 @@ def execution_digest():
     root = Path(__file__).parent
     files = [root / n for n in ("portfolios.py", "execution.py", "risk.py", "contracts.py")]
     files += [
-        root.parent / "connectors/alpaca_paper.py",
+        root.parent / "legacy/alpaca_paper.py",
         root.parent / "phase0/signals.py",
         root.parent / "models/structured.py",
         root.parent / "phase0/contracts.py",

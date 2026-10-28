@@ -22,14 +22,16 @@ See [setup and usage](docs/usage.md) for installation and the research workflow.
 - [Yahoo historical research](docs/yahoo-backtesting.md), with bounded agent campaigns via `/create` and manual runs via `/yahoo`.
 - Bounded variant studies and retained reports with explicit costs, failures and holdout attribution.
 - Partial source intake and reviews; arbitrary strategy conversion is unfinished.
-- Liquid read-only connection, catalog inspection and an address diagnostic.
-- Final-strategy approval and an Alpaca paper runner for crypto spot, tested with authored accounts/models/HTTP.
-- Portfolio roles: Alpaca paper, future Liquid live perpetuals and FTMO two-step Swing via MT5 or a verified equivalent. Liquid/FTMO execution is unavailable; Alpaca live is deferred. Historical Liquid paper state is retained.
+- [MT5 local data/order connector](docs/mt5-bridge.md), with a compiled Expert Advisor, exact account/session pins, typed data reads and guarded market entry/owned exits.
+- Alpaca/Liquid active commands and automatic credential restoration are retired; historical formats, journals and readers remain separate.
+- Gold MT5 history acquired and structurally validated across all 21 standard intervals; coarse intervals reach 2004.
 
-The [agent workflow rebuild](docs/agent-workflow.md) is in progress. New research is automatic;
-one final strategy approval binds paper limits. Real provider verification and operational recovery/exit
-controls remain unfinished. Software tests,
-actual model behavior and provider readiness are separate checks. There is no release deadline.
+The [agent workflow rebuild](docs/agent-workflow.md) remains in progress. Automatic research and
+the headless MT5 connector are implemented separately: faithful broker-CFD research, final report
+ownership validation and automatic strategy/risk-agent execution are not connected yet.
+MT5 trading requires an exact user-approved deployment and native enablement. Broker order
+acceptance, FTMO rules, sustained operation and recovery remain verification gates. There is no
+release deadline.
 
 ## Development
 

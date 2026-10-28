@@ -11,18 +11,18 @@ NautilusTrader wheel production belongs to the separate `nautilus-trader-macos-i
 stratosphere consumes its pinned Intel artifact and matching runtime dependencies; Linux and Apple
 Silicon retain upstream wheels. No engine build tooling or vendored wheel belongs in this project.
 
-Historical research uses Yahoo/yfinance and NautilusTrader. Portfolio roles are **Alpaca paper**,
-**Liquid live perpetuals** and **FTMO two-step Swing evaluation through MT5 or a verified equivalent**,
-with separate provider/account/mode identities. Alpaca live is deferred, not a current implementation
-target. Liquid paper remains historical compatibility only; do not convert its journals or approvals
-into live state. The selected roles do not claim adapter availability or authorize activation.
-Current execution authorization covers **paper only**. Never purchase data/capacity/challenges or
-activate live trading without an explicit request.
+MT5 is the sole active broker data and order connector, including the FTMO account. Alpaca and
+Liquid are retired from active commands/setup; their formats, journals, evidence and readers remain
+under legacy compatibility. Yahoo/yfinance and NautilusTrader historical research remain available
+separately; a spot/ETF result cannot silently become a broker-CFD deployment. No historical approval
+transfers authority to MT5. Broker login stays inside the terminal. Connection/installation never
+activates trading. Real-account activation requires separate explicit application and terminal
+permission. No challenge purchase is authorized.
 
 The requested workflow is orchestrator bridge → exact strategy research agent → final report/package
 → one user approval → portfolio risk agent → binary entry review → position sizing → application risk
 gates → automatic orders within approved limits. Research runs under finite app limits, without a
-human approval prompt. There is no per-order approval in the new paper workflow. Existing historical
+human approval prompt. There is no per-order approval within a reviewed MT5 deployment. Existing historical
 protocols retain their original readers and authorization semantics.
 
 Canonical behavior and commands: [agent workflow](docs/agent-workflow.md).
@@ -35,36 +35,34 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Orchestrator and specialists | Typed research routing, exact stable owners, isolated histories, duplicate reuse and variant lineage | Supported family is SMA; broader tools, faithful conversion and regime research remain unfinished |
 | Automatic research | New v2 campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports and TUI views | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
-| Portfolio setup | Alpaca paper, planned Liquid live perpetuals and planned FTMO evaluation shown separately; retained paper journals and exact account bindings | Only Alpaca paper has an operational workflow; planned identities have no account binding or execution authority |
-| Alpaca paper | Fixed paper/data origins, native-stored keys, closed crypto bars, binary/capital/size calls, deterministic gates, reserved IOC orders, read-back, partial/uncertain states and account lease | Authored tests only until real account/feed/order checks; crypto spot only; not sustained or release-ready |
-| Liquid | Existing read-only connection/catalog/account diagnostics; historical paper blocker retained | Live perpetual feed, research semantics, permissions and order transport are missing; read access grants no trading authority |
-| Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Preserve ownership and old report bytes; do not present fixture journals as real provider accounts |
-| FTMO | Read-only MT5 diagnostic and bounded 21-interval history exporter ([guide](docs/mt5.md)); actual gold export validated for all intervals, H2–D1 reaching June 2004; weekly read recovered | Shorter intervals hit terminal bar limits; complete archives, timestamp/session/cost semantics and fresh real-time feed remain unverified. 1:100 leverage does not verify Swing. No execution bridge/activation or FTMO risk verification |
+| Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
+| MT5 bridge | Local typed EA/client, exact account/session binding, account/specification/quote/bar/position/order/deal reads; private durable request journal | Linux deployment, sustained feed freshness, timestamp/session/contract-cost semantics and installed EA verification require checks |
+| MT5 execution | Exact operator deployment approval, finite order/volume/cash-risk/margin/spread/equity bounds, mandatory SL, native checks, FOK/IOC entry, owned close/revoke, no uncertain replay | One account position at a time; authored lifecycle tests and compilation are not actual broker order acceptance. No automatic agent runner, FTMO daily/reset rules or multi-strategy allocation integration yet |
+| Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Historical provider fixtures are not active accounts or transferred approvals |
+| Gold data | Actual MT5 export validated for all 21 intervals; H2–D1 reach June 2004 | Short intervals hit 100k terminal limit; full archives/UTC/session/cost semantics remain unverified; this is acquisition, not a CFD backtest |
 
 ## Next development gates
 
-1. **Finish paper lifecycle before operational acceptance.** Add safe explicit stream rewarming,
-   approval retirement/implementation upgrades, inspected halt recovery and emergency close-all.
-   Finish keep-positions versus close-all exit controls, failed closures and residual-position UI.
-   Current stop/quit keeps positions and stops monitoring; gaps halt without backfill.
-2. **Verify Alpaca using its real paper account.** Test native credential persistence, permitted feed
-   access, exact instrument/precision, real order IDs/partial fills/fees, network ambiguity, competing
-   clients, restart and sustained operation. Do not send a paper order before an exact final package
-   is approved. Preserve provider evidence and failures. Fixtures are not provider acceptance.
-3. **Build Liquid live perpetual support separately.** Verify the actual feed/order capability,
-   scoped trading authorization and exact live account. Implement perpetual market semantics,
-   funding/margin/liquidation, faithful research and live-specific risk/reconciliation controls.
-   Historical spot research, paper approvals and the read-only grant cannot authorize this route.
-   Activation needs a separate explicit request after implementation and operational acceptance.
-4. **Broaden research and markets.** Implement additional strategy families and conformance, richer
-   comparison reports, verified sessions/corporate actions for equities, Forex venue semantics,
-   regimes and frozen-selection holdouts. Dynamic sizing needs its own measured simulation evidence.
-5. **FTMO bridge.** Start from the read-only MT5 diagnostic; verify the actual connected trial and
-   acquire bounded full historical datasets before claiming backtest coverage. MT5 is the preferred
-   bridge, with a verified equivalent if required. Verify Linux/macOS deployment, Swing account/phase,
-   contract/fee/swap details and dated loss/reset rules. Do not treat evaluation balances as ordinary
-   broker paper or personal live funds. Bridge activation and challenge purchases are separate actions.
-   Alpaca live remains deferred.
+1. **Verify the connected MT5 bridge.** Attach the compiled EA with trading disabled. Verify exact
+   account/session, real read-only data, disconnect/account-switch/restart behavior and private
+   evidence retention. Then test broker checks/order/fill/close semantics only under one reviewed
+   exact finished-strategy deployment and limits. Do not infer acceptance from authored tests.
+2. **Connect the agent workflow to MT5.** Build a faithful CFD research and final-report validator,
+   exact registered strategy/report ownership and instrument mapping, timestamp/session/cost
+   semantics, signal evidence and MT5-specific portfolio risk/allocation. The new connector's manual
+   deployment approval does not complete the automatic research-to-execution pipeline. Retain old
+   research and final-approval contracts without routing them to MT5.
+3. **Implement FTMO evaluation rules.** Verify actual Free Trial/two-step Swing profile and phase,
+   dated rules, timezone/day-reset equity accounting, commissions/swaps, daily/total loss stops,
+   restart/reconciliation and exposure ownership. Do not treat a demo flag as Swing certification.
+4. **Finish operational lifecycle.** Add sustained monitoring, inspected ambiguity recovery,
+   implementation upgrades, safe stream rewarming, portfolio allocations/multiple owned positions,
+   emergency close-all and keep/close exit controls. Current connector exit is an explicit owned
+   ticket close; expiry/revocation block entry but retain protective exit policy. Process exit never
+   automatically closes positions or continues application monitoring.
+5. **Broaden faithful research.** Additional strategy families, broker instruments, session and
+   corporate-action semantics, regimes, frozen-selection holdouts and measured dynamic sizing.
+   Preserve all failed/rejected attempts and separate data access, model reliability and profitability.
 
 ## Verification and release gate
 

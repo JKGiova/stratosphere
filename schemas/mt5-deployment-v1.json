@@ -1,0 +1,135 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "mt5-deployment/1",
+      "default": "mt5-deployment/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "strategy_id": {
+      "pattern": "^[0-9]{24}$",
+      "title": "Strategy Id",
+      "type": "string"
+    },
+    "strategy_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Strategy Sha256",
+      "type": "string"
+    },
+    "report_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Report Sha256",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "ea_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Ea Sha256",
+      "type": "string"
+    },
+    "login": {
+      "pattern": "^[1-9][0-9]{0,18}$",
+      "title": "Login",
+      "type": "string"
+    },
+    "server": {
+      "maxLength": 100,
+      "minLength": 1,
+      "pattern": "^[^\\t\\r\\n\\x00\"]+$",
+      "title": "Server",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "demo",
+        "real"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "symbol": {
+      "pattern": "[A-Za-z0-9_.#-]{1,64}",
+      "title": "Symbol",
+      "type": "string"
+    },
+    "currency": {
+      "pattern": "^[A-Z]{3}$",
+      "title": "Currency",
+      "type": "string"
+    },
+    "max_volume": {
+      "title": "Max Volume",
+      "type": "string"
+    },
+    "max_order_risk": {
+      "title": "Max Order Risk",
+      "type": "string"
+    },
+    "max_order_margin": {
+      "title": "Max Order Margin",
+      "type": "string"
+    },
+    "max_spread": {
+      "title": "Max Spread",
+      "type": "string"
+    },
+    "min_equity": {
+      "title": "Min Equity",
+      "type": "string"
+    },
+    "cost_buffer": {
+      "title": "Cost Buffer",
+      "type": "string"
+    },
+    "max_orders": {
+      "maximum": 1000,
+      "minimum": 1,
+      "title": "Max Orders",
+      "type": "integer"
+    },
+    "expires": {
+      "exclusiveMinimum": 0,
+      "title": "Expires",
+      "type": "integer"
+    },
+    "limitations": {
+      "default": [
+        "Not an FTMO rules certification or a validated strategy runner",
+        "One account position at a time, no reinforcement; mandatory broker stop-loss",
+        "Native stop risk excludes gap/slippage beyond the explicit cost buffer"
+      ],
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "strategy_id",
+    "strategy_sha256",
+    "report_sha256",
+    "implementation_sha256",
+    "ea_sha256",
+    "login",
+    "server",
+    "mode",
+    "symbol",
+    "currency",
+    "max_volume",
+    "max_order_risk",
+    "max_order_margin",
+    "max_spread",
+    "min_equity",
+    "cost_buffer",
+    "max_orders",
+    "expires"
+  ],
+  "title": "Deployment",
+  "type": "object"
+}

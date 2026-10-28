@@ -1,8 +1,8 @@
 # MT5 read-only diagnostic
 
-The FTMO bridge currently has a manually launched diagnostic script, not a trading adapter.
-It does not approve a strategy, bind an execution account or submit orders. Alpaca paper remains
-the only implemented final-approval/order route.
+This guide covers retained read-only diagnostics and history exports. The active two-way connector
+is documented in [MT5 connector](mt5-bridge.md). Probe files never authorize orders or bind a
+deployment, and historical Alpaca/Liquid approvals cannot authorize MT5.
 
 ## Run against the existing terminal
 

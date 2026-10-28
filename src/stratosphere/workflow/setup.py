@@ -5,7 +5,7 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Static
 
-from stratosphere.connectors.alpaca_paper import PaperKeys
+from stratosphere.legacy.alpaca_paper import PaperKeys
 from stratosphere.research.store import ResearchError
 
 

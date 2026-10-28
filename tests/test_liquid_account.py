@@ -13,8 +13,8 @@ import pytest
 from test_liquid import CODE, PROTOCOL, TOKEN, Provider
 
 from stratosphere.connectors.catalog import canonical
-from stratosphere.connectors.liquid import LiquidConnection, LiquidError
-from stratosphere.connectors.liquid_account import (
+from stratosphere.legacy.liquid import LiquidConnection, LiquidError
+from stratosphere.legacy.liquid_account import (
     ARGUMENTS,
     INPUT_SHAPE,
     OUTPUT_SHAPE,

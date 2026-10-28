@@ -14,8 +14,8 @@ import httpx
 from pydantic import SecretStr
 
 from stratosphere.connectors.catalog import CatalogError, LiquidCatalog, canonical, strict_json
-from stratosphere.connectors.liquid_login import SavedReadGrant
 from stratosphere.credentials import CredentialError, credential_io
+from stratosphere.legacy.liquid_login import SavedReadGrant
 from stratosphere.research.store import ResearchError
 
 ORIGIN = "https://coinvest.liquid.trade"

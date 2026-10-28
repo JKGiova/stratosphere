@@ -10,8 +10,8 @@ import pytest
 from conftest import MemoryCredentialBackend
 from test_liquid import TOKEN, Provider
 
-from stratosphere.connectors.liquid import RESOURCE, LiquidConnection, LiquidError
 from stratosphere.credentials import CredentialError, CredentialStore
+from stratosphere.legacy.liquid import RESOURCE, LiquidConnection, LiquidError
 
 
 @pytest.fixture

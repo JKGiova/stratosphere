@@ -13,6 +13,7 @@ These are focused reference guides, not separate roadmaps.
 | [Sources](sources.md) | Actual intake capabilities, provenance and conversion limits |
 | [Paper foundations](paper.md) | Internal accounting/runtime and missing provider integration |
 | [Liquid](liquid.md) | Read-only setup, diagnostics and current boundaries |
+| [MT5](mt5.md) | Manually launched read-only FTMO diagnostic and missing bridge capabilities |
 | [Credentials](credentials.md) | Saving, restoring and forgetting access |
 | [Model providers](model-providers.md) | Selection, configuration and failure behavior |
 | [Data rights](data-source-rights.md) | Data-purpose and entitlement boundaries |

@@ -1,6 +1,6 @@
 # stratosphere development plan
 
-Updated: October 26, 2026. This is the single active development plan.
+Updated: October 28, 2026. This is the single active development plan.
 
 ## Product and decisions
 
@@ -39,7 +39,7 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Alpaca paper | Fixed paper/data origins, native-stored keys, closed crypto bars, binary/capital/size calls, deterministic gates, reserved IOC orders, read-back, partial/uncertain states and account lease | Authored tests only until real account/feed/order checks; crypto spot only; not sustained or release-ready |
 | Liquid | Existing read-only connection/catalog/account diagnostics; historical paper blocker retained | Live perpetual feed, research semantics, permissions and order transport are missing; read access grants no trading authority |
 | Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Preserve ownership and old report bytes; do not present fixture journals as real provider accounts |
-| FTMO | Planned MT5 or equivalent bridge and separate evaluation identity | No bridge/activation; actual platform/account, evaluation phase and Swing rules need verification |
+| FTMO | Manually launched read-only MT5 diagnostic and local export validator ([guide](docs/mt5.md)); compiled with installed macOS Wine MetaEditor | No execution bridge/activation; diagnostic samples do not verify full history, account/profile, evaluation phase or Swing rules |
 
 ## Next development gates
 
@@ -59,8 +59,9 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 4. **Broaden research and markets.** Implement additional strategy families and conformance, richer
    comparison reports, verified sessions/corporate actions for equities, Forex venue semantics,
    regimes and frozen-selection holdouts. Dynamic sizing needs its own measured simulation evidence.
-5. **FTMO bridge.** Plan MT5 as the preferred bridge, with a verified equivalent if the actual
-   account/platform requires it. Verify Linux/macOS bridge deployment, two-step Swing account/phase,
+5. **FTMO bridge.** Start from the read-only MT5 diagnostic; verify the actual connected trial and
+   acquire bounded full historical datasets before claiming backtest coverage. MT5 is the preferred
+   bridge, with a verified equivalent if required. Verify Linux/macOS deployment, Swing account/phase,
    contract/fee/swap details and dated loss/reset rules. Do not treat evaluation balances as ordinary
    broker paper or personal live funds. Bridge activation and challenge purchases are separate actions.
    Alpaca live remains deferred.

@@ -5,17 +5,45 @@ import csv
 import hashlib
 import io
 import json
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 SCHEMA = "stratosphere.mt5.readonly.v1"
 FRAMES = ("PERIOD_M15", "PERIOD_H1", "PERIOD_H4", "PERIOD_D1", "PERIOD_W1")
+HISTORY_SCHEMA = "stratosphere.mt5.history.v2"
+HISTORY_FRAMES = tuple(
+    f"PERIOD_{name}"
+    for name in (
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M10",
+        "M12",
+        "M15",
+        "M20",
+        "M30",
+        "H1",
+        "H2",
+        "H3",
+        "H4",
+        "H6",
+        "H8",
+        "H12",
+        "D1",
+        "W1",
+        "MN1",
+    )
+)
 HEADER = ["server_epoch", "open", "high", "low", "close", "tick_volume", "spread", "real_volume"]
 
 
-def _read(root: Path, name: str) -> bytes:
+def _read(root: Path, name: str, limit: int = 1_000_000) -> bytes:
     path = root / name
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > 1_000_000:
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > limit:
         raise ValueError(f"Missing, linked or oversized probe file: {name}")
     return path.read_bytes()
 
@@ -35,7 +63,8 @@ def inspect_probe(root: Path) -> tuple[dict, dict[str, bytes]]:
     if root.is_symlink() or not root.is_dir():
         raise ValueError("Probe source must be an existing ordinary directory")
     raw = {"complete.txt": _read(root, "complete.txt"), "metadata.tsv": _read(root, "metadata.tsv")}
-    if raw["complete.txt"].decode("utf-8").strip() != SCHEMA:
+    schema = raw["complete.txt"].decode("utf-8").strip()
+    if schema not in {SCHEMA, HISTORY_SCHEMA}:
         raise ValueError("Probe completion marker missing or unsupported")
     metadata = {}
     for row in csv.reader(io.StringIO(raw["metadata.tsv"].decode("utf-8")), delimiter="\t"):
@@ -54,7 +83,7 @@ def inspect_probe(root: Path) -> tuple[dict, dict[str, bytes]]:
         "time_semantics",
         "profile_verification",
     }
-    if not required <= metadata.keys() or metadata["schema"] != SCHEMA:
+    if not required <= metadata.keys() or metadata["schema"] != schema:
         raise ValueError("Incomplete or unsupported probe metadata")
     captured = _integer(metadata["captured_utc_epoch"])
     finished = _integer(metadata["finished_utc_epoch"])
@@ -72,16 +101,25 @@ def inspect_probe(root: Path) -> tuple[dict, dict[str, bytes]]:
     age = metadata.get("quote_server_age_seconds")
     if age is None or not 0 <= _integer(age) <= 60:
         findings.append("Gold quote missing, future-dated or older than 60 seconds at capture")
+    history = schema == HISTORY_SCHEMA
+    budget = 512
+    if history:
+        budget = _integer(metadata.get("bar_budget_per_interval", "0"))
+        terminal_limit = _integer(metadata.get("terminal_max_bars", "0"))
+        if not 1 <= budget <= min(100_000, terminal_limit):
+            raise ValueError("Invalid history acquisition budget")
+        if metadata.get("attempt_budget_per_interval") != "3":
+            raise ValueError("Invalid history attempt budget")
     coverage = {}
-    for frame in FRAMES:
+    for frame in HISTORY_FRAMES if history else FRAMES:
         count = _integer(metadata.get(f"{frame}.copy_count", "-1"))
-        if not -1 <= count <= 512:
+        if not -1 <= count <= budget:
             raise ValueError("Probe sample exceeds its fixed budget")
         if count <= 0:
             findings.append(f"{frame}: no retrieved sample")
             continue
         name = f"{frame}.tsv"
-        raw[name] = _read(root, name)
+        raw[name] = _read(root, name, 32_000_000 if history else 1_000_000)
         rows = list(csv.reader(io.StringIO(raw[name].decode("utf-8")), delimiter="\t"))
         if not rows or rows[0] != HEADER or len(rows) - 1 != count:
             raise ValueError(f"{frame}: unexpected bar schema/count")
@@ -111,19 +149,47 @@ def inspect_probe(root: Path) -> tuple[dict, dict[str, bytes]]:
             "copy_error": metadata.get(f"{frame}.copy_error"),
             "synchronized": metadata.get(f"{frame}.synchronized"),
         }
+        if history:
+            local_bars = _integer(metadata.get(f"{frame}.local_bars", "0"))
+            coverage[frame].update(
+                {
+                    "first_server_label": datetime.fromtimestamp(
+                        _integer(rows[1][0]), UTC
+                    ).strftime("%Y-%m-%d %H:%M"),
+                    "last_server_label": datetime.fromtimestamp(previous, UTC).strftime(
+                        "%Y-%m-%d %H:%M"
+                    ),
+                    "span_days": round((previous - _integer(rows[1][0])) / 86400, 2),
+                    "bar_budget_reached": count == budget,
+                    "terminal_series_at_budget": local_bars >= budget,
+                    "maximum_history_verified": False,
+                }
+            )
+            if count == budget:
+                findings.append(f"{frame}: bar budget reached; older history may exist")
+            elif local_bars >= budget:
+                findings.append(
+                    f"{frame}: terminal series reached bar budget; older history may exist"
+                )
         if metadata.get(f"{frame}.copy_error") != "0":
             findings.append(f"{frame}: MT5 reported a CopyRates error")
         if metadata.get(f"{frame}.synchronized") != "1":
             findings.append(f"{frame}: history not synchronized")
     report = {
-        "schema": SCHEMA,
+        "schema": schema,
         "metadata": metadata,
         "coverage": coverage,
         "findings": findings,
         "limits": [
             "Local exported evidence; not independent account ownership/feed attestation",
             "Free Trial / two-step / Swing profile and evaluation phase not verified",
-            "At most 512 recent bars per interval; server dates do not prove full retrieval",
+            (
+                "Bounded maximum-window acquisition; neither a short result nor server dates prove "
+                "that all available history was retrieved"
+                if history
+                else "At most 512 recent bars per interval; "
+                "server dates do not prove full retrieval"
+            ),
             "Last bar may be incomplete; historical server-to-UTC mapping not verified",
             "Current contract/swap values are not historical costs",
             "No backtest, strategy approval, risk verification or order authority",
@@ -143,6 +209,39 @@ def main() -> None:
     for name, data in raw.items():
         (args.output / name).write_bytes(data)
     (args.output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+    if report["schema"] == HISTORY_SCHEMA:
+        lines = [
+            "# Gold MT5 maximum-window acquisition",
+            "",
+            "Raw server/chart date labels; UTC mapping and full-history completeness unverified.",
+            "",
+            "| Interval | Bars | First label | Last label | Days | Cap indicated |",
+            "| --- | ---: | --- | --- | ---: | --- |",
+        ]
+        for frame in HISTORY_FRAMES:
+            item = report["coverage"].get(frame)
+            if item:
+                lines.append(
+                    f"| {frame.removeprefix('PERIOD_')} | {item['retrieved_bars']} | "
+                    f"{item['first_server_label']} | {item['last_server_label']} | "
+                    f"{item['span_days']} | "
+                    f"{item['bar_budget_reached'] or item['terminal_series_at_budget']} |"
+                )
+            else:
+                lines.append(f"| {frame.removeprefix('PERIOD_')} | 0 | unavailable | | | |")
+        lines.extend(
+            [
+                "",
+                "Findings:",
+                "",
+                *(f"- {item}" for item in report["findings"]),
+                "",
+                "Limits:",
+                "",
+                *(f"- {item}" for item in report["limits"]),
+            ]
+        )
+        (args.output / "summary.md").write_text("\n".join(lines) + "\n")
     print(f"Retained read-only diagnostic: {args.output / 'report.json'}")
     print(f"Retrieved intervals: {len(report['coverage'])}; findings: {len(report['findings'])}")
 

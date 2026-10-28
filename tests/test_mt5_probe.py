@@ -2,7 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from stratosphere.connectors.mt5_probe import HEADER, SCHEMA, inspect_probe
+from stratosphere.connectors.mt5_probe import (
+    HEADER,
+    HISTORY_FRAMES,
+    HISTORY_SCHEMA,
+    SCHEMA,
+    inspect_probe,
+    main,
+)
 
 
 @pytest.fixture
@@ -97,3 +104,85 @@ def test_rejects_count_mismatch_and_linked_files(export):
     bars.symlink_to(export / "elsewhere.tsv")
     with pytest.raises(ValueError, match="linked"):
         inspect_probe(export)
+
+
+@pytest.fixture
+def history_export(export):
+    path = export / "metadata.tsv"
+    path.write_text(
+        path.read_text().replace(SCHEMA, HISTORY_SCHEMA)
+        + "bar_budget_per_interval\t100000\nterminal_max_bars\t100000\n"
+        + "attempt_budget_per_interval\t3\n"
+        + "PERIOD_D1.attempt_1.error\t4401\n"
+    )
+    (export / "complete.txt").write_text(HISTORY_SCHEMA + "\n")
+    return export
+
+
+def test_history_keeps_all_intervals_and_failed_acquisition_attempts(history_export):
+    report, _ = inspect_probe(history_export)
+    assert len(HISTORY_FRAMES) == 21
+    assert len(report["findings"]) == 20
+    assert report["metadata"]["PERIOD_D1.attempt_1.error"] == "4401"
+    assert report["coverage"]["PERIOD_D1"]["maximum_history_verified"] is False
+    assert report["coverage"]["PERIOD_D1"]["first_server_label"] == "1970-01-01 00:01"
+
+
+def test_history_accepts_more_than_old_sample_limit(history_export):
+    path = history_export / "metadata.tsv"
+    path.write_text(
+        path.read_text().replace("PERIOD_D1.copy_count\t2", "PERIOD_D1.copy_count\t600")
+    )
+    (history_export / "PERIOD_D1.tsv").write_text(
+        "\t".join(HEADER) + "\n" + "".join(f"{i + 1}\t10\t12\t9\t11\t5\t2\t0\n" for i in range(600))
+    )
+    report, _ = inspect_probe(history_export)
+    assert report["coverage"]["PERIOD_D1"]["retrieved_bars"] == 600
+
+
+@pytest.mark.parametrize(
+    "budget,terminal", [("100001", "200000"), ("0", "100000"), ("100000", "99999")]
+)
+def test_history_rejects_invalid_or_broadened_budgets(history_export, budget, terminal):
+    path = history_export / "metadata.tsv"
+    path.write_text(
+        path.read_text()
+        .replace("bar_budget_per_interval\t100000", f"bar_budget_per_interval\t{budget}")
+        .replace("terminal_max_bars\t100000", f"terminal_max_bars\t{terminal}")
+    )
+    with pytest.raises(ValueError, match="budget"):
+        inspect_probe(history_export)
+
+
+def test_history_marks_cap_and_does_not_claim_complete_history(history_export):
+    path = history_export / "metadata.tsv"
+    path.write_text(
+        path.read_text().replace("bar_budget_per_interval\t100000", "bar_budget_per_interval\t2")
+    )
+    report, _ = inspect_probe(history_export)
+    assert report["coverage"]["PERIOD_D1"]["bar_budget_reached"] is True
+    assert any("older history may exist" in finding for finding in report["findings"])
+
+
+def test_history_recognizes_terminal_cap_even_when_frozen_end_excludes_new_bar(history_export):
+    path = history_export / "metadata.tsv"
+    path.write_text(path.read_text() + "PERIOD_D1.local_bars\t100000\n")
+    report, _ = inspect_probe(history_export)
+    item = report["coverage"]["PERIOD_D1"]
+    assert item["bar_budget_reached"] is False
+    assert item["terminal_series_at_budget"] is True
+    assert any("terminal series reached" in finding for finding in report["findings"])
+
+
+def test_history_cli_retains_raw_bytes_and_writes_21_interval_table(history_export, monkeypatch):
+    output = history_export / "retained"
+    monkeypatch.setattr("sys.argv", ["mt5_probe", str(history_export), str(output)])
+    main()
+    assert (output / "PERIOD_D1.tsv").read_bytes() == (
+        history_export / "PERIOD_D1.tsv"
+    ).read_bytes()
+    text = (output / "summary.md").read_text()
+    assert "| D1 | 2 |" in text
+    assert "| MN1 | 0 | unavailable" in text
+    with pytest.raises(FileExistsError):
+        main()

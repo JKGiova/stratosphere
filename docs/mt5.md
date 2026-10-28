@@ -41,6 +41,44 @@ duplicate or unordered bars rather than repairing them, and reports missing inte
 state, non-demo status and stale quotes as findings. Diagnostics stay outside strategy/model tools.
 Treat local exports as untrusted observations, not independent broker/account attestation.
 
+## Maximum-window gold history
+
+[StratosphereGoldHistory.mq5](../tools/mt5/StratosphereGoldHistory.mq5) is a separate read-only
+script using `stratosphere.mt5.history.v2`; the original diagnostic and its v1 reader remain
+compatible. Compile/install it beside the diagnostic, refresh Navigator and launch
+**stratosphere → StratosphereGoldHistory** once. Leave the terminal running until Experts prints
+`maximum-window history export complete`. Do not start another copy on the same chart while it runs.
+
+It requests all 21 standard intervals: M1/M2/M3/M4/M5/M6/M10/M12/M15/M20/M30,
+H1/H2/H3/H4/H6/H8/H12, D1/W1/MN1. Coarse intervals run first. It tries the full date range up
+to a fixed server-time endpoint, then a bounded latest-window request if needed. Each interval
+has at most three acquisition attempts, with every returned count/error retained; these are history
+downloads, not research/native-backtest retries. Short successful ranges can be retried because
+MT5 can continue downloading history after a timed-out call. The final export retains the largest
+returned candidate without sorting, deduplicating, stitching or filling prices.
+
+Acquisition is limited by the existing terminal max-bars setting and a 100,000-bar application cap
+per interval. No terminal settings are changed. At the inspected setting of 100,000 bars, this
+requests the terminal's permitted window, not necessarily all broker archives. There is a 20-minute
+deadline checked between native calls; an in-flight MT5 request can overrun it. Skipped intervals
+remain explicit findings. All data are private local files; budget for up to a few hundred MB
+across all intervals. An interrupted run has no completion marker and must not be accepted.
+
+Exports appear under `MQL5/Files/stratosphere-history-*`. Validate with the same CLI:
+
+```sh
+.venv/bin/python -m stratosphere.connectors.mt5_probe \
+  '/absolute/path/to/MQL5/Files/stratosphere-history-...' \
+  'reports/mt5/unique-history-run'
+```
+
+The v2 validator supports the larger bounded files and produces `summary.md` with all 21 intervals,
+actual retrieved counts, first/last raw server date labels, span and whether the bar budget or
+retained terminal-series limit was reached. A frozen endpoint can exclude a newer bar even when
+the retained series is full. Every interval's maximum-history status remains unverified: a short return, synchronized
+series or early server date does not establish complete archives or absence of gaps. The fixed
+endpoint is an acquisition cutoff, not a closed-bar guarantee. No backtest/order runs automatically.
+
 ## Interpretation and remaining gates
 
 An actual local FTMO-Demo export from terminal build 6275 passed structural validation on
@@ -51,6 +89,17 @@ establish the intended Swing profile. The complete export, hashes and findings a
 under `reports/mt5/trial-1793210934`; an earlier incomplete export is retained separately.
 These are local provider observations, distinct from the nine passing authored validator tests.
 
+The subsequent maximum-window export returned structurally valid candles for all 21 intervals.
+H2/H3/H4/H6/H8/H12/D1 reach June 2004; H1 reaches February 2010 at the terminal bar limit.
+Weekly returned 1,155 bars from September 2004; monthly returned 188 from March 2011.
+The shorter intervals reached the terminal's 100,000-bar retained-series limit (some exports have
+99,999 rows because the acquisition endpoint was frozen). Shorter coarse-interval results remain
+unverified as complete archives. The snapshot quote was 306 seconds old, so this does not establish
+a fresh real-time feed. Private raw evidence and reviewed coverage are under
+`reports/mt5/history-1793211240/coverage-review.md`; acquisition failures are retained in metadata.
+The exporter compiled with zero errors/warnings; 17 validator tests and five existing portfolio
+setup tests passed. No native backtest or order was run.
+
 Demo status and an FTMO server do not prove Free Trial, two-step Swing profile, evaluation phase,
 account ownership or execution authority. Confirm the actual profile and dated FTMO rules separately.
 A successful sample read does not establish maximum retrievable history; server first dates and
@@ -59,7 +108,7 @@ forming. Raw MQL5 server/chart timestamps are preserved: historical UTC conversi
 sessions remain unverified. Quote age is measured against server time at capture, not at report read.
 Current swap values do not reconstruct historical swap costs, and commissions are not verified.
 
-Next implementation needs bounded full-history acquisition/quality checks, verified timestamp and
+Next implementation needs actual maximum-window acquisition/coverage verification, verified timestamp and
 contract/cost semantics, an independently identified account/profile, FTMO loss/reset controls and
 a separately approved execution bridge. This diagnostic does not run the gold SMA backtest.
 

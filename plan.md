@@ -39,7 +39,7 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Alpaca paper | Fixed paper/data origins, native-stored keys, closed crypto bars, binary/capital/size calls, deterministic gates, reserved IOC orders, read-back, partial/uncertain states and account lease | Authored tests only until real account/feed/order checks; crypto spot only; not sustained or release-ready |
 | Liquid | Existing read-only connection/catalog/account diagnostics; historical paper blocker retained | Live perpetual feed, research semantics, permissions and order transport are missing; read access grants no trading authority |
 | Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Preserve ownership and old report bytes; do not present fixture journals as real provider accounts |
-| FTMO | Read-only MT5 diagnostic/export validator ([guide](docs/mt5.md)); actual FTMO demo export validated with fresh gold quote and 512 bars each at M15/H1/H4/D1 | Weekly read failed (4401), full history not retrieved; 1:100 account leverage does not verify Swing. No execution bridge/activation, profile/phase or FTMO risk verification |
+| FTMO | Read-only MT5 diagnostic and bounded 21-interval history exporter ([guide](docs/mt5.md)); actual gold export validated for all intervals, H2–D1 reaching June 2004; weekly read recovered | Shorter intervals hit terminal bar limits; complete archives, timestamp/session/cost semantics and fresh real-time feed remain unverified. 1:100 leverage does not verify Swing. No execution bridge/activation or FTMO risk verification |
 
 ## Next development gates
 

@@ -43,6 +43,14 @@ Treat local exports as untrusted observations, not independent broker/account at
 
 ## Interpretation and remaining gates
 
+An actual local FTMO-Demo export from terminal build 6275 passed structural validation on
+October 28, 2026: connected demo status, a zero-second-old gold quote at capture and 512 bars each
+for M15/H1/H4/D1. W1 returned `-1` with error `4401`; its reported 498 local bars did not produce
+an accepted sample. The cause remains unverified. Account leverage was 1:100, which does not
+establish the intended Swing profile. The complete export, hashes and findings are retained privately
+under `reports/mt5/trial-1793210934`; an earlier incomplete export is retained separately.
+These are local provider observations, distinct from the nine passing authored validator tests.
+
 Demo status and an FTMO server do not prove Free Trial, two-step Swing profile, evaluation phase,
 account ownership or execution authority. Confirm the actual profile and dated FTMO rules separately.
 A successful sample read does not establish maximum retrievable history; server first dates and

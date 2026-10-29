@@ -7,6 +7,7 @@ These are focused reference guides, not separate roadmaps.
 | --- | --- |
 | [Usage](usage.md) | Installation, startup, commands and supported workflow |
 | [Architecture](architecture.md) | Components, state ownership and code locations |
+| [Strategy development](strategy-development.md) | Specialist handoff, compiled code, bounded revisions and market/interval comparison |
 | [Agent workflow](agent-workflow.md) | Automatic research, final approval, paper portfolios, commands and execution limits |
 | [Yahoo backtesting](yahoo-backtesting.md) | Historical Yahoo setup, supported models and data limitations |
 | [Research](research.md) | Supported strategy, approval, studies and report evidence |

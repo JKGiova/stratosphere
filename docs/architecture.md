@@ -8,6 +8,7 @@
 | Model transport | Provider-specific text streaming and exact workflow-schema delivery | `src/stratosphere/models/`, `chat.py` |
 | Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/workflow/` (active), `agents/` (compatibility helpers) |
 | Local library | Canonical identities, duplicate reuse, provenance, lineage, jobs and reports | `src/stratosphere/registry/` |
+| Strategy development | Typed formalization, application code generation, stable-agent research, finite native comparisons/revisions | `src/stratosphere/development/` |
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
 | Source/evidence services | Public discovery, local PDF extraction, cited strategy briefs, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
@@ -36,8 +37,9 @@ folder on macOS and XDG state directory on Linux. Operational data is not commit
 ## Process boundaries
 
 The TUI invokes validated services. Trusted native research runs in separate credential-free
-workers. Imported source is never executed just because it was acquired. Generated-code isolation
-and executable verification remain unfinished.
+workers. Imported source is never executed just because it was acquired. Strategy development executes only exact application-compiled Python specializations in
+credential-free children, with pinned definition/code/input/runtime and finite reservations.
+Arbitrary model/acquired Python is unsupported; this is not independent executable attestation.
 
 The authored observation worker is separate from the TUI and requires its own approved streams,
 queue and OS ownership lock. It has no real provider feed or order transport. Reading status never

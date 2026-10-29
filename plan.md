@@ -27,15 +27,17 @@ limits and owns broker submission. Research runs under finite app limits, withou
 human approval prompt. There is no per-order approval within a reviewed MT5 deployment. Existing historical
 protocols retain their original readers and authorization semantics.
 
-Canonical behavior and commands: [agent workflow](docs/agent-workflow.md).
+Canonical behavior and commands: [agent workflow](docs/agent-workflow.md);
+[strategy-agent development](docs/strategy-development.md) owns code generation and comparative research.
 Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs index](docs/README.md).
 
 ## Current implementation and evidence
 
 | Area | Implemented | Limits / remaining verification |
 | --- | --- | --- |
-| Orchestrator and specialists | Typed routing, isolated clarification drafts, public Wikipedia/Crossref discovery, local PDF/page extraction and sealed source-grounded strategy briefs; exact registered owners, duplicate reuse and variant lineage | Descriptions may cover any family; executable research is SMA-only. Verified brief-to-specialist implementation, faithful conversion and regime research remain unfinished |
+| Orchestrator and specialists | Typed routing, isolated clarification drafts, public Wikipedia/Crossref discovery, local PDF/page extraction and sealed source-grounded strategy briefs; exact registered owners, duplicate reuse and variant lineage | Descriptions may cover any family; unsupported execution semantics remain blocked. Faithful conversion, independent validation and MT5 integration remain unfinished |
 | Automatic research | New v2 campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports and TUI views | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
+| Strategy development | Complete brief → stable strategy agent → validated SMA/EMA/RSI expression program → application-compiled Python → native Yahoo comparisons and up to two measured revisions; all attempts, code, scopes and descriptive year/regime summaries retained | At most 3 programs / 4 targets / 12 cells / 24 native starts. Long-only fixed units, hourly/daily; no stop orders, shorts or arbitrary Python. Live-model reliability, semantic source conformance and independent holdout remain unverified |
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
 | Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
 | MT5 bridge | Local typed EA/client, exact account/session binding and private durable journal; actual Intel macOS FTMO demo reads passed for account/specs/advancing quotes/M1-H1-D1 candles/positions/orders/deals with trading disabled | Linux deployment, disconnect/account-switch/restart, sustained feed freshness, timestamp/session/cost semantics and independent executable attestation remain unverified |
@@ -50,7 +52,8 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
    evidence retention. A separately approved one-time demo connector round-trip passed; next verify
    the normal finished-strategy deployment path and limits. Do not infer sustained readiness from
    one successful diagnostic or acceptance from authored tests.
-2. **Connect the agent workflow to MT5.** Build a faithful CFD research and final-report validator,
+2. **Connect the agent workflow to MT5.** Source-to-specialist compiled historical research now
+   runs separately. Build a faithful CFD research and final-report validator,
    exact registered strategy/report ownership and instrument mapping, timestamp/session/cost
    semantics, signal evidence and MT5-specific portfolio risk/allocation. The new connector's manual
    deployment approval does not complete the automatic research-to-execution pipeline. Retain old
@@ -76,7 +79,10 @@ The cross-platform application matrix installs verified dependency wheels withou
 external wheel release readiness and application acceptance remain separate checks.
 Source-intake verification on October 29, 2026 includes actual local PDF parsing, authored HTTP/model
 fixtures and an actual public Wikipedia/Crossref search plus RSI page retrieval. These checks do not
-establish live-model extraction reliability, faithful strategy conversion or specialist execution.
+establish live-model extraction reliability or faithful strategy conversion. Specialist development
+now has actual generated-code Nautilus fixtures and a separate actual AMZN/TSLA Yahoo comparison
+with authored model replies: four cells / eight native starts completed. MT5 agent execution remains
+unconnected. See the [development guide](docs/strategy-development.md) for exact limits and evidence.
 
 Distinguish authored fixtures/native simulation, actual model calls,
 provider checks and installed-client readiness. No phase or release is complete from a narrower test,

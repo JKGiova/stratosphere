@@ -336,5 +336,9 @@ def brief_markdown(value):
                 f"- Source `{ref['source_id']}` · {ref['locator']} · exact passage: {ref['text']}"
             )
     lines += ["", "## Questions", *[f"- {q}" for q in value["questions"]]]
-    lines += ["", f"Retained brief `{value['id']}`. No backtest or order was submitted."]
+    lines += [
+        "",
+        f"Retained source brief `{value['id']}`. "
+        "Strategy development has a separate report; trading remains blocked.",
+    ]
     return "\n".join(lines)

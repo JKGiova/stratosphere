@@ -65,3 +65,16 @@ request journal. `mt5/trading.py` owns exact `mt5-deployment/1` approvals. Neith
 `finished-paper-strategy/1` approvals as MT5 authority. The EA checks native policy/account/session
 pins before invoking an allowlisted operation. Source identifiers/local hashes are compatibility
 evidence, not independently verified executable identity. Details: [MT5 connector](mt5-bridge.md).
+
+## Compiled strategy development
+
+`development/contracts.py` uses `strategy/1` as a constrained signal program and owns
+`development-price-snapshot/1` and `strategy-development-cell/1`. The service retains
+`strategy-development-plan/1` and `strategy-development-report/1`, exact intake/category references,
+concrete instrument/interval identities, code/runtime/input hashes, application research receipts
+and consumed model/native reservations. Existing Yahoo SMA plans/readers keep their original shapes.
+Generic normalization is an explicit separate snapshot type, never a relabeled SMA dataset/strategy.
+The v1 compiler emits one deterministic Python specialization; only byte-identical compiler output
+may load. Preserve that output and its readers when adding a new compiler version. Source/code
+hashes and actual native runs do not establish semantic conversion, broker suitability or approval.
+See [strategy development](strategy-development.md).

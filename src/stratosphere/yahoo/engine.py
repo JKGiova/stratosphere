@@ -31,15 +31,28 @@ def run_simulation(plan: YahooPlan, snapshot: YahooSnapshot, *, multiplier=1):
         raise ValueError("Approved Yahoo input/implementation changed")
     if snapshot.request != plan.request:
         raise ValueError("Snapshot request differs from approved simulation rules")
+
+    class SmaSignals:
+        def __init__(self):
+            self.cross = SmaCross(plan.request.fast, plan.request.slow)
+
+        def push(self, bar, held):
+            return self.cross.push(bar["close"])
+
+    if len(snapshot.bars) <= plan.request.slow:
+        raise ValueError("Not enough observations for SMA warmup")
+    return run_price_simulation(plan, snapshot, SmaSignals, multiplier=multiplier)
+
+
+def run_price_simulation(plan, snapshot, signals_factory, *, multiplier=1):
+    """Trusted shared native adapter; callers own exact program/input authorization."""
     bars = snapshot.bars
     request = plan.request
     config = request.config
     if multiplier not in (1, 2):
-        raise ValueError("Only approved base and doubled-cost runs are supported")
+        raise ValueError("Only base and doubled-cost runs are supported")
     if version("nautilus_trader") != ENGINE_VERSION:
         raise ValueError("The pinned NautilusTrader engine is required")
-    if len(bars) <= request.slow:
-        raise ValueError("Not enough observations for SMA warmup")
     measured_count = len(bars)
     from nautilus_trader.backtest.engine import BacktestEngine
     from nautilus_trader.backtest.models.fee import FeeModel
@@ -105,7 +118,7 @@ def run_simulation(plan: YahooPlan, snapshot: YahooSnapshot, *, multiplier=1):
     class SmaStrategy(Strategy):
         def __init__(self):
             super().__init__()
-            self.cross = SmaCross(request.fast, request.slow)
+            self.cross = signals_factory()
             self.pending = None
             self.held = False
             self.signals = []
@@ -143,7 +156,10 @@ def run_simulation(plan: YahooPlan, snapshot: YahooSnapshot, *, multiplier=1):
             self.fills[-1]["execution_notional"] = str(abs(cash_after - cash_before + fee))
 
         def on_bar(self, bar):
-            signal = self.cross.push(str(bar.close))
+            signal = self.cross.push(
+                {key: str(getattr(bar, key)) for key in ("open", "high", "low", "close", "volume")},
+                self.held,
+            )
             if (signal == "BUY" and not self.held) or (signal == "SELL" and self.held):
                 self.signals.append({"side": signal, "signal_ns": bar.ts_event})
                 self.pending = signal, bar.ts_event

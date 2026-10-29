@@ -427,6 +427,8 @@ class StratosphereApp(App[None]):
         )
         self.campaigns = self.workspace_bridge.campaigns
         self.campaigns.recover()
+        self.development = self.workspace_bridge.development
+        self.development.recover()
         self.flow_job_id = None
         self.assessments = self.workspace_bridge.assessments
         self.report_analyses = self.workspace_bridge.report_analyses
@@ -794,6 +796,8 @@ class StratosphereApp(App[None]):
             sources=self.sources,
             yahoo=self.yahoo,
             campaigns=self.campaigns,
+            development=self.development,
+            discovery=self.workspace_bridge.discovery,
         )
         self.session.sync_research()
         self.update_status("MODEL SET · NOT YET VERIFIED")
@@ -881,7 +885,15 @@ class StratosphereApp(App[None]):
                 await self.handle_flow_command(command.action, command.args)
             elif command.action.startswith("yahoo"):
                 await self.handle_yahoo_command(command.action, command.args)
-            elif command.action in {"create", "discover", "paper-read", "intake", "intake-show"}:
+            elif command.action in {
+                "create",
+                "discover",
+                "paper-read",
+                "intake",
+                "intake-show",
+                "develop",
+                "development-show",
+            }:
                 if not self.session:
                     await self.add_message("Configure your online model with /model first.")
                 elif self.research_busy or (
@@ -1091,7 +1103,7 @@ class StratosphereApp(App[None]):
                 self.query_one("#conversation", VerticalScroll).scroll_end(animate=False)
             self.update_status("READY")
             action = self.session.last_action
-            if action and action["action"] == "flow_completed":
+            if action and action["action"] in {"flow_completed", "development_completed"}:
                 self.refresh_research_views()
             elif action and action["action"] == "flow_review":
                 await self.query_one("#conversation", VerticalScroll).mount(
@@ -1145,6 +1157,10 @@ class StratosphereApp(App[None]):
             self.update_status("CANCELED")
             raise
         except (ModelError, ResearchError) as error:
+            try:
+                self.refresh_research_views()
+            except ResearchError, ValueError, OSError:
+                pass  # An incomplete view must not hide the original operation failure.
             bubble.update_reply(
                 f"{reply}\n\n{error}",
                 label=f"{agent_label} (incomplete; not kept in model history):",
@@ -1214,8 +1230,23 @@ class StratosphereApp(App[None]):
                 self.campaigns.store.state(identity),
                 key="flow:" + identity,
             )
+        for identity in self.development.store.jobs():
+            jobs.add_row(
+                identity[:12],
+                "Strategy code development",
+                self.development.store.state(identity),
+                key="development:" + identity,
+            )
         reports = self.query_one("#reports", DataTable)
         reports.clear()
+        for identity in self.development.store.jobs():
+            if self.development.store.state(identity) == "completed":
+                reports.add_row(
+                    "Strategy code development",
+                    identity[:12],
+                    "Retained",
+                    key="development:" + identity,
+                )
         for identity in self.campaigns.store.jobs():
             if self.campaigns.store.state(identity) == "completed":
                 reports.add_row(
@@ -2216,6 +2247,18 @@ class StratosphereApp(App[None]):
         self.action_select_view("reports")
 
     async def open_report_panel(self, job_id: str, report=None, *, focus=True) -> None:
+        if job_id.startswith("development:"):
+            await self.research.require_online()
+            value = self.development.show(job_id.removeprefix("development:"))
+            self.selected_report_key = job_id
+            self.select_report_row()
+            self.query_one("#report-preview", Static).update(
+                Markdown(safe_text(value), hyperlinks=False)
+            )
+            self.query_one("#reports-empty").display = False
+            if focus:
+                self.action_select_view("reports")
+            return
         if job_id.startswith("yahoo:"):
             self.selected_report_key = job_id
             preview = self.query_one("#report-preview", Static)
@@ -2291,7 +2334,9 @@ class StratosphereApp(App[None]):
     async def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         try:
             key = str(event.row_key.value)
-            if key.startswith("flow:"):
+            if key.startswith("development:"):
+                await self.open_report_panel(key)
+            elif key.startswith("flow:"):
                 await self.handle_flow_command("flow-show", (key.removeprefix("flow:"),))
             elif key.startswith("yahoo:"):
                 await self.handle_yahoo_command("yahoo-show", (key.removeprefix("yahoo:"),))

@@ -28,6 +28,7 @@
 - MT5 orders require one exact deployment approval binding the finished strategy, evidence, account/server/mode, implementation/EA and finite limits. Native trading starts disabled. Real-account activation needs separate explicit authorization. Never convert historical Alpaca/Liquid approvals into MT5 authority or claim that connector tests complete the agent runner or verify FTMO rules. A data connection is not trading permission.
 - The orchestrator owns conversation, source discovery and strategy intake, never execution. A strategy agent evaluates a strategy trigger and proposes an investment; a position risk agent proposes exposure, capital and leverage within deterministic application limits. Source-grounded briefs are not executable strategies.
 - Keep one stable agent per exact strategy, isolated histories, exact duplicate reuse and explicit variant lineage.
+- Strategy development uses validated signal programs and application-generated Python only; never run arbitrary model/acquired code. Freeze at most three programs, four target scopes and twenty-four native-start slots, preserving every attempt and concrete variant owner. Exact re-delivery cannot replenish budgets.
 - Model output cannot approve plans, run arbitrary SQL/acquired code or submit orders.
 - Keep account diagnostics and credential access outside strategy-model tools.
 - Persist model and authorized connector credentials only in native OS secure storage, without plaintext or chained fallback.

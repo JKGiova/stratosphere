@@ -42,6 +42,7 @@ For new automatic campaigns, see the agent workflow below. The legacy path remai
 | Models/chat | `/model`, `/model-forget`, `/cancel`, `/clear` |
 | Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
 | Yahoo historical research | `/yahoo`, `/yahoo-show`, `/yahoo-approve`, `/yahoo-cancel` ([guide](yahoo-backtesting.md)) |
+| Strategy development | `/develop <brief-id> [focus]`, `/development-show <campaign-id>` ([guide](strategy-development.md)) |
 | Strategy sources | `/discover <idea>`, `/paper-read "path.pdf" [brief]`, `/intake <source-id> [brief]`, `/intake-show <brief-id>` ([guide](agent-workflow.md)) |
 | Agent research | `/create <brief>`, `/flow`, `/flow-show`, `/flow-cancel` (v1 `/flow-approve` only for compatibility) |
 | Legacy research | `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
@@ -73,10 +74,13 @@ exit workflow is planned but not implemented. Quitting never closes MT5 position
 
 Use `/create <brief>` for a supported automatic Yahoo SMA campaign. New v2 campaigns run within
 finite application limits, without research approval. Unsupported ideas enter source discovery;
-this produces a cited strategy brief, not a substitute SMA implementation. `/discover` and
+this produces a cited strategy brief, not a substitute SMA implementation. A complete brief can
+hand off automatically to its implementation specialist for bounded compiled-code research. `/discover` and
 `/paper-read` explicitly start source-based strategy intake for other families. Ask follow-up
 questions or answer missing-rule questions in chat; `/intake-show` reopens retained briefs.
-See [agent workflow](agent-workflow.md) for exact behavior, source limits and unverified conversion.
+See [agent workflow](agent-workflow.md) for source limits and
+[strategy development](strategy-development.md) for generated code, variant/market comparisons,
+retained failures and exact limits. `/develop <brief-id> [focus]` starts that handoff explicitly.
 
 Research reports do not activate MT5. The normal research-to-MT5 strategy executor remains
 unfinished; manual deployment approval has a separate exact account/implementation/limits contract.

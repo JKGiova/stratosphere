@@ -163,9 +163,23 @@ async def test_switching_provider_does_not_forward_previous_chat_or_credential(m
     monkeypatch.delenv("STRATOSPHERE_PROVIDER", raising=False)
     requests = []
 
+    class SwitchingStream(httpx.AsyncByteStream):
+        def __init__(self, content):
+            self.content = content
+
+        async def __aiter__(self):
+            yield frame(self.content).encode()
+            yield frame(finish="stop", usage={"cost": 0}).encode()
+            yield b"data: [DONE]\n\n"
+
     def handler(request):
         requests.append(request)
-        return httpx.Response(200, headers={"content-type": "text/event-stream"}, stream=Stream())
+        content = json.dumps({"action": "chat"}) if len(requests) % 2 else "OK"
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            stream=SwitchingStream(content),
+        )
 
     def factory(settings):
         kind = OpenRouterChat if settings.provider == "openrouter" else NimChat
@@ -196,10 +210,20 @@ async def test_switching_provider_does_not_forward_previous_chat_or_credential(m
         await pilot.press("enter")
         await pilot.pause()
         await app.response_worker.wait()
-    assert len(requests) == 2
+    assert len(requests) == 4
     assert requests[0].headers["authorization"] == "Bearer or-test-key"
-    assert requests[1].headers["authorization"] == "Bearer nim-test-key"
-    assert requests[1].url.host == "integrate.api.nvidia.com"
-    assert [m["content"] for m in json.loads(requests[1].content)["messages"]][1:] == [
+    assert requests[1].headers["authorization"] == "Bearer or-test-key"
+    assert all(r.headers["authorization"] == "Bearer nim-test-key" for r in requests[2:])
+    assert all(r.url.host == "integrate.api.nvidia.com" for r in requests[2:])
+    assert all(b"private previous provider conversation" not in r.content for r in requests[2:])
+    route = json.loads(json.loads(requests[2].content)["messages"][-1]["content"])
+    assert route == {
+        "request": "new question",
+        "active_strategy": None,
+        "pending_research": None,
+        "pending_intake": None,
+        "catalog": [],
+    }
+    assert [m["content"] for m in json.loads(requests[3].content)["messages"]][1:] == [
         "new question",
     ]

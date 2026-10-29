@@ -25,7 +25,7 @@ def encoded(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
 
 
-def normalize(raw, request: YahooRequest):
+def normalize(raw, request: YahooRequest, *, snapshot_contract=YahooSnapshot):
     if raw.get("schema_version") != "yfinance-returned-frame/1" or (
         raw.get("yfinance_version") != VERSION
         or raw.get("request") != request.model_dump(mode="json")
@@ -102,7 +102,7 @@ def normalize(raw, request: YahooRequest):
         for p, c in zip(bars, bars[1:], strict=False)
         if c.open_ns - p.open_ns > request.seconds * 10**9
     )
-    return YahooSnapshot(
+    return snapshot_contract(
         request=request,
         returned_frame_sha256=hashlib.sha256(encoded(raw)).hexdigest(),
         currency=currency,

@@ -253,3 +253,61 @@ async def test_pdf_strategy_intake_command_and_reopen_without_execution(ui_servi
         await send(app, pilot, "/paper health")
         await app.workers.wait_for_complete()
         assert len(provider.requests) == 1  # Existing account inspection command is preserved.
+
+
+@pytest.mark.engine
+async def test_complete_source_hands_to_agent_generates_code_backtests_and_report(
+    ui_service, tmp_path
+):
+    from test_strategy_development import definition, runner_factory, specification
+    from test_strategy_intake import Replies
+
+    from stratosphere.sources.contracts import SuppliedRequest
+
+    sources = SourceService(SourceStore(tmp_path / "sources"), online_check=online)
+    snapshot = await sources.supply(
+        SuppliedRequest(label="Authored complete strategy"),
+        b"RSI 2: buy below 30, exit above 70. One fully funded unit, hourly BTC-USD, "
+        b"next-open fills, no stops, no leverage.",
+    )
+    reading = {
+        "name": "Authored RSI",
+        "summary": "Complete test source",
+        "rules": [
+            {
+                "category": category,
+                "interpretation": "Authored " + category,
+                "evidence_indices": [1],
+            }
+            for category in ("entry", "exit", "market", "timing", "sizing", "risk")
+        ],
+        "questions": [],
+    }
+    provider = Replies(
+        reading,
+        definition(specification(algorithm="rsi")).model_dump(mode="json"),
+        {"action": "stop", "reason": "Retain native evidence", "specification": None},
+    )
+    app = StratosphereApp(
+        provider_factory=lambda settings: provider,
+        research_service=ui_service,
+        source_service=sources,
+    )
+    calls = []
+    app.development.runner = runner_factory(calls, native=True)
+    async with app.run_test(size=(144, 40)) as pilot:
+        await connect(app, pilot)
+        await send(app, pilot, "/intake " + snapshot.id)
+        await app.workers.wait_for_complete()
+        assert app.session.last_action["action"] == "development_completed"
+        job = app.session.last_action["id"]
+        report = app.development.report(job)
+        assert report["native_starts"] == 2 and report["results"][0]["state"] == "completed"
+        assert app.query_one("#strategies", DataTable).row_count >= 1
+        assert app.query_one("#reports", DataTable).get_row_index("development:" + job) >= 0
+        await app.open_report_panel("development:" + job)
+        assert app.active_view == "reports"
+        before = len(calls)
+        await send(app, pilot, "/development-show " + job)
+        await app.workers.wait_for_complete()
+        assert len(calls) == before and len(provider.requests) == 3

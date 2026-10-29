@@ -37,14 +37,16 @@ passage indices; the application attaches exact text, offsets, source hashes and
 Missing rule categories add questions. A valid reference proves a literal passage exists, not that
 its interpretation or implementation is correct. The user-supplied idea is retained and distinguished
 from acquired evidence. Briefs are sealed, versioned and readable with `/intake-show <brief-id>`.
-They do not register a strategy, start backtests, approve deployment or submit orders.
+Source acquisition itself grants no registration, backtest, approval or order authority. A complete
+brief can pass to the separate application-authorized [strategy development](strategy-development.md)
+stage, which formalizes/registers a definition before bounded code generation and testing.
 
 Follow-up answers reuse verified retained sources and create a new brief with explicit parent lineage;
 the old brief stays immutable. Conversation drafts remain isolated by the selected strategy, accept
 at most six follow-up answers, and clear on `cancel`, `never mind`, `/clear` or application restart.
 Unrelated chat does not consume the draft. Unsupported `/create` ideas enter this intake path rather
-than being silently replaced by SMA. New executable families and verified specialist handoff remain
-separate development gates.
+than being silently replaced by SMA. Complete briefs now hand off to the strategy specialist;
+[development](strategy-development.md) owns the exact language, budget and verification limits.
 
 ## Implemented research
 
@@ -67,7 +69,8 @@ conversation also discards its draft. Drafts do not survive application restart.
 No campaign starts while questions remain. Once ready, the complete clarified brief is handed to
 bounded research. Failed model calls retain the previous draft, while a consumed preparation/run
 is not automatically replayed as another clarification. A new `/create` starts a fresh brief.
-Source intake can describe other families; executable research remains SMA-only.
+Source intake can describe other families. Legacy `/create` campaigns remain SMA-only; the
+specialist compiler supports the SMA/EMA/RSI expression language described in its focused guide.
 
 Use `/create`, `/flow`, `/flow-show`, `/flow-cancel` and the historical research/report/source
 commands in [usage](usage.md). Successful research is not approval or evidence of suitability for a

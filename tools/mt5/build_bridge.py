@@ -38,9 +38,11 @@ def main():
     built_source = output / "StratosphereBridge.mq5"
     built_source.write_bytes(source.replace(b"SOURCE_SHA256", digest.encode()))
     log = output / "compile.log"
+
     # Wine's Z: mapping exposes absolute POSIX paths. Native Windows uses its ordinary paths.
     def native(p):
         return "Z:" + str(p).replace("/", "\\") if os.name != "nt" else str(p)
+
     command = ([str(wine)] if wine else []) + [
         str(terminal / "metaeditor64.exe"),
         "/compile:" + native(built_source),

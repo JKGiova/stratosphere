@@ -319,3 +319,21 @@ partial/late/conflicting fills and reserved capital until reconciliation. Extern
 stream gaps/revisions, stale data and observed loss stops cannot silently clear across restart.
 Historical Alpaca/Liquid paper contracts remain readers only; active orders use the separate MT5
 deployment/bridge contract above. No historical grant or paper mandate transfers authority.
+
+## Compiled strategy-agent development
+
+A complete sealed intake can pass to its exact registered strategy specialist under finite
+application research policy. Validate source-rule indices and typed program capabilities before
+registration/compilation. The application emits code; only bytes exactly equal to the versioned
+compiler output may run in credential-free children. Never execute arbitrary model/acquired Python
+or let the model alter a loader, worker path, account, environment or source/evidence check.
+Freeze source, owner, runtime, four exact data scopes, costs/windows/quantity, three program slots,
+twelve candidate cells and twenty-four native-start slots. Initial definition plus two refinements
+share three specialist model slots. Record each slot before use; failures/cancellation consume it.
+No automatic replay or budget replenishment; exact re-delivery reuses the retained campaign.
+Every behavior/market/interval variant gets exact ownership and lineage; do not move its returns
+to the parent. Revisions see bounded own measured summaries and cannot change frozen market, cost,
+sizing or execution scope. Retain blocked datasets, failed cells, code, partials and all variants.
+Source citations and compiled/native checks do not prove faithful conversion. Descriptive year and
+prior-direction buckets are not predictive regimes, independent holdouts or a global-best claim.
+A selected historical case grants no final approval, portfolio assignment or MT5 authority.

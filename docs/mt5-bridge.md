@@ -149,7 +149,14 @@ Current verification distinguishes authored peer lifecycle tests, actual compile
 read-only connected checks and actual broker orders. No broker order is sent by installation/tests.
 
 The Intel macOS build compiled with zero errors/warnings. Broad regressions passed 1,419 core and
-39 engine tests; subsequent bridge hardening passed the final 55-test focused run. The active EA
-connection check remains pending attachment, and no actual broker order has been sent. Private
-logs/build receipts are retained under `reports/mt5/connector-verification`. None of these checks
+39 engine tests; subsequent bridge hardening passed the final 55-test focused run. An actual
+connected Intel macOS check passed on October 29, 2026 against FTMO-Demo: account status,
+XAUUSD specification/quote, 205 H1 and D1 closed bars, ten M1 bars, positions, pending orders and
+bounded recent deal history. A second quote's timestamp advanced. The reported EA source identifier
+matched the reviewed build; this remains a local compatibility observation, not independent
+executable attestation. Native trading inputs and terminal algorithmic trading were disabled;
+no broker checks or orders were submitted. Private connected responses/hashes are retained under
+`reports/mt5/connected-20261029`; compilation/fixture logs remain under
+`reports/mt5/connector-verification`. Disconnect/account-switch/restart and sustained feed tests
+remain pending. None of these checks
 certifies FTMO rules, sustained operation or the automatic strategy-agent runner.

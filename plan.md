@@ -1,6 +1,6 @@
 # stratosphere development plan
 
-Updated: October 28, 2026. This is the single active development plan.
+Updated: October 29, 2026. This is the single active development plan.
 
 ## Product and decisions
 
@@ -36,15 +36,15 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Automatic research | New v2 campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports and TUI views | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
 | Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
-| MT5 bridge | Local typed EA/client, exact account/session binding, account/specification/quote/bar/position/order/deal reads; private durable request journal | Linux deployment, sustained feed freshness, timestamp/session/contract-cost semantics and installed EA verification require checks |
+| MT5 bridge | Local typed EA/client, exact account/session binding and private durable journal; actual Intel macOS FTMO demo reads passed for account/specs/advancing quotes/M1-H1-D1 candles/positions/orders/deals with trading disabled | Linux deployment, disconnect/account-switch/restart, sustained feed freshness, timestamp/session/cost semantics and independent executable attestation remain unverified |
 | MT5 execution | Exact operator deployment approval, finite order/volume/cash-risk/margin/spread/equity bounds, mandatory SL, native checks, FOK/IOC entry, owned close/revoke, no uncertain replay | One account position at a time; authored lifecycle tests and compilation are not actual broker order acceptance. No automatic agent runner, FTMO daily/reset rules or multi-strategy allocation integration yet |
 | Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Historical provider fixtures are not active accounts or transferred approvals |
 | Gold data | Actual MT5 export validated for all 21 intervals; H2–D1 reach June 2004 | Short intervals hit 100k terminal limit; full archives/UTC/session/cost semantics remain unverified; this is acquisition, not a CFD backtest |
 
 ## Next development gates
 
-1. **Verify the connected MT5 bridge.** Attach the compiled EA with trading disabled. Verify exact
-   account/session, real read-only data, disconnect/account-switch/restart behavior and private
+1. **Extend connected MT5 verification.** Initial real read-only client/EA checks passed with
+   trading disabled. Verify disconnect/account-switch/restart behavior, sustained feed and private
    evidence retention. Then test broker checks/order/fill/close semantics only under one reviewed
    exact finished-strategy deployment and limits. Do not infer acceptance from authored tests.
 2. **Connect the agent workflow to MT5.** Build a faithful CFD research and final-report validator,

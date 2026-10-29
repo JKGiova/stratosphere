@@ -8,11 +8,14 @@ Public YouTube/X/TradingView readers are limited; metadata or a visible page doe
 access to transcripts, media or Pine source. Instagram acquisition is incomplete.
 
 Use `/source` for supported URLs, `/source-text` or `/source-file` for supplied UTF-8 material,
-and `/source-captions` for explicit WebVTT/SRT files. Supplied attribution is not provider acquisition
+and `/source-captions` for explicit WebVTT/SRT files. `/source-file` now also accepts PDFs with
+physical-page text and explicit extraction limits; see [strategy intake](agent-workflow.md). Supplied attribution is not provider acquisition
 or verified publication identity. See `/help` for exact arguments.
 
 Acquisition does not register, approve, backtest or activate a strategy. Do not follow repository
-symlinks/submodules, import acquired code, execute widgets or open provider-returned links.
+symlinks/submodules, import acquired code or execute widgets. Automatic strategy-source discovery
+may fetch at most two validated public search results through its bounded reader; this grants no
+authority to open unrelated provider links or use authenticated browser sessions.
 Source credentials remain in memory and scoped to their intended API host.
 
 ## Reviews

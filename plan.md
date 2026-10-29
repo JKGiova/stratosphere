@@ -19,9 +19,11 @@ transfers authority to MT5. Broker login stays inside the terminal. Connection/i
 activates trading. Real-account activation requires separate explicit application and terminal
 permission. No challenge purchase is authorized.
 
-The requested workflow is orchestrator bridge → exact strategy research agent → final report/package
-→ one user approval → portfolio risk agent → binary entry review → position sizing → application risk
-gates → automatic orders within approved limits. Research runs under finite app limits, without a
+The requested workflow is orchestrator intake → exact strategy research agent → final report/package
+→ one user approval → portfolio capital allocation → strategy trigger/agent investment proposal
+→ position risk review (exposure, capital and leverage) → application gates → execution within limits.
+The orchestrator never submits orders; models only propose and deterministic application code enforces
+limits and owns broker submission. Research runs under finite app limits, without a
 human approval prompt. There is no per-order approval within a reviewed MT5 deployment. Existing historical
 protocols retain their original readers and authorization semantics.
 
@@ -32,7 +34,7 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 
 | Area | Implemented | Limits / remaining verification |
 | --- | --- | --- |
-| Orchestrator and specialists | Typed research routing, exact stable owners, isolated histories, duplicate reuse and variant lineage | Supported family is SMA; broader tools, faithful conversion and regime research remain unfinished |
+| Orchestrator and specialists | Typed routing, isolated clarification drafts, public Wikipedia/Crossref discovery, local PDF/page extraction and sealed source-grounded strategy briefs; exact registered owners, duplicate reuse and variant lineage | Descriptions may cover any family; executable research is SMA-only. Verified brief-to-specialist implementation, faithful conversion and regime research remain unfinished |
 | Automatic research | New v2 campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports and TUI views | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
 | Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
@@ -72,6 +74,10 @@ and environmental limits. Keep native integration tests in the engine-marked sui
 orchestrator/TUI paths; engine-free compatibility must not depend on an installed native engine.
 The cross-platform application matrix installs verified dependency wheels without compiling them;
 external wheel release readiness and application acceptance remain separate checks.
+Source-intake verification on October 29, 2026 includes actual local PDF parsing, authored HTTP/model
+fixtures and an actual public Wikipedia/Crossref search plus RSI page retrieval. These checks do not
+establish live-model extraction reliability, faithful strategy conversion or specialist execution.
+
 Distinguish authored fixtures/native simulation, actual model calls,
 provider checks and installed-client readiness. No phase or release is complete from a narrower test,
 profitable replay or adapter implementation. Require sustained operation, recovery/exit controls,

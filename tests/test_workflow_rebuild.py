@@ -594,3 +594,321 @@ async def test_native_campaign_to_final_approval_and_paper_pipeline(
     assert len(adapter.posts) == 1 and len(models.calls) == 3
     assert campaigns.report(identity) == report
     assert campaigns.calls == ["fetch", "simulate", "simulate"]
+
+
+@pytest.fixture
+def bridge_factory(campaigns, tmp_path):
+    from stratosphere.research.service import ResearchService
+    from stratosphere.research.store import ResearchStore
+    from stratosphere.workflow.runtime import Orchestrator
+
+    def make(provider):
+        async def online():
+            pass
+
+        return Orchestrator(
+            provider,
+            campaigns.database,
+            ResearchService(ResearchStore(tmp_path / "bridge-research"), online_check=online),
+            yahoo=campaigns.yahoo,
+            campaigns=campaigns,
+        )
+
+    return make
+
+
+class WorkflowReplies:
+    def __init__(self, *replies):
+        self.replies = iter(replies)
+        self.requests = []
+
+    async def stream(self, messages):
+        self.requests.append(messages)
+        reply = next(self.replies)
+        if isinstance(reply, BaseException):
+            raise reply
+        yield reply if isinstance(reply, str) else json.dumps(reply)
+
+
+def unresolved():
+    return ResearchProposal(
+        status="needs_clarification",
+        name="Clarification fixture",
+        hypothesis="Compare supported SMA crossings",
+        candidates=(),
+        questions=("Which symbol and historical dates?",),
+    ).model_dump(mode="json")
+
+
+async def collect_bridge(bridge, text):
+    return "".join([part async for part in bridge.respond(text)])
+
+
+async def test_clarification_preserves_original_brief_and_exact_handoff(
+    campaigns, request_spec, bridge_factory, monkeypatch
+):
+    provider = WorkflowReplies(
+        unresolved(),
+        {"action": "clarify", "strategy_id": None},
+        proposal(request_spec).model_dump(mode="json"),
+    )
+    bridge = bridge_factory(provider)
+    original = "/create SMA 3/8 on hourly candles"
+    assert "Which symbol" in await collect_bridge(bridge, original)
+    handoffs = []
+
+    async def capture(brief, proposal, *, parent, automatic):
+        handoffs.append((brief, proposal, parent, automatic))
+        raise ResearchError("Captured before acquisition")
+
+    monkeypatch.setattr(campaigns, "prepare", capture)
+    with pytest.raises(ResearchError, match="Captured"):
+        await collect_bridge(bridge, "BTC-USD, January 1 to January 3, 2025")
+    brief, value, parent, automatic = handoffs[0]
+    assert brief.startswith("SMA 3/8 on hourly candles")
+    assert "BTC-USD, January 1 to January 3, 2025" in brief
+    assert value.candidates == (request_spec,)
+    assert parent is None and automatic is True
+    assert bridge.research_drafts == {}  # Failure cannot silently retry a consumed handoff.
+    assert campaigns.calls == []
+
+
+async def test_unrelated_chat_does_not_consume_pending_research(bridge_factory):
+    provider = WorkflowReplies(
+        unresolved(),
+        {"action": "chat", "strategy_id": None},
+        "Research supports SMA.",
+    )
+    bridge = bridge_factory(provider)
+    await collect_bridge(bridge, "/create SMA 3/8")
+    draft = bridge.research_drafts[None]
+    assert await collect_bridge(bridge, "What can you do?") == "Research supports SMA."
+    assert bridge.research_drafts[None] == draft
+    assert "pending_research" in provider.requests[1][-1]["content"]
+
+
+@pytest.mark.parametrize(
+    "command", ["backtest SMA 3/8", "please research gold", "test SMA crossover"]
+)
+async def test_empty_library_can_start_explicit_research(command, bridge_factory):
+    provider = WorkflowReplies(unresolved())
+    bridge = bridge_factory(provider)
+    assert "needs_clarification" in await collect_bridge(bridge, command)
+    assert len(provider.requests) == 1  # No missing-owner chat fallback.
+    assert None in bridge.research_drafts
+
+
+async def test_clarification_isolated_by_selection_and_clear(
+    campaigns, request_spec, bridge_factory
+):
+    provider = WorkflowReplies(unresolved(), "Selected strategy chat")
+    bridge = bridge_factory(provider)
+    await collect_bridge(bridge, "/create SMA 3/8")
+    record = campaigns.database.register(request_spec.specification(), "Other", {})
+    bridge.select(record["public_id"])
+    # A new selection must not inherit the unowned creation draft.
+    assert bridge.active_strategy not in bridge.research_drafts
+    bridge.clear()
+    assert None in bridge.research_drafts
+    bridge.active_strategy = None
+    bridge.clear()
+    assert not bridge.research_drafts
+
+
+async def test_cancel_research_draft_has_no_model_or_native_call(bridge_factory, campaigns):
+    provider = WorkflowReplies(unresolved())
+    bridge = bridge_factory(provider)
+    await collect_bridge(bridge, "/create SMA 3/8")
+    assert "canceled" in await collect_bridge(bridge, "cancel")
+    assert bridge.research_drafts == {}
+    assert len(provider.requests) == 1 and campaigns.calls == []
+
+
+async def test_failed_clarification_retains_draft_without_committing_answer(bridge_factory):
+    from stratosphere.models.streaming import ModelError
+
+    provider = WorkflowReplies(
+        unresolved(),
+        {"action": "clarify", "strategy_id": None},
+        ModelError("offline"),
+    )
+    bridge = bridge_factory(provider)
+    await collect_bridge(bridge, "/create SMA 3/8")
+    draft = bridge.research_drafts[None]
+    with pytest.raises(ModelError, match="offline"):
+        await collect_bridge(bridge, "BTC-USD")
+    assert bridge.research_drafts[None] == draft
+    assert bridge.busy is False
+
+
+async def test_clarification_cannot_change_owner(campaigns, request_spec, bridge_factory):
+    from stratosphere.models.streaming import ModelError
+
+    provider = WorkflowReplies(unresolved())
+    bridge = bridge_factory(provider)
+    await collect_bridge(bridge, "/create SMA 3/8")
+    other = campaigns.database.register(request_spec.specification(), "Other", {})
+    provider.replies = iter([json.dumps({"action": "clarify", "strategy_id": other["public_id"]})])
+    with pytest.raises(ModelError, match="exact pending"):
+        await collect_bridge(bridge, "BTC-USD")
+    assert bridge.research_drafts[None].owner is None
+
+
+async def test_selection_changes_during_routing_do_not_retarget_request(
+    campaigns, request_spec, bridge_factory
+):
+    records = [
+        campaigns.database.register(
+            request_spec.model_copy(update={"fast": fast}).specification(), name, {}
+        )
+        for fast, name in ((3, "First"), (4, "Second"))
+    ]
+    entered, proceed = asyncio.Event(), asyncio.Event()
+
+    class Provider:
+        async def stream(self, messages):
+            entered.set()
+            await proceed.wait()
+            yield '{"action":"delegate","strategy_id":null}'
+
+    bridge = bridge_factory(Provider())
+    first, second = (r["public_id"] for r in records)
+    bridge.select(first)
+    owners = []
+
+    async def respond(text):
+        owners.append(first)
+        yield "Pinned strategy response"
+
+    bridge.agent(first).respond = respond
+    task = asyncio.create_task(collect_bridge(bridge, "Explain this strategy"))
+    await entered.wait()
+    bridge.select(second)
+    proceed.set()
+    assert await task == "Pinned strategy response"
+    assert owners == [first] and bridge.responding_strategy == first
+    assert bridge.active_strategy == second
+
+
+async def test_clarification_budget_stops_without_additional_planner_call(bridge_factory):
+    from dataclasses import replace
+
+    provider = WorkflowReplies(unresolved(), {"action": "clarify", "strategy_id": None})
+    bridge = bridge_factory(provider)
+    await collect_bridge(bridge, "/create SMA 3/8")
+    bridge.research_drafts[None] = replace(bridge.research_drafts[None], turns=6)
+    with pytest.raises(ResearchError, match="Clarification limit"):
+        await collect_bridge(bridge, "Try another guess")
+    assert len(provider.requests) == 2
+    assert bridge.research_drafts[None].turns == 6
+
+
+async def test_pending_brief_is_not_sent_when_another_strategy_is_selected(
+    campaigns, request_spec, bridge_factory
+):
+    provider = WorkflowReplies(unresolved(), {"action": "chat", "strategy_id": None}, "Hello")
+    bridge = bridge_factory(provider)
+    await collect_bridge(bridge, "/create PRIVATE_DRAFT_MARKER SMA 3/8")
+    other = campaigns.database.register(request_spec.specification(), "Other", {})
+    bridge.select(other["public_id"])
+    assert await collect_bridge(bridge, "Hello") == "Hello"
+    for request in provider.requests[1:]:
+        assert "PRIVATE_DRAFT_MARKER" not in json.dumps(request)
+    assert None in bridge.research_drafts
+
+
+async def test_unsupported_proposal_delegates_to_source_intake(
+    bridge_factory, campaigns, monkeypatch
+):
+    unsupported = unresolved() | {"status": "unsupported", "questions": ["RSI is unsupported."]}
+    provider = WorkflowReplies(unsupported)
+    bridge = bridge_factory(provider)
+    calls = []
+
+    async def discover(brief, *args):
+        calls.append(brief)
+        return {
+            "name": "RSI intake",
+            "summary": "Source research",
+            "rules": [],
+            "questions": ["Which RSI rules?"],
+            "id": "a" * 32,
+        }
+
+    monkeypatch.setattr(bridge.discovery, "create", discover)
+    assert "RSI intake" in await collect_bridge(bridge, "/create RSI strategy")
+    assert calls == ["RSI strategy"]
+    assert bridge.research_drafts == {} and campaigns.calls == []
+
+
+async def test_source_intake_conversation_pins_prior_without_research_or_orders(
+    bridge_factory, campaigns, monkeypatch
+):
+    provider = WorkflowReplies({"action": "clarify_intake", "strategy_id": None})
+    bridge = bridge_factory(provider)
+    calls = []
+
+    async def discover(brief, *args, **kwargs):
+        calls.append((brief, kwargs))
+        return {
+            "id": str(len(calls)) * 32,
+            "name": "RSI source brief",
+            "summary": "Read rules",
+            "rules": [],
+            "questions": ["Which exit?"],
+        }
+
+    monkeypatch.setattr(bridge.discovery, "create", discover)
+    await collect_bridge(bridge, "/discover RSI reversal")
+    await collect_bridge(bridge, "Exit when RSI crosses 70")
+    assert calls[1][1] == {"prior": "1" * 32}
+    assert "RSI reversal" in calls[1][0] and "crosses 70" in calls[1][0]
+    assert bridge.intake_drafts[None].identity == "2" * 32
+    assert bridge.intake_drafts[None].turns == 1 and campaigns.calls == []
+    bridge.clear()
+    assert not bridge.intake_drafts
+
+
+async def test_natural_strategy_url_routes_to_intake_without_model_routing(
+    bridge_factory, campaigns, monkeypatch
+):
+    bridge = bridge_factory(WorkflowReplies())
+    calls = []
+
+    async def discover(brief, *args, **kwargs):
+        calls.append(kwargs)
+        return {
+            "id": "a" * 32,
+            "name": "Paper brief",
+            "summary": "Read rules",
+            "rules": [],
+            "questions": [],
+        }
+
+    monkeypatch.setattr(bridge.discovery, "create", discover)
+    await collect_bridge(bridge, "Read this strategy paper https://example.org/paper.pdf")
+    assert calls == [{"url": "https://example.org/paper.pdf"}] and campaigns.calls == []
+
+
+async def test_unknown_strategy_name_needs_no_keyword_or_existing_library(
+    bridge_factory, monkeypatch
+):
+    provider = WorkflowReplies({"action": "discover", "strategy_id": None})
+    bridge = bridge_factory(provider)
+    calls = []
+
+    async def discover(brief, *args):
+        calls.append(brief)
+        return {
+            "id": "a" * 32,
+            "name": "Unknown idea",
+            "summary": "Source brief",
+            "rules": [],
+            "questions": ["Can you provide the original paper?"],
+        }
+
+    monkeypatch.setattr(bridge.discovery, "create", discover)
+    request = "Tell me about the hypothetical XYZ123 approach"
+    await collect_bridge(bridge, request)
+    assert calls == [request]
+    assert len(provider.requests) == 1

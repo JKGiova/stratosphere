@@ -12,6 +12,7 @@ dependencies = [
   "keyring==25.7.0",
   "langgraph==1.2.15",
   "pydantic==2.14.1",
+  "pypdf==6.21.4",
   "textual==8.2.8",
   "yfinance==1.7.0",
 ]

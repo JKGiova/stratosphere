@@ -10,7 +10,7 @@
 | Local library | Canonical identities, duplicate reuse, provenance, lineage, jobs and reports | `src/stratosphere/registry/` |
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
-| Source/evidence services | Acquisition, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
+| Source/evidence services | Public discovery, local PDF extraction, cited strategy briefs, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
 | Provider boundary | Typed local MT5 EA/client data and order gateway; retired provider compatibility | `src/stratosphere/mt5/`, `tools/mt5/`, `src/stratosphere/legacy/` |
 | Portfolio role | MT5 / FTMO, unbound until exact account read; no implicit activation | `src/stratosphere/workflow/portfolio_setup.py` |
 | Historical paper workflow | Retained packages/approval, journal, reviews, signals and fixtures; no active broker routing | `src/stratosphere/workflow/portfolios.py`, `execution.py` |

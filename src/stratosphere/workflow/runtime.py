@@ -3,6 +3,8 @@
 import asyncio
 import json
 import re
+import shlex
+from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import Field
@@ -10,7 +12,7 @@ from pydantic import Field
 from stratosphere.agents.creation import creation_request
 from stratosphere.agents.orchestrator import Orchestrator as HistoricalServices
 from stratosphere.agents.orchestrator import StrategyAgent as HistoricalReaders
-from stratosphere.agents.orchestrator import requested_study_pairs
+from stratosphere.agents.orchestrator import requested_study_pairs, source_references
 from stratosphere.chat import ChatSession
 from stratosphere.models.streaming import ModelError
 from stratosphere.models.structured import structured_response
@@ -22,12 +24,16 @@ from stratosphere.research.store import ResearchError
 from stratosphere.sources.registration import RegistrationRequest, registration_markdown
 from stratosphere.sources.review import review_markdown
 from stratosphere.workflow.contracts import ResearchProposal
+from stratosphere.workflow.discovery import StrategyDiscovery, brief_markdown
 from stratosphere.workflow.research import ResearchCampaigns, report_markdown
 from stratosphere.yahoo.service import YahooBacktests
 
 BRIDGE_PROMPT = """You are stratosphere's user-facing bridge to strategy specialists.
-Explain capabilities and clarify intent. Strategy research and conclusions belong to the exact
-strategy's agent. Research is historical Yahoo only. /create proposes a bounded SMA research
+Explain capabilities and clarify intent. Use /discover to research strategy sources online,
+/paper-read to extract a local PDF, and /intake to interpret a retained source. These produce cited
+research briefs for any strategy family, not executable conversions. Strategy conclusions belong
+to the exact strategy's agent. Executable research is historical Yahoo only. /create proposes
+bounded SMA research
 campaign that runs under finite app limits; /flow reviews retained campaigns. Models cannot approve,
 register acquired code, change portfolio budgets or send orders. Finished strategy approval is a
 separate explicit user operation.
@@ -61,8 +67,32 @@ This proposes research only; it is not final-strategy approval, portfolio assign
 
 
 class BridgeRoute(Contract):
-    action: Literal["chat", "create", "delegate", "research", "catalog"]
+    action: Literal[
+        "chat", "create", "delegate", "research", "catalog", "clarify", "discover", "clarify_intake"
+    ]
     strategy_id: str | None = Field(default=None, pattern=r"^[0-9]{24}$")
+
+
+@dataclass(frozen=True)
+class ResearchDraft:
+    """Ephemeral clarification state, isolated by the selection at request time."""
+
+    brief: str
+    action: Literal["create", "research"]
+    owner: str | None
+    questions: tuple[str, ...]
+    turns: int = 0
+
+
+_CURRENT_SELECTION = object()
+
+
+@dataclass(frozen=True)
+class IntakeDraft:
+    brief: str
+    identity: str
+    questions: tuple[str, ...]
+    turns: int = 0
 
 
 class StrategyAgent(HistoricalReaders):
@@ -109,6 +139,21 @@ class Orchestrator(HistoricalServices):
         )
         self.general = ChatSession(self.provider, system_prompt=BRIDGE_PROMPT)
         self.active_campaign = None
+        self.research_drafts: dict[str | None, ResearchDraft] = {}
+        self.discovery = StrategyDiscovery(self.sources)
+        self.intake_drafts: dict[str | None, IntakeDraft] = {}
+
+    def clear(self):
+        self.research_drafts.pop(self.active_strategy, None)
+        self.intake_drafts.pop(self.active_strategy, None)
+        super().clear()
+
+    def retain_intake(self, value, brief, selection, *, turns=0):
+        self.last_action = {"action": "strategy_intake", "id": value["id"]}
+        self.research_drafts.pop(selection, None)
+        self.intake_drafts[selection] = IntakeDraft(
+            brief, value["id"], tuple(value["questions"]), turns
+        )
 
     def agent(self, public_id=None):
         identity = public_id or self.active_strategy
@@ -177,13 +222,18 @@ class Orchestrator(HistoricalServices):
                 raise ResearchError("The research proposal changed explicitly requested intervals")
         return proposal
 
-    async def route(self, text):
-        selected = self.active_strategy
+    async def route(self, text, *, selected=_CURRENT_SELECTION, draft=None, intake=None):
+        if selected is _CURRENT_SELECTION:
+            selected = self.active_strategy
         if creation_request(text) is not None:
             return BridgeRoute(action="create")
+        # An explicit imperative can start research before the library has an owner.
+        # Capability validation still happens in the typed planner, never in this matcher.
         catalog = self.database.catalog()
-        if not catalog:
-            return BridgeRoute(action="chat")
+        if not catalog and re.match(
+            r"^\s*(?:please\s+)?(?:backtest|research|test)\s+\S", text, re.I
+        ):
+            return BridgeRoute(action="research" if selected else "create", strategy_id=selected)
         async with asyncio.timeout(180):
             route = await structured_response(
                 self.provider,
@@ -194,6 +244,13 @@ class Orchestrator(HistoricalServices):
                             "Route: chat for general questions; delegate for strategy questions; "
                             "research only for explicit backtest/research requests; "
                             "catalog to list strategies. Creation uses a deterministic route. "
+                            "discover for discussing or finding an unregistered strategy or paper, "
+                            "including strategy families unsupported by the SMA backtester. "
+                            "clarify only when the user answers the supplied pending research "
+                            "questions; unrelated chat, catalog or delegation must not consume "
+                            "the draft. For clarify use only its exact owner or null. "
+                            "clarify_intake for a follow-up to the pending source brief, with "
+                            "strategy_id null; unrelated chat must not consume it. "
                             "Use only a supplied exact ID; never infer another target. "
                             "No approval, portfolio, account or order actions exist in this route."
                         ),
@@ -204,6 +261,20 @@ class Orchestrator(HistoricalServices):
                             {
                                 "request": text,
                                 "active_strategy": selected,
+                                "pending_research": (
+                                    {
+                                        "brief": draft.brief,
+                                        "questions": draft.questions,
+                                        "owner": draft.owner,
+                                    }
+                                    if draft
+                                    else None
+                                ),
+                                "pending_intake": (
+                                    {"brief": intake.brief, "questions": intake.questions}
+                                    if intake
+                                    else None
+                                ),
                                 "catalog": [
                                     {"id": s["public_id"], "name": s["name"]} for s in catalog
                                 ],
@@ -215,6 +286,14 @@ class Orchestrator(HistoricalServices):
             )
         if route.action == "create":
             raise ModelError("Use /create for an explicit new-strategy request")
+        if route.action == "clarify":
+            if draft is None or route.strategy_id != draft.owner or text.lstrip().startswith("/"):
+                raise ModelError("Clarification requires the exact pending research owner")
+            return route
+        if route.action == "clarify_intake":
+            if intake is None or route.strategy_id is not None or text.lstrip().startswith("/"):
+                raise ModelError("Source clarification requires the exact pending intake")
+            return route
         if route.strategy_id:
             self.database.strategy(route.strategy_id)
             if route.strategy_id != selected:
@@ -238,6 +317,47 @@ class Orchestrator(HistoricalServices):
         self.busy, self.last_action, self.responding_strategy = True, None, None
         selected = self.active_strategy
         try:
+            # Explicit local paths/URLs originate with the user, never with model output.
+            if text.startswith(("/discover ", "/paper-read ", "/intake ", "/intake-show ")):
+                self.creator.safe({"request": text}, self.provider)
+                command_parts = text.split(maxsplit=1)
+                if len(command_parts) != 2 or not command_parts[1].strip():
+                    raise ResearchError("Supply the strategy brief, PDF path or source ID")
+                command, argument = command_parts
+                if command == "/intake-show":
+                    await self.sources.require_online()
+                    yield brief_markdown(self.discovery.open(argument.strip()))
+                    return
+                options = {}
+                brief = argument
+                if command == "/paper-read":
+                    try:
+                        parts = shlex.split(argument)
+                    except ValueError:
+                        raise ResearchError("Close the quoted PDF path and retry") from None
+                    if not parts or not parts[0].strip():
+                        raise ResearchError("Supply an explicit PDF path")
+                    options["pdf"] = parts[0]
+                    brief = " ".join(parts[1:]) or "Extract the strategy rules from this paper"
+                elif command == "/intake":
+                    parts = argument.split(maxsplit=1)
+                    options["source_id"] = parts[0]
+                    brief = parts[1] if len(parts) > 1 else "Extract this source's strategy rules"
+                value = await self.discovery.create(brief, self.provider, self.model_ref, **options)
+                self.retain_intake(value, brief, selected)
+                yield brief_markdown(value)
+                return
+            urls, _ = source_references(text)
+            if len(urls) == 1 and re.search(
+                r"\b(?:strategy|paper|extract|read|research)\b", text, re.I
+            ):
+                self.creator.safe({"request": text}, self.provider)
+                value = await self.discovery.create(
+                    text, self.provider, self.model_ref, url=urls[0]
+                )
+                self.retain_intake(value, text, selected)
+                yield brief_markdown(value)
+                return
             inspection = natural_account_inspection(text)
             if inspection is not None:
                 self.last_action = {"action": "paper_inspection", "args": inspection}
@@ -299,19 +419,72 @@ class Orchestrator(HistoricalServices):
                 self.last_action = {"action": "report-data", "page": page}
                 yield page.markdown()
                 return
-            route = await self.route(text)
+            self.creator.safe({"request": text}, self.provider)
+            draft = self.research_drafts.get(selected)
+            intake = self.intake_drafts.get(selected)
+            if (draft or intake) and re.fullmatch(
+                r"\s*(?:cancel|never mind|nevermind)\s*[.!]?\s*", text, re.I
+            ):
+                self.research_drafts.pop(selected, None)
+                self.intake_drafts.pop(selected, None)
+                yield "Research draft canceled. No campaign was started."
+                return
+            # Explicit commands and new ideas are never mistaken for clarification answers.
+            route = await self.route(text, selected=selected, draft=draft, intake=intake)
+            if route.action == "clarify_intake":
+                if intake.turns >= 6:
+                    raise ResearchError("Clarification limit reached; start a new /intake brief")
+                brief = intake.brief + "\n\nUser clarification: " + text
+                value = await self.discovery.create(
+                    brief, self.provider, self.model_ref, prior=intake.identity
+                )
+                self.retain_intake(value, brief, selected, turns=intake.turns + 1)
+                yield brief_markdown(value)
+                return
+            continuation = route.action == "clarify"
+            if continuation:
+                if draft.turns >= 6:
+                    raise ResearchError("Clarification limit reached; use /create for a new brief")
+                route = BridgeRoute(action=draft.action, strategy_id=draft.owner)
             owner = route.strategy_id or selected
+            if route.action == "discover":
+                value = await self.discovery.create(text, self.provider, self.model_ref)
+                self.retain_intake(value, text, selected)
+                yield brief_markdown(value)
+                return
             if route.action in {"create", "research"}:
                 if route.action == "research" and owner is None:
                     yield "Select the exact strategy before requesting research."
                     return
-                brief = creation_request(text) or text
+                brief = (
+                    draft.brief + "\n\nUser clarification: " + text
+                    if continuation
+                    else creation_request(text) or text
+                )
                 proposal = await self.propose(
                     brief, strategy_id=owner if route.action == "research" else None
                 )
                 if proposal.status != "ready":
+                    if proposal.status == "needs_clarification":
+                        self.intake_drafts.pop(selected, None)
+                        self.research_drafts[selected] = ResearchDraft(
+                            brief,
+                            route.action,
+                            owner if route.action == "research" else None,
+                            proposal.questions,
+                            draft.turns + 1 if continuation else 0,
+                        )
+                    else:
+                        self.research_drafts.pop(selected, None)
+                        value = await self.discovery.create(brief, self.provider, self.model_ref)
+                        self.retain_intake(value, brief, selected)
+                        yield brief_markdown(value)
+                        return
                     yield proposal.status + ": " + "\n".join(proposal.questions)
                     return
+                # A consumed preparation/run never becomes an implicit clarification retry.
+                self.research_drafts.pop(selected, None)
+                self.intake_drafts.pop(selected, None)
                 identity, plan = await self.campaigns.prepare(
                     brief,
                     proposal,

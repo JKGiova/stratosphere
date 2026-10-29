@@ -224,3 +224,32 @@ async def test_tui_data_capability_inspection_is_online_read_only_and_model_free
         )
         assert "online access" in text
         assert not research_provider.requests and not ui_service.calls
+
+
+async def test_pdf_strategy_intake_command_and_reopen_without_execution(ui_service, tmp_path):
+    from test_strategy_intake import Replies, pdf_fixture, reading
+
+    provider = Replies(reading((1,)))
+    sources = SourceService(SourceStore(tmp_path / "sources"), online_check=online)
+    app = StratosphereApp(
+        provider_factory=lambda settings: provider,
+        research_service=ui_service,
+        source_service=sources,
+    )
+    paper = tmp_path / "RSI strategy paper.pdf"
+    paper.write_bytes(pdf_fixture(["Buy when RSI is below 30."]))
+    async with app.run_test(size=(144, 40)) as pilot:
+        await connect(app, pilot)
+        await send(app, pilot, f'/paper-read "{paper}" extract RSI strategy')
+        await app.workers.wait_for_complete()
+        identity = app.session.last_action["id"]
+        result = app.session.discovery.open(identity)
+        assert result["rules"][0]["references"][0]["locator"] == "PDF physical page 1"
+        assert result["execution"] == "blocked"
+        assert app.database.catalog() == [] and ui_service.calls == []
+        await send(app, pilot, "/intake-show " + identity)
+        await app.workers.wait_for_complete()
+        assert len(provider.requests) == 1
+        await send(app, pilot, "/paper health")
+        await app.workers.wait_for_complete()
+        assert len(provider.requests) == 1  # Existing account inspection command is preserved.

@@ -39,6 +39,10 @@ HELP = """/help — Show commands
 /yahoo-cancel <job-id> — Cancel a pending or running Yahoo operation
 /new [text] — Draft a supported research plan in chat
 /create <brief> — Delegate a bounded Yahoo SMA research campaign to strategy agents
+/discover <strategy idea> — Find public sources and extract a cited strategy research brief
+/paper-read <path> [brief] — Extract strategy rules from a local PDF; quote paths containing spaces
+/intake <source-id> [brief] — Extract a strategy brief from retained source material
+/intake-show <brief-id> — Inspect a sealed strategy intake brief online
 /flow — List new strategy-agent research campaigns
 /flow-show <campaign-id> — Review all candidate plans or the completed report
 /flow-approve <campaign-id> <plan-sha256> — Legacy v1 campaign approval only
@@ -265,11 +269,24 @@ def route_command(text: str) -> Command:
             if expected != 3 or re.fullmatch(r"[a-f0-9]{64}", words[2]):
                 return Command(name[1:], args=tuple(words[1:]))
         return Command("message", "Use /yahoo or /help for Yahoo plan commands.")
-    if name == "/create":
+    if name in {"/create", "/discover", "/paper-read", "/intake", "/intake-show"}:
+        if name == "/paper-read":
+            try:
+                parts = shlex.split(text)
+            except ValueError:
+                return Command("message", "Close the quoted PDF path and retry.")
+            if len(parts) < 2 or not parts[1].strip():
+                return Command("message", "Usage: /paper-read <path> [strategy brief]")
+        if name in {"/intake", "/intake-show"} and (
+            len(words) < 2
+            or not re.fullmatch(r"[a-f0-9]{32}", words[1])
+            or (name == "/intake-show" and len(words) != 2)
+        ):
+            return Command("message", f"Use /help for {name} arguments.")
         return (
-            Command("create", args=(text.strip().split(maxsplit=1)[1],))
+            Command(name[1:], args=(text.strip().split(maxsplit=1)[1],))
             if len(words) > 1
-            else Command("message", "Usage: /create <strategy brief>")
+            else Command("message", f"Use /help for {name} arguments.")
         )
     if name == "/new":
         return Command("new", args=(text.strip().split(maxsplit=1)[1] if len(words) > 1 else "",))

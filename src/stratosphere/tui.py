@@ -881,7 +881,7 @@ class StratosphereApp(App[None]):
                 await self.handle_flow_command(command.action, command.args)
             elif command.action.startswith("yahoo"):
                 await self.handle_yahoo_command(command.action, command.args)
-            elif command.action == "create":
+            elif command.action in {"create", "discover", "paper-read", "intake", "intake-show"}:
                 if not self.session:
                     await self.add_message("Configure your online model with /model first.")
                 elif self.research_busy or (
@@ -890,7 +890,9 @@ class StratosphereApp(App[None]):
                     await self.add_message("Pause or cancel the current operation first.")
                 else:
                     await self.add_message(f"You: {text}")
-                    self.response_worker = self.generate_response("/create " + command.args[0])
+                    self.response_worker = self.generate_response(
+                        "/" + command.action + " " + command.args[0]
+                    )
             elif command.action in {
                 "new",
                 "study",
@@ -1787,8 +1789,19 @@ class StratosphereApp(App[None]):
                     raise ResearchError(
                         "Use an explicit regular UTF-8 file, not a link or directory."
                     )
+                if path.suffix.casefold() == ".pdf":
+                    from stratosphere.sources.pdf_worker import MAX_BYTES
+
+                    if path.stat().st_size > MAX_BYTES:
+                        raise ResearchError("PDF exceeds the 32 MiB parser budget.")
                 content = await asyncio.to_thread(path.read_bytes)
-                if path.suffix.casefold() in {".vtt", ".srt"}:
+                if path.suffix.casefold() == ".pdf":
+                    from stratosphere.sources.documents import supply_pdf
+
+                    value = await supply_pdf(
+                        self.sources, SuppliedRequest(label=path.name), content
+                    )
+                elif path.suffix.casefold() in {".vtt", ".srt"}:
                     value = await self.sources.supply_captions(
                         CaptionRequest(
                             label=path.name,

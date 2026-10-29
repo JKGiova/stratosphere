@@ -17,6 +17,10 @@ from stratosphere.sources.contracts import (
 
 
 def load_request(payload):
+    if payload.get("schema_version") == "public-web-source/1":
+        from stratosphere.sources.web import WebRequest
+
+        return WebRequest.model_validate(payload)
     if payload.get("schema_version") == "supplied-captions/1":
         return CaptionRequest.model_validate(payload)
     return (SourceRequest if "url" in payload else SuppliedRequest).model_validate(payload)

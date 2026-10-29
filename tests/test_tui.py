@@ -15,10 +15,19 @@ class FakeProvider:
     def __init__(self, settings):
         self.settings = settings
         self.requests = []
+        self.route_requests = []
         self.wait = False
         self.release = asyncio.Event()
         self.fail = False
         self.deltas = ["Hello [literal]"]
+
+    async def stream_json(self, messages, schema):
+        if schema.get("title") == "BridgeRoute":
+            self.route_requests.append(messages)
+            yield '{"action":"chat","strategy_id":null}'
+            return
+        async for part in self.stream(messages):
+            yield part
 
     async def stream(self, messages):
         self.requests.append(messages)

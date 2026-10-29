@@ -15,8 +15,8 @@ Silicon use upstream wheels. The external Intel release must be published and do
 ## First run
 
 Configure the provider/model/key in the inline form. There is no application login. Model settings
-and the optional Liquid read grant use the [native credential store](credentials.md). Research
-works without Liquid. Escape dismisses model setup when inspecting non-model operations.
+use the [native credential store](credentials.md). Broker login stays inside MT5; historical
+Alpaca/Liquid credentials are not restored. Research works without a broker connection. Escape dismisses model setup when inspecting non-model operations.
 
 Tab/Shift+Tab switch panels. Layout adapts to terminal dimensions; forms use their own field
 navigation. The app does not resize, maximize or make the terminal enter native fullscreen.
@@ -42,6 +42,7 @@ For new automatic campaigns, see the agent workflow below. The legacy path remai
 | Models/chat | `/model`, `/model-forget`, `/cancel`, `/clear` |
 | Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
 | Yahoo historical research | `/yahoo`, `/yahoo-show`, `/yahoo-approve`, `/yahoo-cancel` ([guide](yahoo-backtesting.md)) |
+| Strategy sources | `/discover <idea>`, `/paper-read "path.pdf" [brief]`, `/intake <source-id> [brief]`, `/intake-show <brief-id>` ([guide](agent-workflow.md)) |
 | Agent research | `/create <brief>`, `/flow`, `/flow-show`, `/flow-cancel` (v1 `/flow-approve` only for compatibility) |
 | Legacy research | `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
 | Evidence | `/report <job>`, `/report-data`, `/analyze-report`, `/report-analyses`, `/report-analysis-show` |
@@ -52,11 +53,10 @@ For new automatic campaigns, see the agent workflow below. The legacy path remai
 | Internal account inspection | `/paper [positions|orders|fills|health] [page]`, `/paper-review`, `/paper-reviews`, `/paper-review-show` |
 | Exit | `/quit` |
 
-`/clear` clears the selected conversation, including saved strategy chat where applicable; immutable
-research/source evidence remains. The legacy `/paper` commands inspect authored journals. The automatic Alpaca runner updates Positions
-with reconciled provider quantities. `/portfolios` shows Alpaca paper, planned Liquid live perpetuals
-and planned FTMO evaluation via MT5 or an equivalent. Liquid and FTMO execution remain unavailable;
-historical Liquid paper journals are retained outside the active setup. Missing accounts are
+`/clear` clears the selected conversation and its ephemeral clarification draft, including saved
+strategy chat where applicable; immutable research/source evidence remains. Legacy `/paper` commands
+inspect authored journals. `/portfolios` shows the sole active MT5 role. Alpaca/Liquid setup and
+execution commands are retired; retained evidence is not transferred to MT5. Missing accounts are
 unavailable, not zero balances.
 
 To propose research, use `/create` with the strategy rules and requested Yahoo symbols, intervals
@@ -67,17 +67,21 @@ and historical windows. The supported family and approval sequence are described
 
 Approved research pauses on quit and retains checkpoints; interrupted jobs are not automatically
 started on launch. Saved credentials remain until forgotten. An actual trading-position keep/close
-exit workflow is planned but not implemented. Disconnecting Liquid never closes a position.
+exit workflow is planned but not implemented. Quitting never closes MT5 positions automatically.
 
-## Replacement agent research and paper approval
+## Automatic research and strategy intake
 
-Use `/create <brief>` for an automatically executed bounded Yahoo SMA campaign. All attempts appear
-in Tests and Reports; no research approval is requested for new v2 campaigns. After reviewing a
-successful exact candidate, prepare its final package with `/strategy-finish`, then approve it once.
-That approval allows automatic paper orders within its displayed limits. See
-[agent workflow](agent-workflow.md) for exact command arguments, native paper-key setup, scope and
-recovery limitations. `/portfolio-stop` and quitting keep positions and stop monitoring; no live
-execution exists. Existing v1/manual research commands retain their original approval protocols.
+Use `/create <brief>` for a supported automatic Yahoo SMA campaign. New v2 campaigns run within
+finite application limits, without research approval. Unsupported ideas enter source discovery;
+this produces a cited strategy brief, not a substitute SMA implementation. `/discover` and
+`/paper-read` explicitly start source-based strategy intake for other families. Ask follow-up
+questions or answer missing-rule questions in chat; `/intake-show` reopens retained briefs.
+See [agent workflow](agent-workflow.md) for exact behavior, source limits and unverified conversion.
+
+Research reports do not activate MT5. The normal research-to-MT5 strategy executor remains
+unfinished; manual deployment approval has a separate exact account/implementation/limits contract.
+Historical `/strategy-finish`, `/strategy-approve` and `/portfolio-run` are retired and cannot
+activate an account. Existing historical records remain readable.
 
 ## MT5 connector
 

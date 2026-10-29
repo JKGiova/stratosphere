@@ -9,7 +9,7 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from stratosphere.phase0.contracts import Contract, Digest, fingerprint
 
-Provider = Literal["youtube", "instagram", "x", "tradingview", "github", "supplied"]
+Provider = Literal["youtube", "instagram", "x", "tradingview", "github", "supplied", "web"]
 
 
 def source_url(value: str) -> tuple[str, str]:
@@ -188,7 +188,11 @@ class SourceSnapshot(Contract):
     @model_validator(mode="after")
     def scope(self) -> Self:
         object.__setattr__(self, "retrieved_at", self.retrieved_at.astimezone(UTC))
-        if self.provider != "supplied":
+        if self.provider == "web":
+            from stratosphere.sources.web import public_url
+
+            public_url(self.requested_url)
+        elif self.provider != "supplied":
             provider, url = source_url(self.requested_url)
             if provider != self.provider or url != self.requested_url:
                 raise ValueError("Snapshot source identity mismatch")

@@ -26,6 +26,7 @@
 - Models propose and interpret. Application code owns validation, approvals, budgets and risk gates.
 - New agent research runs automatically under finite frozen application budgets. Require one user approval of the finished strategy, exact paper account, implementation and limits; then allow automatic paper orders within those limits. Preserve historical research approval contracts.
 - MT5 orders require one exact deployment approval binding the finished strategy, evidence, account/server/mode, implementation/EA and finite limits. Native trading starts disabled. Real-account activation needs separate explicit authorization. Never convert historical Alpaca/Liquid approvals into MT5 authority or claim that connector tests complete the agent runner or verify FTMO rules. A data connection is not trading permission.
+- The orchestrator owns conversation, source discovery and strategy intake, never execution. A strategy agent evaluates a strategy trigger and proposes an investment; a position risk agent proposes exposure, capital and leverage within deterministic application limits. Source-grounded briefs are not executable strategies.
 - Keep one stable agent per exact strategy, isolated histories, exact duplicate reuse and explicit variant lineage.
 - Model output cannot approve plans, run arbitrary SQL/acquired code or submit orders.
 - Keep account diagnostics and credential access outside strategy-model tools.

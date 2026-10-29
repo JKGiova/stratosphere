@@ -146,7 +146,7 @@ exits are still available. Broker-confirmed rejection consumes its intent and is
 Local SQLite, requests, native claims and responses are operational evidence: do not delete them to
 unhalt trading, change an ID to replay an uncertain signal, relabel an account or transfer old approvals.
 Current verification distinguishes authored peer lifecycle tests, actual compiled EA diagnostics,
-read-only connected checks and actual broker orders. No broker order is sent by installation/tests.
+read-only connected checks and actual broker orders. Installation and fixture tests do not send broker orders.
 
 The Intel macOS build compiled with zero errors/warnings. Broad regressions passed 1,419 core and
 39 engine tests; subsequent bridge hardening passed the final 55-test focused run. An actual
@@ -158,5 +158,17 @@ executable attestation. Native trading inputs and terminal algorithmic trading w
 no broker checks or orders were submitted. Private connected responses/hashes are retained under
 `reports/mt5/connected-20261029`; compilation/fixture logs remain under
 `reports/mt5/connector-verification`. Disconnect/account-switch/restart and sustained feed tests
-remain pending. None of these checks
-certifies FTMO rules, sustained operation or the automatic strategy-agent runner.
+remain pending.
+
+A separately approved one-time connector diagnostic on the same demo account passed native
+OrderCheck, a 0.01-lot XAUUSD buy with a mandatory stop, position read-back, immediate owned close
+and final flat-account verification on October 29, 2026. The entry and exit deals were confirmed
+in broker history; realized P/L including commissions was -$0.41. Estimated entry stop risk was
+$5.37 plus a $2 buffer, and estimated margin was $80.34, within the approved $10/$500 limits.
+The native test policy was revoked after closure; no ongoing strategy authority was created.
+Private receipts and the one-use diagnostic are retained under
+`reports/mt5/order-test-preflight-20261029`. This operator diagnostic did not exercise the normal
+finished-strategy deployment approval path. Broker responses reported zero fill price and deal ID;
+actual prices and deal IDs were recovered from broker history rather than inferred from the
+submission acknowledgments. None of these checks certifies FTMO rules, sustained operation or
+the automatic strategy-agent runner.

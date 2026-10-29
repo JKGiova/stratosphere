@@ -37,7 +37,7 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
 | Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
 | MT5 bridge | Local typed EA/client, exact account/session binding and private durable journal; actual Intel macOS FTMO demo reads passed for account/specs/advancing quotes/M1-H1-D1 candles/positions/orders/deals with trading disabled | Linux deployment, disconnect/account-switch/restart, sustained feed freshness, timestamp/session/cost semantics and independent executable attestation remain unverified |
-| MT5 execution | Exact operator deployment approval, finite order/volume/cash-risk/margin/spread/equity bounds, mandatory SL, native checks, FOK/IOC entry, owned close/revoke, no uncertain replay | One account position at a time; authored lifecycle tests and compilation are not actual broker order acceptance. No automatic agent runner, FTMO daily/reset rules or multi-strategy allocation integration yet |
+| MT5 execution | Exact operator deployment approval, finite order/volume/cash-risk/margin/spread/equity bounds, mandatory SL, native checks, FOK/IOC entry, owned close/revoke, no uncertain replay; actual one-time demo entry/owned close and broker deal-history reconciliation passed | One account position at a time; diagnostic acceptance does not validate the finished-strategy deployment path. No automatic agent runner, FTMO daily/reset rules or multi-strategy allocation integration yet |
 | Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Historical provider fixtures are not active accounts or transferred approvals |
 | Gold data | Actual MT5 export validated for all 21 intervals; H2–D1 reach June 2004 | Short intervals hit 100k terminal limit; full archives/UTC/session/cost semantics remain unverified; this is acquisition, not a CFD backtest |
 
@@ -45,8 +45,9 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 
 1. **Extend connected MT5 verification.** Initial real read-only client/EA checks passed with
    trading disabled. Verify disconnect/account-switch/restart behavior, sustained feed and private
-   evidence retention. Then test broker checks/order/fill/close semantics only under one reviewed
-   exact finished-strategy deployment and limits. Do not infer acceptance from authored tests.
+   evidence retention. A separately approved one-time demo connector round-trip passed; next verify
+   the normal finished-strategy deployment path and limits. Do not infer sustained readiness from
+   one successful diagnostic or acceptance from authored tests.
 2. **Connect the agent workflow to MT5.** Build a faithful CFD research and final-report validator,
    exact registered strategy/report ownership and instrument mapping, timestamp/session/cost
    semantics, signal evidence and MT5-specific portfolio risk/allocation. The new connector's manual

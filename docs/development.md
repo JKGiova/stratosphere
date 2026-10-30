@@ -19,7 +19,9 @@ outcomes. Do not mask genuine failures as environment issues. Native tests requi
 Mark every test that executes a native simulation with `@pytest.mark.engine`, including TUI and
 orchestrator integration tests with authored market data. The `-m 'not engine'` subset must work
 without NautilusTrader. The compatibility matrix installs the
-external Intel wheel and runs both test groups, without compiling it. Authored candles do not make
+external Intel wheel and runs both test groups, without compiling it. The job allows 25 minutes
+for slower Intel runners to complete core and native checks. UI tests wait for observable async
+completion rather than treating one idle pause as a completed setup transaction. Authored candles do not make
 a native simulation an engine-free test.
 
 ## Bug-fix workflow

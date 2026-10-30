@@ -353,7 +353,10 @@ async def test_onboarding_provider_isolation_and_submission(provider, monkeypatc
         assert app.query_one("#base-url", Input).value == BASE_URLS[provider]
         assert app.query_one("#model-id", Input).value == DEFAULT_MODELS[provider]
         app.setup.apply_settings()
-        await pilot.pause()
+        # Setup completion awaits widget removal; screen idle alone can precede set_model.
+        async with asyncio.timeout(5):
+            while app.settings is None or app.setup is not None:
+                await pilot.pause()
         assert app.settings.provider == provider and app.setup is None
         # Slash commands must remain usable with an empty local credential.
         app.query_one("#prompt", Input).value = "/help"

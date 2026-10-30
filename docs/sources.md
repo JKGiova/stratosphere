@@ -18,6 +18,10 @@ may fetch at most two validated public search results through its bounded reader
 authority to open unrelated provider links or use authenticated browser sessions.
 Source credentials remain in memory and scoped to their intended API host.
 
+General public strategy intake also uses the capability-based [public reader fallback](research-tools.md).
+Its optional readers share acquisition budgets and anonymous public scope; provider-specific source
+identity and format gates remain authoritative.
+
 ## Reviews
 
 A source review binds an exact registered strategy and retained snapshot. The model selects

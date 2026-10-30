@@ -251,6 +251,13 @@ class PublicWeb:
                         "retrieval_chain": chain,
                     }
                 )
+            except httpx.HTTPStatusError as exc:
+                state = (
+                    "access_blocked" if exc.response.status_code in {401, 403, 429} else "failed"
+                )
+                attempts.append({"index": name, "state": state})
+                if state == "access_blocked":
+                    break
             except httpx.HTTPError, ResearchError, ValueError, KeyError, TypeError, OSError:
                 attempts.append({"index": name, "state": "failed"})
         return results, attempts

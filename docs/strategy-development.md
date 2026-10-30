@@ -52,10 +52,11 @@ readers when introducing a future compiler format.
 
 ## Persistent research loop (v2)
 
-New orchestrator handoffs use a persistent typed-tool agent. It chooses `inspect_brief`,
-`search_sources`, `read_source`, `propose_program`, `test_program`, `backtest`, `compare_results`
-or `finish` after each observation. The application validates arguments and executes allowlisted
-operations. A local Ollama model can drive the same loop; selecting it does not change tool authority.
+New orchestrator handoffs use a persistent typed-tool agent. Its tools cover source discovery,
+program/data inspection, complete signal proposals, targeted indicator tuning, structural tests,
+native backtests, aggregate and condition analysis, report preview and completion. The complete
+[tool contract and public-reader fallback](research-tools.md) defines arguments, state gates and
+optional dependencies. The application validates arguments and executes allowlisted operations. A local Ollama model can drive the same loop; selecting it does not change tool authority.
 The existing compiler and signal language remain the execution boundary. Arbitrary Python and
 unrestricted shell tools are not introduced.
 

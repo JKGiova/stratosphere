@@ -29,6 +29,7 @@
 - The orchestrator owns conversation, source discovery and strategy intake, never execution. A strategy agent evaluates a strategy trigger and proposes an investment; a position risk agent proposes exposure, capital and leverage within deterministic application limits. Source-grounded briefs are not executable strategies.
 - Keep one stable agent per exact strategy, isolated histories, exact duplicate reuse and explicit variant lineage.
 - Strategy development uses validated signal programs and application-generated Python only; never run arbitrary model/acquired code. Preserve v1 three-program/four-target/twenty-four-start readers. New v2 tool loops freeze four target scopes and finite model/native/time budgets, stop on the first insufficient evaluated revision, and preserve every attempt and concrete variant owner. Checkpoint continuation must reconcile consumed operations, never replay uncertain native starts or replenish budgets.
+- Public research tools use fixed adapters and anonymous sessions only. Missing/technical readers may fall back; access/rate denials, private targets and sensitive output stop. Never import browser login state or expose arbitrary CLI/browser evaluation to strategy models.
 - Model output cannot approve plans, run arbitrary SQL/acquired code or submit orders.
 - Keep account diagnostics and credential access outside strategy-model tools.
 - Persist model and authorized connector credentials only in native OS secure storage, without plaintext or chained fallback.

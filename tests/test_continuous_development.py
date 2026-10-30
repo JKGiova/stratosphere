@@ -336,3 +336,151 @@ async def test_tool_schemas_require_arguments_and_freeze_non_signal_behavior():
     assert program["position_sizing"] == {"const": baseline["position_sizing"]}
     assert program["assumptions"] == {"const": baseline["assumptions"]}
     assert program["data_requirements"]["properties"]["warmup_bars"]["maximum"] == 1024
+
+
+async def test_complete_research_tool_surface_and_deterministic_tuning(loop):
+    service, identity, calls = loop
+    indicator = specification().indicators[0].id
+    report = await run(
+        service,
+        identity,
+        action("research_capabilities"),
+        action("inspect_program"),
+        action("inspect_data"),
+        action("test_program"),
+        action("backtest"),
+        action("analyze_results"),
+        action("analyze_conditions"),
+        action("build_report"),
+        action("tune_indicator", indicator_id=indicator, period=4),
+        action("inspect_program"),
+        action("test_program"),
+        action("backtest"),
+    )
+    assert len(report["programs"]) == 2 and report["native_starts"] == 4
+    assert report["stop_reason"] == "no_significant_progress"
+    assert service.report(identity) == report
+    history = service.continuous.history(identity)
+    observations = {h["action"]["tool"]: h["outcome"]["result"] for h in history}
+    assert observations["inspect_data"]["targets"][0]["bars"] > 8
+    assert observations["build_report"]["execution"] == "blocked"
+    assert "trades" not in observations["analyze_results"]["results"][0]["metrics"]["base"]
+    assert observations["tune_indicator"]["specification"]["indicators"][0]["period"] == 4
+    assert "application_generated_python" in observations["inspect_program"]
+    assert len(calls) == 5
+
+
+async def test_tune_requires_evaluation_and_existing_indicator(loop):
+    service, identity, calls = loop
+    invalid = action("tune_indicator", indicator_id="unknown", period=4)
+    report = await run(
+        service, identity, invalid, action("test_program"), action("backtest"), invalid, invalid
+    )
+    assert report["stop_reason"] == "technical_error_budget"
+    assert len(report["programs"]) == 1 and report["native_starts"] == 2
+
+
+def test_indicator_tuning_preserves_scope_and_expands_warmup():
+    from stratosphere.development.research_tools import tune_indicator
+
+    original = specification()
+    revised = tune_indicator(original, original.indicators[0].id, 50)
+    assert revised.data_requirements.warmup_bars == 51
+    assert revised.position_sizing == original.position_sizing
+    assert revised.instrument_constraints == original.instrument_constraints
+    assert original.indicators[0].period == 3
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"tool": "tune_indicator", "indicator_id": "fast"},
+        {"tool": "tune_indicator", "period": 3},
+        {"tool": "inspect_program", "indicator_id": "fast"},
+        {"tool": "tune_indicator", "indicator_id": "fast", "period": True},
+        {"tool": "tune_indicator", "indicator_id": "fast", "period": 520},
+    ],
+)
+def test_tool_argument_boundaries(kwargs):
+    with pytest.raises(ValueError):
+        Action(reason="Authored malformed arguments", **kwargs)
+
+
+async def test_tuning_schema_requires_both_arguments():
+    from stratosphere.development.agent import decide
+
+    captured = []
+
+    class Tuner:
+        async def stream_json(self, messages, schema):
+            captured.append(schema)
+            yield json.dumps(action("tune_indicator", indicator_id="fast", period=4))
+
+    await decide(Tuner(), {"available_tools": ["tune_indicator"]})
+    schema = captured[0]["anyOf"][0]
+    assert set(schema["required"]) == {"tool", "reason", "indicator_id", "period"}
+
+
+async def test_specialist_source_tools_use_audited_fallback_without_changing_frozen_rules(loop):
+    import httpx
+
+    from stratosphere.sources.fallback import ResearchWeb
+
+    service, identity, calls = loop
+    sources = service.discovery.sources
+
+    def response(request):
+        if request.url.host == "en.wikipedia.org":
+            return httpx.Response(200, json={"query": {"search": []}})
+        if request.url.host == "api.crossref.org":
+            return httpx.Response(200, json={"message": {"items": []}})
+        return httpx.Response(
+            200, text="<script>authored empty app</script>", headers={"content-type": "text/html"}
+        )
+
+    sources.transport = httpx.MockTransport(response)
+
+    async def public(host):
+        return ["93.184.215.14"]
+
+    class PublicReader:
+        async def call(self, name, operation, value):
+            assert name == "agent-reach"
+            if operation == "search":
+                return {
+                    "ok": True,
+                    "items": [{"title": "Authored paper", "url": "https://example.com/strategy"}],
+                }
+            assert value == "https://example.com/strategy"
+            return {
+                "ok": True,
+                "items": [
+                    {
+                        "text": "Authored public explanation of a crossover. "
+                        "This is research evidence, never executable code."
+                    }
+                ],
+            }
+
+    service.discovery.web = ResearchWeb(sources, clis=PublicReader(), resolver=public)
+    report = await run(
+        service,
+        identity,
+        action("search_sources", query="moving average research"),
+        action("read_source", source_index=0),
+        action("test_program"),
+        action("backtest"),
+        action("finish"),
+    )
+    assert report["stop_reason"] == "agent_finished" and report["native_starts"] == 2
+    history = service.continuous.history(identity)
+    source = sources.store.snapshot(history[1]["outcome"]["result"]["source_id"])
+    assert source.access_state == "acquired" and source.normalization == "research-fallback/1"
+    assert "Authored public explanation" in source.pieces[0].text
+    state = service.continuous.state(identity)
+    assert state["searches"] == 1
+    context = service.continuous.context(identity, state)
+    original_attempts = history[0]["outcome"]["result"]["attempts"]
+    assert "records" in original_attempts[-1]
+    assert "records" not in context["observations"][0]["result"]["attempts"][-1]
+    assert state["current_specification"] == service.plan(identity)["definition"]["specification"]

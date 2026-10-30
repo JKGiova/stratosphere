@@ -44,8 +44,8 @@ The native creation integration compares approved base/stress runs on authored c
 independent SMA/accounting oracle. Authored candles establish software behavior, not profitability.
 
 Model transport/schema fixtures include Cheaper Inference; no authenticated Qwen Flash completion
-has been established for this provider. The exposed chat credential was not used. General tool-loop
-work was discarded; its previous draft checks are not a verification claim for the current client.
+has been established for this provider. The exposed chat credential was not used. The current persistent specialist and optional public-source fallback are documented in
+[research tools](research-tools.md); older discarded drafts are not evidence for this implementation.
 Fixture checks do not establish real provider feeds, order transport or sustained operation.
 
 ## Distribution and privacy

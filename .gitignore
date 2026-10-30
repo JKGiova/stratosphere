@@ -15,3 +15,6 @@ reports/
 /supabase/.temp/
 
 /tools/mt5/*.ex5
+
+/.tools/
+/tools/research/node_modules/

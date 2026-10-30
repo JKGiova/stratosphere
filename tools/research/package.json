@@ -1,0 +1,10 @@
+{
+  "name": "stratosphere-research-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Optional isolated public research CLI dependencies",
+  "dependencies": {
+    "@jackwener/opencli": "2.0.2",
+    "agent-browser": "0.41.0"
+  }
+}

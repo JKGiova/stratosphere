@@ -193,6 +193,8 @@ def implementation_digest():
     root = Path(__file__).parent
     files = [
         *root.glob("*.py"),
+        *(root.parent / "sources").glob("*.py"),
+        root.parent / "workflow/discovery.py",
         root.parent / "yahoo/data.py",
         root.parent / "yahoo/engine.py",
         root.parent / "yahoo/metrics.py",
@@ -200,6 +202,17 @@ def implementation_digest():
         root.parent / "phase0/contracts.py",
         root.parent / "research/contracts.py",
     ]
+    # Optional readers are installed separately; their declared dependencies are still frozen.
+    manifests = root.parents[2] / "tools/research"
+    files.extend(
+        p
+        for p in (
+            manifests / "package.json",
+            manifests / "package-lock.json",
+            manifests / "agent-reach-requirements.txt",
+        )
+        if p.is_file()
+    )
     return hashlib.sha256(
         b"".join(p.name.encode() + b"\0" + p.read_bytes() for p in sorted(files))
     ).hexdigest()

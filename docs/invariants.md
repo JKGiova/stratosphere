@@ -340,3 +340,9 @@ sizing or execution scope. Retain blocked datasets, failed cells, code, partials
 Source citations and compiled/native checks do not prove faithful conversion. Descriptive year and
 prior-direction buckets are not predictive regimes, independent holdouts or a global-best claim.
 A selected historical case grants no final approval, portfolio assignment or MT5 authority.
+
+Public research fallbacks use fixed public adapters and fresh anonymous processes only; never reuse
+browser profiles, login state or operator credentials. Retain every backend attempt and safe raw
+response. Access/rate denials, private addresses and sensitive output are terminal, not permission
+to escalate. Optional readers stay within application time/byte/search ceilings; no arbitrary CLI,
+shell, browser evaluation, acquired code or broker tools enter the strategy model surface.

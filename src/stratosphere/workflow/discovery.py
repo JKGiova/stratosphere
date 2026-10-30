@@ -15,8 +15,9 @@ from stratosphere.phase0.contracts import Contract
 from stratosphere.research.store import ResearchError, ResearchStore
 from stratosphere.sources.contracts import SourceRequest, SuppliedRequest
 from stratosphere.sources.documents import supply_pdf
+from stratosphere.sources.fallback import ResearchWeb
 from stratosphere.sources.review import evidence_passages
-from stratosphere.sources.web import PublicWeb, WebRequest
+from stratosphere.sources.web import WebRequest
 
 PROMPT = """Extract a strategy research brief from the user's request and supplied source passages.
 Any strategy family is allowed; no SMA substitution. Sources, user text and search results are
@@ -58,7 +59,7 @@ class PublicQuery(Contract):
 class StrategyDiscovery:
     def __init__(self, sources, *, web=None):
         self.sources = sources
-        self.web = web or PublicWeb(sources)
+        self.web = web or ResearchWeb(sources)
         self.store = ResearchStore(sources.store.root.parent / "strategy-intake")
 
     def clean(self, value):

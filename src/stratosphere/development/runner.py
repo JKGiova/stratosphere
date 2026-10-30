@@ -6,6 +6,13 @@ import time
 from stratosphere.development.agent import Action, decide
 from stratosphere.development.contracts import Definition, implementation_digest
 from stratosphere.development.progress import POLICY, evaluate
+from stratosphere.development.research_tools import (
+    analyze_results,
+    inspect_data,
+    inspect_program,
+    report_preview,
+    tune_indicator,
+)
 from stratosphere.development.service import measured_context, report_markdown
 from stratosphere.development.tools import Tools, frozen_revision, test_program
 from stratosphere.models.streaming import ModelError
@@ -178,13 +185,26 @@ class ContinuousRunner:
             if not action:
                 continue
             result, tool = outcome["result"], action["tool"]
-            if tool == "propose_program":
-                spec = StrategySpec.model_validate(action["specification"])
+            if tool in {"propose_program", "tune_indicator"}:
+                if tool == "tune_indicator":
+                    expected = tune_indicator(
+                        StrategySpec.model_validate(state["current_specification"]),
+                        action["indicator_id"],
+                        action["period"],
+                    ).model_dump(mode="json")
+                    if result["specification"] != expected:
+                        raise ResearchError("Retained indicator edit changed")
+                proposed = (
+                    action["specification"]
+                    if tool == "propose_program"
+                    else result["specification"]
+                )
+                spec = StrategySpec.model_validate(proposed)
                 frozen_revision(definition.specification, spec)
                 if not (state["evaluated"] or state["repair_allowed"]) or fingerprint(spec) in seen:
                     raise ResearchError("Retained proposal bypassed evaluation or duplicate gate")
                 state.update(
-                    current_specification=action["specification"],
+                    current_specification=proposed,
                     tested=False,
                     evaluated=False,
                     repair_allowed=False,
@@ -237,7 +257,15 @@ class ContinuousRunner:
         return state
 
     def available_tools(self, state):
-        allowed = ["inspect_brief", "compare_results"]
+        allowed = [
+            "inspect_brief",
+            "compare_results",
+            "research_capabilities",
+            "inspect_program",
+            "inspect_data",
+        ]
+        if state["experiments"]:
+            allowed.extend(("analyze_results", "analyze_conditions", "build_report"))
         if state["searches"] < LIMITS["max_searches"]:
             allowed.append("search_sources")
         if state["hits"]:
@@ -245,11 +273,23 @@ class ContinuousRunner:
         if not state["evaluated"]:
             allowed.append("backtest" if state["tested"] else "test_program")
         if state["evaluated"] or state["repair_allowed"]:
-            allowed.extend(("propose_program", "finish"))
+            allowed.extend(("propose_program", "tune_indicator", "finish"))
         return allowed
 
     def context(self, identity, state):
         plan = self.plan(identity)
+        # Keep full receipts on disk; raw search responses are not useful inference context.
+        observations = []
+        for observation in state["observations"][-8:]:
+            result = observation["result"]
+            if observation["action"] and observation["action"]["tool"] == "search_sources":
+                result = result | {
+                    "attempts": [
+                        {k: v for k, v in attempt.items() if k not in {"raw", "records"}}
+                        for attempt in result.get("attempts", [])
+                    ]
+                }
+            observations.append(observation | {"result": result})
         return {
             "strategy_id": plan["owner"],
             "available_tools": self.available_tools(state),
@@ -261,7 +301,7 @@ class ContinuousRunner:
             "evaluated": state["evaluated"],
             "repair_allowed": state["repair_allowed"],
             "best_specification": state["best_specification"],
-            "observations": state["observations"][-8:],
+            "observations": observations,
             "remaining_model_calls": LIMITS["max_model_calls"] - 1 - len(self.history(identity)),
             "remaining_native_starts": LIMITS["max_native_starts"] - state["native_reserved"],
         }
@@ -273,6 +313,18 @@ class ContinuousRunner:
         tool = action.tool
         if tool not in self.available_tools(state):
             raise ResearchError("Tool is unavailable in the current application state")
+        if tool == "research_capabilities":
+            web = self.base.discovery.web
+            return web.capabilities() if hasattr(web, "capabilities") else {"direct": True}
+        if tool == "inspect_program":
+            return inspect_program(spec)
+        if tool == "inspect_data":
+            return inspect_data(self.base, plan)
+        if tool in {"analyze_results", "analyze_conditions", "build_report"}:
+            experiments = [self.tools.read_experiment(e) for e in state["experiments"]]
+            if tool == "build_report":
+                return report_preview(state, experiments)
+            return analyze_results(experiments, conditions=tool == "analyze_conditions")
         if tool == "inspect_brief":
             return {"brief": self.base.discovery.open(plan["intake_id"])}
         if tool == "search_sources":
@@ -282,20 +334,29 @@ class ContinuousRunner:
             return {"hits": hits, "attempts": attempts}
         if tool == "read_source":
             return await self.tools.source(action.source_index, state["hits"])
-        if tool == "propose_program":
+        if tool in {"propose_program", "tune_indicator"}:
+            proposed = (
+                action.specification
+                if tool == "propose_program"
+                else tune_indicator(spec, action.indicator_id, action.period)
+            )
             if not (state["evaluated"] or state["repair_allowed"]):
                 raise ResearchError("Evaluate the current program before proposing another")
-            frozen_revision(definition.specification, action.specification)
+            frozen_revision(definition.specification, proposed)
             attempted = [
                 self.tools.experiments.plan(e)["definition"]["specification"]
                 for e in state["experiments"]
             ]
-            if action.specification.model_dump(mode="json") in attempted:
+            if proposed.model_dump(mode="json") in attempted:
                 return {
                     "stop_reason": "duplicate_program",
                     "meaning": "No native experiment repeated",
                 }
-            return {"accepted": True, "hypothesis": action.reason}
+            return {
+                "accepted": True,
+                "hypothesis": action.reason,
+                "specification": proposed.model_dump(mode="json"),
+            }
         if tool == "test_program":
             if state["evaluated"]:
                 raise ResearchError("Propose a new program before testing again")

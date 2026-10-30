@@ -146,3 +146,11 @@ account/quote fixture, with no orders. An earlier malformed evidence reference w
 retained. These checks do not establish profitability, full FTMO loss/reset compliance, sustained
 operation or actual strategy-order acceptance. Private evidence stays under the canonical account
 state and ignored `reports/mt5/overnight-201001727`; operational account IDs never enter Git.
+
+An exact operator-approved eight-member demo basket was activated through the frozen runtime and
+macOS login service. Connected verification confirmed matching client/native approvals, enabled
+demo trading with real accounts disabled, a live service process and advancing health across
+cycles. The account was flat with no pending orders or unresolved native operations, and the
+service was waiting for the next entry window. This verifies bounded startup, not an overnight
+fill, sustained operation or future signal acceptance; the finite limits and expiry remain those
+in the private approved package.

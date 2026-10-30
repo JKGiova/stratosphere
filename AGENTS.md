@@ -4,7 +4,7 @@
 
 - Use [plan.md](plan.md) as the single development plan and [docs/README.md](docs/README.md) as the documentation index.
 - stratosphere is a personal tool in the tradingsphere suite. Keep both names lowercase.
-- Keep the repository private. Do not change visibility or licensing without an explicit request.
+- Keep the repository public, as authorized by the owner. Do not change visibility or licensing without an explicit request. Keep credentials, account data and operational artifacts private.
 - Do not add billing, application login, a hosted user database or automatic strategy sharing.
 - MT5 is the sole active data/execution connector, including the FTMO account. Alpaca and Liquid are retired from active routing; retain their historical readers, journals and evidence under legacy compatibility. Keep exact broker server/account/mode identities separate; connecting never activates trading.
 - The requested workflow rebuild takes priority: orchestrator bridge → strategy research agents → reviewed final strategy → portfolio risk agent → binary signal review → position sizing. Preserve historical readers and evidence while replacing active routing. Do not resume unrelated interrupted features.

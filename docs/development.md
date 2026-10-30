@@ -29,7 +29,7 @@ a native simulation an engine-free test.
 3. Fix the smallest coherent issue. Preserve identity, evidence, approval and credential invariants.
 4. Run affected tests and necessary integration/native checks. Check cancellation, ownership and restart.
 5. Check the installed package when packaging, startup or persisted readers change.
-6. Update the owning guide and `plan.md`, then publish the scoped change to private GitHub.
+6. Update the owning guide and `plan.md`, then publish the scoped source change to GitHub. Keep credentials, account data and operational artifacts out of the public repository.
 
 Avoid tests that simply restate an implementation. Use independent accounting/behavior oracles,
 actual process/restart boundaries and retained artifact comparisons for correctness claims.

@@ -1,10 +1,11 @@
 # stratosphere development plan
 
-Updated: October 29, 2026. This is the single active development plan.
+Updated: October 30, 2026. This is the single active development plan.
 
 ## Product and decisions
 
-stratosphere is a private personal terminal tool in tradingsphere, initially for Linux and macOS.
+stratosphere is a personal terminal tool in tradingsphere, initially for Linux and macOS.
+The source repository is public; credentials, account data and operational artifacts remain private.
 Keep English, responsive panels, chat/slash commands, local SQLite, private artifacts and native OS
 credential storage. No billing, app login, hosted user database, strategy sharing or release deadline.
 NautilusTrader wheel production belongs to the separate `nautilus-trader-macos-intel` repository.

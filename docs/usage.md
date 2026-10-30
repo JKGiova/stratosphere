@@ -92,3 +92,8 @@ activate an account. Existing historical records remain readable.
 MT5 is the active broker connector; use `/mt5` and `/mt5-status` for setup/read-only diagnostics.
 Headless data and exact-deployment order commands: [MT5 connector](mt5-bridge.md). Alpaca/Liquid
 commands and their automatic execution setup are retired. Historical reports remain readable.
+
+New `/develop <brief-id> [focus]` handoffs use the persistent tool loop. Repeating the exact
+request resumes a compatible paused checkpoint without refilling its budgets. `/development-show
+<campaign-id>` reads its report/checkpoint without inference or native execution. The first
+evaluated revision without significant progress stops; see [strategy development](strategy-development.md).

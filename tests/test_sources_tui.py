@@ -286,7 +286,10 @@ async def test_complete_source_hands_to_agent_generates_code_backtests_and_repor
     provider = Replies(
         reading,
         definition(specification(algorithm="rsi")).model_dump(mode="json"),
-        {"action": "stop", "reason": "Retain native evidence", "specification": None},
+        *[
+            {"tool": tool, "reason": "Authored decision"}
+            for tool in ("test_program", "backtest", "finish")
+        ],
     )
     app = StratosphereApp(
         provider_factory=lambda settings: provider,
@@ -310,4 +313,4 @@ async def test_complete_source_hands_to_agent_generates_code_backtests_and_repor
         before = len(calls)
         await send(app, pilot, "/development-show " + job)
         await app.workers.wait_for_complete()
-        assert len(calls) == before and len(provider.requests) == 3
+        assert len(calls) == before and len(provider.requests) == 5

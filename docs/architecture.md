@@ -21,6 +21,10 @@ Application services are authoritative. Natural-language and slash routes must r
 validation and approval boundaries. Models cannot grant permission or mutate an active strategy.
 The replacement research-to-portfolio lifecycle is described in [agent workflow](agent-workflow.md).
 
+The persistent specialist separates typed decisions (`development/agent.py`), allowlisted tools
+(`tools.py`), deterministic continuation criteria (`progress.py`) and checkpoint execution
+(`runner.py`). Historical v1 services/readers remain the native single-program execution boundary.
+
 ## State
 
 - Local SQLite stores definitions, provenance, private strategy histories and job/report references.

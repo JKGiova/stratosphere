@@ -24,8 +24,8 @@ from implementation/refinement contexts. Related candidate results retain exact 
 and variant lineage; unrelated strategy histories are never supplied.
 
 Exact behavior reuses the same registry owner/agent. Exact re-delivery of an intake/focus/parent/code
-request reuses its campaign without replenishing budget. Interrupted, failed and canceled campaigns
-cannot automatically resume; an explicitly changed intake/focus creates a distinct campaign.
+request reuses its campaign without replenishing budget. Legacy v1 interrupted campaigns cannot replay. V2 checkpoint continuation is described below;
+an explicitly changed intake/focus creates a distinct campaign.
 
 ## Executable language and code
 
@@ -50,31 +50,54 @@ modified/generated-from-elsewhere/acquired Python cannot pass this gate. There i
 model-controlled shell/import/file/SQL facility. Preserve the v1 compiler output and historical
 readers when introducing a future compiler format.
 
-## Frozen research and iteration
+## Persistent research loop (v2)
 
-One application-authorized campaign freezes:
+New orchestrator handoffs use a persistent typed-tool agent. It chooses `inspect_brief`,
+`search_sources`, `read_source`, `propose_program`, `test_program`, `backtest`, `compare_results`
+or `finish` after each observation. The application validates arguments and executes allowlisted
+operations. A local Ollama model can drive the same loop; selecting it does not change tool authority.
+The existing compiler and signal language remain the execution boundary. Arbitrary Python and
+unrestricted shell tools are not introduced.
 
-- The source brief, formal definition, exact owner and implementation digest.
-- At most four explicit Yahoo symbol/asset-class/interval/window/quantity/cost targets, each with
-  a market hypothesis. Quantity/cost/window changes cannot appear inside a revision.
-- At most three programs: baseline and two justified behavioral revisions.
-- At most twelve candidate cells and twenty-four consumed native-start slots, including base and
-  doubled-cost simulations. Failed starts remain consumed.
-- At most three specialist model calls: initial definition and two refinement calls. Research-run
-  execution has a 1,200-second overall deadline; individual native/acquisition workers have
-  180-second limits. Preparation and source intake have their own finite stages.
+Preparation formalizes the sealed brief and freezes at most four exact symbol/interval/window/
+quantity/cost scopes, acquiring each dataset once. The persistent loop reuses those snapshots.
+Each new program must pass structural compilation and synthetic runtime checks before native
+base/doubled-cost evaluation. These checks do not establish faithful source conversion. All other
+execution/sizing/data semantics stay frozen; only signals, filters and bounded warmup may change.
 
-Data is acquired once per target and verified/reused for revisions. Every blocked target, failed
-candidate, source/code artifact, reservation and completed result remains retained. A candidate
-has an exact fixed instrument/timeframe definition and separate registry lineage. Parameter/rule
-changes get new behavior identities. Repeated behavior is not another native experiment.
+There is no fixed two-revision stopping rule. After each complete native comparison, application
+code compares the challenger with the retained best program. Progress uses the minimum across
+frozen target scores, each stress return minus stress drawdown. Required gain is the greater of
+0.10 percentage points or 5% of the absolute prior score. Each target must have at least five
+completed stress trades and stress drawdown at most 20%; no target score may regress by more than
+0.10 percentage points. The first insufficient challenger stops refinement and preserves the best
+predecessor. These are explicit conservative research heuristics, not statistical significance,
+profitability certification or a validated general-purpose optimizer. Baseline evaluation establishes
+a comparison point; final selection still requires the report's separate positive-return filters.
 
-After measured results, the same agent can change indicators, entry/exit expressions or filters,
-or stop. Warmup may change within 1,024 bars for changed periods. Other timing, sizing, universe,
-data semantics, execution, assumptions and missing-data rules stay frozen. Refinement receives
-bounded measured summaries, not credentials, broker observations, full trade arrays or local
-artifact paths. Cancellation kills the child and retains consumed reservations; startup recovery
-marks abandoned jobs interrupted without replay.
+Technical errors are not economic non-progress. A failed synthetic check permits a signal repair;
+native failures stay consumed and cannot replay. Three technical errors end the loop. Repeated
+programs stop without another native experiment. The agent can finish earlier.
+
+One immutable session freezes resource ceilings: 32 actual model calls including initial
+formalization, 128 reserved native starts, four public searches, three technical errors, and 3,600
+active loop seconds. Each action has a 180-second bound. Preparation keeps its separate finite
+stages. These are resource ceilings rather than a promised iteration count. The full possible
+base/stress allocation is reserved before dispatch, including failed/interrupted attempts. Resource
+exhaustion produces a report with its stopping reason; it does not approve a strategy.
+
+Every model slot, typed action, observation and experiment is journaled before/after use. Hash-chained
+turn receipts reconstruct state, best program and consumed budgets. Repeating `/develop <brief-id>`
+with the same focus resumes a paused compatible checkpoint or reads its completed report; it never
+refills the budget. Interrupted inference consumes its slot. A completed native child is reconciled
+from its sealed report; an uncertain native operation stops instead of replaying. Changed runtime,
+damaged receipts or unresolved evidence block continuation. Checkpoints are persisted between runs;
+there is no always-on daemon or automatic trading activation.
+
+The execution tool reuses the sealed v1 single-program adapter with an application-generated stop
+receipt, not another inference call. Preparation and native child evidence remain retained under
+their original contracts. Legacy v1 campaigns keep their three-program/four-target/twenty-four-start
+limits and no-replay readers. Their reports and compiler output are not rewritten.
 
 ## Data and report interpretation
 
@@ -110,3 +133,18 @@ Source interpretation and model replies in that check were authored fixtures, no
 inference. Private artifacts are under `reports/strategy-development-20261029`; no broker account
 or orders were used. Live-model implementation reliability, faithful source conversion, independent
 validation and MT5 execution remain separate verification gates.
+
+Local Ollama verification used the installed Qwopus3.5 4B Q4 model with a 16K-context test alias
+and no weight downloads. From an explicitly authored intake/baseline, five actual local model
+calls selected tools, acquired/used AMZN daily Yahoo history for 2025, and completed two native
+base/stress starts. An invalid proposed revision was rejected; the model then finished, with no
+approved profitable candidate. Per-tool schemas require the appropriate arguments, constrain frozen
+non-signal fields, and expose only tools available in application state. Application validation
+remains authoritative even when a provider ignores its schema.
+
+Earlier local checks retained an invalid initial formalization, premature model completion before
+native evaluation, and invalid/missing tool arguments. The latter two led to enforced state/tool
+schema gates and passing regression checks. The final local run verifies tool control and native
+baseline research, not reliable autonomous revision quality: initial formalization remains unverified
+with this small model, and its rejected revision and unsupported interpretations are not evidence.
+Operational logs/replies/reports are retained under `reports/continuous-agent-20261029`.

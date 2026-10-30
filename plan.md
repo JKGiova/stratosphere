@@ -36,8 +36,8 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Area | Implemented | Limits / remaining verification |
 | --- | --- | --- |
 | Orchestrator and specialists | Typed routing, isolated clarification drafts, public Wikipedia/Crossref discovery, local PDF/page extraction and sealed source-grounded strategy briefs; exact registered owners, duplicate reuse and variant lineage | Descriptions may cover any family; unsupported execution semantics remain blocked. Faithful conversion, independent validation and MT5 integration remain unfinished |
-| Automatic research | New v2 campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports and TUI views | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
-| Strategy development | Complete brief → stable strategy agent → validated SMA/EMA/RSI expression program → application-compiled Python → native Yahoo comparisons and up to two measured revisions; all attempts, code, scopes and descriptive year/regime summaries retained | At most 3 programs / 4 targets / 12 cells / 24 native starts. Long-only fixed units, hourly/daily; no stop orders, shorts or arbitrary Python. Live-model reliability, semantic source conformance and independent holdout remain unverified |
+| Legacy SMA research | `research-campaign/2` campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports and TUI views | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
+| Strategy development | Complete brief → stable strategy agent → validated SMA/EMA/RSI expression program → application-compiled Python → native Yahoo comparisons and a persistent typed-tool loop with checkpoint continuation and application-owned progress stopping; all attempts, code, scopes and descriptive year/regime summaries retained | V2: 4 frozen targets, 32 model calls / 128 reserved native starts / finite active time; first insufficient evaluated revision stops. V1 limits/readers preserved. Long-only fixed units, hourly/daily; no stop orders, shorts or arbitrary Python. Live-model reliability, semantic source conformance and independent holdout remain unverified |
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
 | Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
 | MT5 bridge | Local typed EA/client, exact account/session binding and private durable journal; actual Intel macOS FTMO demo reads passed for account/specs/advancing quotes/M1-H1-D1 candles/positions/orders/deals with trading disabled | Linux deployment, disconnect/account-switch/restart, sustained feed freshness, timestamp/session/cost semantics and independent executable attestation remain unverified |
@@ -81,8 +81,9 @@ Source-intake verification on October 29, 2026 includes actual local PDF parsing
 fixtures and an actual public Wikipedia/Crossref search plus RSI page retrieval. These checks do not
 establish live-model extraction reliability or faithful strategy conversion. Specialist development
 now has actual generated-code Nautilus fixtures and a separate actual AMZN/TSLA Yahoo comparison
-with authored model replies: four cells / eight native starts completed. MT5 agent execution remains
-unconnected. See the [development guide](docs/strategy-development.md) for exact limits and evidence.
+with authored model replies: four cells / eight native starts completed. A real local Ollama check from an authored baseline also completed two native starts; an invalid
+revision was rejected. Small-model formalization/refinement reliability remains unresolved. MT5 agent
+execution remains unconnected. See the [development guide](docs/strategy-development.md) for exact limits and evidence.
 
 Distinguish authored fixtures/native simulation, actual model calls,
 provider checks and installed-client readiness. No phase or release is complete from a narrower test,

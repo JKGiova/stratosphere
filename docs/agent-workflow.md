@@ -48,7 +48,14 @@ Unrelated chat does not consume the draft. Unsupported `/create` ideas enter thi
 than being silently replaced by SMA. Complete briefs now hand off to the strategy specialist;
 [development](strategy-development.md) owns the exact language, budget and verification limits.
 
-## Implemented research
+## Persistent strategy development
+
+New complete source briefs use the [persistent strategy-agent tool loop](strategy-development.md).
+The specialist chooses research/implementation/testing actions; application code owns available
+tools, progress stopping, frozen budgets and checkpoint reconciliation. This does not provide
+unrestricted Python execution or MT5 activation.
+
+## Legacy SMA research
 
 The orchestrator routes supported SMA briefs to finite Yahoo/Nautilus research campaigns. Each
 exact strategy retains a stable isolated agent; exact duplicates reuse ownership and variants retain

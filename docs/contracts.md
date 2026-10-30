@@ -78,3 +78,9 @@ The v1 compiler emits one deterministic Python specialization; only byte-identic
 may load. Preserve that output and its readers when adding a new compiler version. Source/code
 hashes and actual native runs do not establish semantic conversion, broker suitability or approval.
 See [strategy development](strategy-development.md).
+
+Persistent research uses `strategy-development-plan/2`, `strategy-development-report/2` and
+`persistent-strategy-loop/2`, retaining frozen progress/resource policy and hash-chained turn
+receipts. Native experiments keep v1 typed cell/input/result contracts and shared frozen snapshots.
+Continuation validates the exact owner/runtime, reservation ledger and each completed child;
+incomplete native authority is never inferred from a missing response.

@@ -205,7 +205,7 @@ class Orchestrator(HistoricalServices):
         if not explicit and value.get("status") != "research_brief":
             return
         identity = await self.development.prepare(
-            value["id"], self.provider, self.model_ref, focus=focus, parent=parent
+            value["id"], self.provider, self.model_ref, focus=focus, parent=parent, continuous=True
         )
         if self.development.store.state(identity) == "completed":
             self.last_action = {"action": "development_completed", "id": identity}
@@ -220,7 +220,8 @@ class Orchestrator(HistoricalServices):
             self.select(owner)
         yield (
             f"\n\nStrategy agent `{owner}` is compiling and testing campaign `{identity}`. "
-            "At most 3 programs, 4 markets and 24 native starts; no trading authority.\n\n"
+            "Persistent tool loop; first insufficient evaluated revision stops. "
+            "Frozen model/native/time budgets; no trading authority.\n\n"
         )
         report = await agent.develop(identity)
         self.last_action = {"action": "development_completed", "id": identity}

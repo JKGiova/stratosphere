@@ -327,10 +327,13 @@ application research policy. Validate source-rule indices and typed program capa
 registration/compilation. The application emits code; only bytes exactly equal to the versioned
 compiler output may run in credential-free children. Never execute arbitrary model/acquired Python
 or let the model alter a loader, worker path, account, environment or source/evidence check.
-Freeze source, owner, runtime, four exact data scopes, costs/windows/quantity, three program slots,
-twelve candidate cells and twenty-four native-start slots. Initial definition plus two refinements
-share three specialist model slots. Record each slot before use; failures/cancellation consume it.
-No automatic replay or budget replenishment; exact re-delivery reuses the retained campaign.
+Preserve v1 source/owner/runtime/scope pins, three program slots, twelve cells and twenty-four
+native-start slots. V2 freezes four scopes, 32 model calls including formalization, 128 reserved
+native starts, four searches, three technical errors and 3,600 active loop seconds. Application code
+owns frozen progress thresholds; the first insufficient complete revision stops and retains the best
+predecessor. Technical repair is separate and bounded. Record slots before use; failures consume them.
+V2 continuation reconstructs hash-chained receipts and reconciles completed native children; uncertain
+starts cannot replay. Exact re-delivery cannot replenish any budget. No arbitrary Python or shell tools.
 Every behavior/market/interval variant gets exact ownership and lineage; do not move its returns
 to the parent. Revisions see bounded own measured summaries and cannot change frozen market, cost,
 sizing or execution scope. Retain blocked datasets, failed cells, code, partials and all variants.

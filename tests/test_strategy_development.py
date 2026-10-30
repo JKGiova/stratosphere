@@ -542,7 +542,10 @@ async def test_orchestrator_hands_to_exact_agent_and_reuses_completed_campaign(
     calls = []
     provider = Replies(
         definition(specification(algorithm="rsi")).model_dump(mode="json"),
-        {"action": "stop", "reason": "Done", "specification": None},
+        *[
+            {"tool": tool, "reason": "Authored decision"}
+            for tool in ("test_program", "backtest", "finish")
+        ],
     )
     service = StrategyDevelopment(
         tmp_path / "development",
@@ -569,7 +572,7 @@ async def test_orchestrator_hands_to_exact_agent_and_reuses_completed_campaign(
     before = list(calls)
     reused = "".join([delta async for delta in bridge.respond("/develop " + brief["id"])])
     assert "no native starts repeated" in reused and calls == before
-    assert bridge.agent(owner) is agent and len(provider.requests) == 2
+    assert bridge.agent(owner) is agent and len(provider.requests) == 4
     reopened = "".join([delta async for delta in bridge.respond("/development-show " + job)])
     assert "Compiled code:" in reopened and calls == before
 

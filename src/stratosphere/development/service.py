@@ -153,6 +153,8 @@ class StrategyDevelopment:
                 continue
 
     def plan(self, identity):
+        if self.is_continuous(identity):
+            return self.continuous.plan(identity)
         path = self.store.directory(identity)
         if path.is_symlink() or any(p.is_symlink() for p in path.iterdir()):
             raise ResearchError("Development evidence cannot contain redirected paths")
@@ -190,7 +192,27 @@ class StrategyDevelopment:
             raise ResearchError("Development dataset changed")
         return value
 
-    async def prepare(self, intake_id, provider, model_ref, *, focus="", parent=None):
+    @property
+    def continuous(self):
+        from stratosphere.development.runner import ContinuousRunner
+
+        return ContinuousRunner(self)
+
+    def is_continuous(self, identity):
+        path = self.store.directory(identity) / "plan.json"
+        return (
+            path.is_file()
+            and self.store.read(identity, "plan.json").get("schema_version")
+            == "strategy-development-plan/2"
+        )
+
+    async def prepare(
+        self, intake_id, provider, model_ref, *, focus="", parent=None, continuous=False
+    ):
+        if continuous:
+            return await self.continuous.prepare(
+                intake_id, provider, model_ref, focus=focus, parent=parent
+            )
         intake = self.discovery.open(intake_id)
         if intake["questions"] or intake["status"] != "research_brief":
             raise ResearchError("Resolve the intake's open questions before strategy development")
@@ -345,6 +367,8 @@ class StrategyDevelopment:
             raise
 
     async def run(self, identity, provider, *, owner):
+        if self.is_continuous(identity):
+            return await self.continuous.run(identity, provider, owner=owner)
         with self.store.lock(identity):
             plan = self.plan(identity)
             if owner != plan["owner"]:
@@ -669,6 +693,8 @@ class StrategyDevelopment:
         }
 
     def report(self, identity):
+        if self.is_continuous(identity):
+            return self.continuous.report(identity)
         plan = self.plan(identity)
         report = self.store.read(identity, "report.json")
         if (
@@ -813,6 +839,15 @@ class StrategyDevelopment:
         return None
 
     def show(self, identity):
+        if self.is_continuous(identity) and self.store.state(identity) != "completed":
+            state = self.continuous.state(identity)
+            return (
+                f"# Persistent strategy loop `{identity}`\n\n"
+                f"State: {self.store.state(identity)}. "
+                f"Evaluated programs: {len(state['experiments'])}. "
+                f"Reserved native slots: {state['native_reserved']}. "
+                "Checkpoint retained; no trading authority or automatic native replay."
+            )
         if self.store.state(identity) == "completed":
             return report_markdown(self.report(identity))
         directory = self.store.directory(identity)
@@ -845,11 +880,21 @@ def report_markdown(report):
         "# Strategy-agent development",
         "",
         f"Campaign `{report['campaign_id']}` · agent owner `{report['owner']}`",
-        f"Native starts: {report['native_starts']} / 24. Status: {report['status']}.",
+        f"Native starts: {report['native_starts']} / "
+        f"{report.get('limits', LIMITS)['max_native_starts']}. Status: {report['status']}.",
         "",
         "| Candidate | Round | Symbol | Interval | Base return | Stress return | State |",
         "| --- | ---: | --- | --- | ---: | ---: | --- |",
     ]
+    if "stop_reason" in report:
+        lines.extend(
+            [
+                "",
+                f"Loop stopped: {report['stop_reason']}. Model slots: {report['model_calls']}.",
+                f"Reserved native slots: {report['native_reserved']}. "
+                f"Best experiment: {report['best_experiment_id'] or 'none'}.",
+            ]
+        )
     for item in report["results"]:
         metrics = item.get("metrics", {})
         lines.append(

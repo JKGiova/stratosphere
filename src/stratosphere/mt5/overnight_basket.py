@@ -178,6 +178,8 @@ class OvernightBasket:
             deployment = self.deployments[symbol]
             agent.trading.deployment(deployment.digest)
             agent.trading.verify(deployment, snapshot["account"])
+            if agent.advisory_exhausted(self.reports[symbol], deployment):
+                continue
             if (agent.folder / "halt.json").exists() or self.database.is_retired(
                 agent.record["public_id"]
             ):

@@ -326,19 +326,24 @@ class OvernightAgent:
             raise BridgeError("Overnight position deadline/ownership changed")
         return intent
 
-    def slots(self, report, deployment):
-        # Slots survive runtime changes, process death and new deployment approvals.
+    def advisory_exhausted(self, report, deployment):
         folder = self.folder / "triggers"
         private_path(folder)
-        folder.mkdir(mode=0o700, exist_ok=True)
         paths = list(folder.glob("*.json"))
         for path in paths:
             private_path(path)
         consumed = sum(
             json.loads(p.read_bytes()).get("deployment") == deployment.digest for p in paths
         )
-        if consumed * 2 >= report.max_model_calls:
+        return consumed * 2 >= report.max_model_calls
+
+    def slots(self, report, deployment):
+        # Slots survive runtime changes, process death and new deployment approvals.
+        if self.advisory_exhausted(report, deployment):
             raise BridgeError("Frozen overnight advisory budget exhausted")
+        folder = self.folder / "triggers"
+        private_path(folder)
+        folder.mkdir(mode=0o700, exist_ok=True)
         return folder
 
     async def advise(self, snapshot, deployment, report, sig):
@@ -454,6 +459,8 @@ class OvernightAgent:
         window = next((w for w in report.windows if w.entry_start <= now < w.entry_end), None)
         if window is None:
             return {"action": "waiting_for_entry_window"}
+        if self.advisory_exhausted(report, deployment):
+            return {"action": "advisory_budget_exhausted"}
         with self.bridge.journal() as db:
             rows = db.execute(
                 "SELECT payload,state FROM requests WHERE op IN ('submit','close')"
@@ -593,6 +600,7 @@ class OvernightAgent:
                         "expired_flat",
                         "halted_flat",
                         "entry_budget_exhausted",
+                        "advisory_budget_exhausted",
                     }:
                         return result
                     try:

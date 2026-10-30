@@ -195,6 +195,19 @@ async def test_basket_expiry_and_stale_health_shutdown(tmp_path):
         assert json.loads((runner.folder / "health.json").read_bytes())["state"] == "stopped"
 
 
+async def test_rejected_member_budget_does_not_fault_other_agents(tmp_path):
+    async with basket_fixture(tmp_path) as (runner, peer, provider, clock):
+        await runner.approve(runner.basket.digest)
+        provider.reliable = False
+        report = runner.reports["FRA40.cash"]
+        clock[0] = report.windows[0].entry_start
+        assert (await runner.cycle())["action"] == "strategy_agent_rejected"
+        clock[0] = report.windows[1].entry_start
+        assert (await runner.cycle())["action"] == "waiting_for_entry_window"
+        assert not (runner.folder / "halt.json").exists()
+        assert len(provider.calls) == 1 and peer.sent == 0
+
+
 async def test_catalog_pin_and_complete_universe_are_required(tmp_path):
     async with basket_fixture(tmp_path) as (runner, _, _, _):
         incomplete = runner.basket.model_copy(update={"deployments": runner.basket.deployments[:1]})

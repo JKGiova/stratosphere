@@ -114,7 +114,9 @@ class Timing(Contract):
 
 
 class InstrumentConstraints(Contract):
-    asset_classes: tuple[Literal["crypto_spot", "crypto_perpetual", "equity", "etf", "forex"], ...]
+    asset_classes: tuple[
+        Literal["crypto_spot", "crypto_perpetual", "equity", "etf", "forex", "commodity_cfd"], ...
+    ]
     fixed_symbols: tuple[str, ...]
     selection: Literal["fixed", "deployment_choice"]
 

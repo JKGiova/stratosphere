@@ -201,7 +201,8 @@
               "crypto_perpetual",
               "equity",
               "etf",
-              "forex"
+              "forex",
+              "commodity_cfd"
             ],
             "type": "string"
           },

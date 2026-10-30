@@ -382,5 +382,9 @@ class MT5Bridge:
     def implementation_digest(self):
         source = Path(__file__).parent
         return hashlib.sha256(
-            b"".join((source / name).read_bytes() for name in ("bridge.py", "trading.py"))
+            b"".join(
+                (source / name).read_bytes()
+                for name in ("bridge.py", "trading.py", "gold.py", "gold_strategy.py")
+            )
+            + (source.parent / "phase0/contracts.py").read_bytes()
         ).hexdigest()

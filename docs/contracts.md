@@ -17,6 +17,10 @@ all behavior/assumptions; name, source, performance and account capital are sepa
 matching complete canonical bytes, not only a candidate digest. Behavioral variants get distinct
 identities and acyclic lineage; duplicates reuse the stable strategy/agent and add provenance.
 
+The additive `commodity_cfd` asset label identifies broker gold independently of forex, ETFs and
+spot. Existing definitions retain their original canonical bytes and identities. Vocabulary support
+does not imply historical simulation or execution support in every adapter.
+
 See [`phase0/contracts.py`](../src/stratosphere/phase0/contracts.py) and
 [`registry/workspace.py`](../src/stratosphere/registry/workspace.py).
 
@@ -84,3 +88,8 @@ Persistent research uses `strategy-development-plan/2`, `strategy-development-re
 receipts. Native experiments keep v1 typed cell/input/result contracts and shared frozen snapshots.
 Continuation validates the exact owner/runtime, reservation ledger and each completed child;
 incomplete native authority is never inferred from a missing response.
+
+The headless gold pilot owns `mt5-gold-golden-profile/1`, `mt5-gold-binding/1`,
+`mt5-gold-signal/1`, `mt5-gold-observation/1`, `mt5-gold-connection-review/1` and
+`mt5-gold-sizing-proposal/1`. These bind an explicit operator-defined CFD profile and connection
+evidence, not a migrated research report or portfolio deployment. See [gold connection](mt5-gold.md).

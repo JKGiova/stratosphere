@@ -346,3 +346,13 @@ browser profiles, login state or operator credentials. Retain every backend atte
 response. Access/rate denials, private addresses and sensitive output are terminal, not permission
 to escalate. Optional readers stay within application time/byte/search ceilings; no arbitrary CLI,
 shell, browser evaluation, acquired code or broker tools enter the strategy model surface.
+
+The gold connector pilot keeps XAUUSD CFD/D1 identity separate from historical Yahoo/ETF research.
+Its full application-owned regime/startup/stop/sizing overlay participates in strategy identity.
+Status/export never requests sizing or activates trading. Entry requires an exact demo-only,
+one-entry deployment expiring within 24 hours, fresh matching account/session/window/exposure and
+the existing native gateway. Reserve advisory slots before inference; failed/canceled/uncertain
+operations cannot replay. The risk role receives anonymous bounded facts only, never raw account
+diagnostics or credentials. Protective exits require exact journal ownership and no model.
+This one-cycle connector is not a scheduler, faithful CFD backtest, FTMO certification or the
+general research-to-portfolio/position-management workflow.

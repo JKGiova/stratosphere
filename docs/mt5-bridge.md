@@ -56,6 +56,10 @@ TUI read-only entry points: `/mt5`, `/mt5-status`, `/mt5-quote <symbol>`,
 privately and are not appended to strategy-model histories. The headless connector is the execution
 interface; it does not yet run the strategy-agent research/signal pipeline automatically.
 
+A separate [gold Golden Cross pilot](mt5-gold.md) connects an explicit XAUUSD D1 strategy
+to this EA through headless status/draft/tick commands. It has its own exact demo deployment and
+one-entry sizing adapter; it does not complete the general agent/portfolio workflow.
+
 ## Exact deployment approval
 
 A connection never enables trading. A separate `mt5-deployment/1` binds the registered strategy ID,

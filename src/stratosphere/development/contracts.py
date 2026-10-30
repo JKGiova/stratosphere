@@ -101,6 +101,8 @@ def validate_program(spec: StrategySpec):
 
     def visit(node, depth=0):
         nonlocal count
+        if node.op == "session":
+            raise ValueError("Session events require the dedicated MT5 overnight adapter")
         count += 1
         if depth > 16 or count > 256:
             raise ValueError("Expression complexity budget exceeded")

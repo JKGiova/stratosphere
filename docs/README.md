@@ -16,7 +16,8 @@ These are focused reference guides, not separate roadmaps.
 | [Paper foundations](paper.md) | Internal accounting/runtime and missing provider integration |
 | [Legacy provider evidence](liquid.md) | Retained Liquid records; active connector retired |
 | [MT5 connector](mt5-bridge.md) | Active local data/order bridge, exact approvals, commands and limits |
-| [Gold strategy connection](mt5-gold.md) | Headless XAUUSD daily golden-cross pilot, bounded sizing and exact activation |
+| [Overnight agents](mt5-overnight.md) | Paper-grounded CFD adaptation, local calendars, continuous bounded agents and exact activation |
+| [Retired Gold pilot](mt5-gold.md) | Historical XAUUSD golden-cross identity, reports and compatibility |
 | [MT5 history probes](mt5.md) | Historical diagnostics, coverage exports and validation limits |
 | [Credentials](credentials.md) | Saving, restoring and forgetting access |
 | [Model providers](model-providers.md) | Selection, configuration and failure behavior |

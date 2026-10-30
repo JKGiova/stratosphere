@@ -17,9 +17,13 @@ all behavior/assumptions; name, source, performance and account capital are sepa
 matching complete canonical bytes, not only a candidate digest. Behavioral variants get distinct
 identities and acyclic lineage; duplicates reuse the stable strategy/agent and add provenance.
 
-The additive `commodity_cfd` asset label identifies broker gold independently of forex, ETFs and
-spot. Existing definitions retain their original canonical bytes and identities. Vocabulary support
-does not imply historical simulation or execution support in every adapter.
+The additive `commodity_cfd` and `index_cfd` asset labels distinguish broker CFDs from spot, equities
+and ETFs. Application session expressions (`regular_close_window`, `next_regular_open`, plus retained
+US-specific names) are boolean events handled by the dedicated overnight adapter; generic historical
+development rejects them. Existing definitions retain their original canonical bytes and identities.
+Vocabulary support does not imply simulation or execution support in every adapter. Registry
+retirement is an additive immutable receipt: active catalogs exclude it, historical identity, agent,
+lineage and evidence readers remain available, and duplicate registration does not reactivate it.
 
 See [`phase0/contracts.py`](../src/stratosphere/phase0/contracts.py) and
 [`registry/workspace.py`](../src/stratosphere/registry/workspace.py).
@@ -64,6 +68,13 @@ See [agent workflow](agent-workflow.md) for behavior and verification limits.
 
 ## MT5 connector contracts
 
+The [overnight adapter](mt5-overnight.md) adds `mt5-overnight-profile/1`,
+`mt5-overnight-review/1`, `mt5-overnight-sizing-proposal/1`, `mt5-overnight-signal/1` and
+`mt5-overnight-basket/1`. The application pins exact market/calendar conversions, schedules, model
+identity and finite advisory budgets. Basket approval binds every existing `mt5-deployment/1`, not a
+new general portfolio authority. `symbols` is a bounded read-only catalog operation; entry request
+deadlines can shorten the existing transport expiry without widening a deployment's authority.
+
 `mt5/bridge.py` owns `stratosphere.mt5.bridge/1` typed request/response rows and a durable local
 request journal. `mt5/trading.py` owns exact `mt5-deployment/1` approvals. Neither interprets old
 `finished-paper-strategy/1` approvals as MT5 authority. The EA checks native policy/account/session
@@ -89,7 +100,7 @@ receipts. Native experiments keep v1 typed cell/input/result contracts and share
 Continuation validates the exact owner/runtime, reservation ledger and each completed child;
 incomplete native authority is never inferred from a missing response.
 
-The headless gold pilot owns `mt5-gold-golden-profile/1`, `mt5-gold-binding/1`,
+The retired headless gold pilot retains `mt5-gold-golden-profile/1`, `mt5-gold-binding/1`,
 `mt5-gold-signal/1`, `mt5-gold-observation/1`, `mt5-gold-connection-review/1` and
 `mt5-gold-sizing-proposal/1`. These bind an explicit operator-defined CFD profile and connection
 evidence, not a migrated research report or portfolio deployment. See [gold connection](mt5-gold.md).

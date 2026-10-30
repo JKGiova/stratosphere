@@ -218,6 +218,17 @@ void Read(int h,string op)
       Put(h,"terminal_trade_allowed",IntegerToString(TerminalInfoInteger(TERMINAL_TRADE_ALLOWED)));
       Put(h,"utc_epoch",IntegerToString((long)TimeGMT())); Put(h,"server_epoch",IntegerToString((long)TimeTradeServer()));
    }
+   else if(op=="symbols")
+   {
+      int total=SymbolsTotal(false);
+      if(total>5000) { Error(h,"Symbol catalog exceeds the fixed read budget"); return; }
+      Put(h,"count",IntegerToString(total));
+      for(int i=0;i<total;i++)
+      {
+         string name=SymbolName(i,false),p="s."+IntegerToString(i+1)+".";
+         Put(h,p+"symbol",name); Put(h,p+"description",SymbolInfoString(name,SYMBOL_DESCRIPTION));
+      }
+   }
    else if(op=="positions" || op=="orders")
    {
       int total=op=="positions" ? PositionsTotal() : OrdersTotal();
@@ -267,6 +278,9 @@ void Read(int h,string op)
          Put(h,"volume_max",Num(SymbolInfoDouble(symbol,SYMBOL_VOLUME_MAX))); Put(h,"volume_step",Num(SymbolInfoDouble(symbol,SYMBOL_VOLUME_STEP)));
          Put(h,"profit_currency",SymbolInfoString(symbol,SYMBOL_CURRENCY_PROFIT)); Put(h,"margin_currency",SymbolInfoString(symbol,SYMBOL_CURRENCY_MARGIN));
          Put(h,"swap_long",Num(SymbolInfoDouble(symbol,SYMBOL_SWAP_LONG))); Put(h,"swap_short",Num(SymbolInfoDouble(symbol,SYMBOL_SWAP_SHORT)));
+         Put(h,"swap_mode",IntegerToString(SymbolInfoInteger(symbol,SYMBOL_SWAP_MODE)));
+         Put(h,"swap_triple_day",IntegerToString(SymbolInfoInteger(symbol,SYMBOL_SWAP_ROLLOVER3DAYS)));
+         Put(h,"trade_mode",IntegerToString(SymbolInfoInteger(symbol,SYMBOL_TRADE_MODE)));
       }
       if(op=="quote")
       {

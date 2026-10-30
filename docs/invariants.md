@@ -347,7 +347,7 @@ response. Access/rate denials, private addresses and sensitive output are termin
 to escalate. Optional readers stay within application time/byte/search ceilings; no arbitrary CLI,
 shell, browser evaluation, acquired code or broker tools enter the strategy model surface.
 
-The gold connector pilot keeps XAUUSD CFD/D1 identity separate from historical Yahoo/ETF research.
+The retired gold connector pilot keeps XAUUSD CFD/D1 identity separate from historical Yahoo/ETF research.
 Its full application-owned regime/startup/stop/sizing overlay participates in strategy identity.
 Status/export never requests sizing or activates trading. Entry requires an exact demo-only,
 one-entry deployment expiring within 24 hours, fresh matching account/session/window/exposure and
@@ -356,3 +356,28 @@ operations cannot replay. The risk role receives anonymous bounded facts only, n
 diagnostics or credentials. Protective exits require exact journal ownership and no model.
 This one-cycle connector is not a scheduler, faithful CFD backtest, FTMO certification or the
 general research-to-portfolio/position-management workflow.
+
+## Overnight execution adapter
+
+The overnight family is an explicit CFD adaptation of arXiv:2010.01727, not a complete strategy
+specified or profitability-certified by that paper. Use exact reviewed benchmark/calendar mappings
+and the connected catalog; Nasdaq 100 cannot stand in for Nasdaq Composite in the automatic
+intersection. Freeze each market's regular-session UTC schedule, model identity, implementation,
+account/EA and all member limits in the final deployment review. Historical research/Gold authority
+does not transfer. Retirement hides active catalog entries without deleting identities or evidence.
+
+Keep one stable isolated owner per exact instrument strategy, one account position total and no
+reinforcement. The account coordinator skips overlapping signals and cannot silently expand to a
+basket of concurrent positions. Each demo deployment allows at most seven entry-days, five entry
+attempts and ten reserved model calls; the reviewed basket includes their aggregate finite budgets.
+Only exact user approval of all listed deployments can activate the service. Models review signals
+and propose size; code owns time, USD conversion, notional and native risk/margin gates. Native entry
+request expiry must end inside the reviewed entry window. No late catch-up, implicit model switch,
+failed-slot replay or budget renewal. Cross-runtime/reapproval trigger consumption is retained.
+
+Account/credential diagnostics stay outside model facts. Timed exactly owned exits do not depend on
+models or entry approval expiry/revocation/retirement. Clock jumps latch entry halts while preserving
+owned exits; other failures retain stopped health, halt receipts and all native uncertainty. An OS
+service must not automatically clear halts, replay failed cycles or claim liveness from stale health.
+Submitted SL/nominal risk does not bound gaps, financing or realized loss; no FTMO or CFD-performance
+certification follows from source access, fixtures or model replies.

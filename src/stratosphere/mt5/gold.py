@@ -80,7 +80,9 @@ def retain(path, value):
 async def saved_provider():
     settings = await credential_io(CredentialStore().load_model)
     if settings is None:
-        raise BridgeError("Save model settings in the TUI before an approved gold sizing call")
+        raise BridgeError(
+            "Save model settings in the TUI before an approved strategy advisory call"
+        )
     return create_provider(settings)
 
 
@@ -169,6 +171,8 @@ class GoldConnection:
         }
 
     async def draft(self, limits):
+        if self.database.is_retired(self.record["public_id"]):
+            raise BridgeError("Gold strategy is retired; historical evidence remains readable")
         observation = await self.capture()
         expected = {
             "max_volume",
@@ -367,6 +371,8 @@ class GoldConnection:
                 return {"action": "hold_owned_position", "ticket": ticket}
             if observation["signal"]["desired_position"] == "flat":
                 return {"action": "stay_flat", "signal": observation["signal"]}
+            if self.database.is_retired(self.record["public_id"]):
+                raise BridgeError("Gold strategy is retired; no new entries are permitted")
             deployment = self.trading.deployment(deployment_digest)
             self.verify_deployment(deployment, observation)
             if (

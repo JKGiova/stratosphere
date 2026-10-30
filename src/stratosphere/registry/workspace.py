@@ -29,6 +29,14 @@ def encoded(value) -> str:
 
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS retired_strategies (
+ public_id TEXT PRIMARY KEY REFERENCES strategies(public_id), reason TEXT NOT NULL,
+ retired_at TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS immutable_retirement BEFORE UPDATE ON retired_strategies
+BEGIN SELECT RAISE(ABORT, 'Retirement receipts are immutable'); END;
+CREATE TRIGGER IF NOT EXISTS retain_retirement BEFORE DELETE ON retired_strategies
+BEGIN SELECT RAISE(ABORT, 'Retirement receipts are retained evidence'); END;
 CREATE TABLE IF NOT EXISTS strategies (
  id TEXT PRIMARY KEY, public_id TEXT NOT NULL UNIQUE CHECK(length(public_id)=24),
  spec_sha256 TEXT NOT NULL UNIQUE, spec_json TEXT NOT NULL, name TEXT NOT NULL,
@@ -433,12 +441,33 @@ class WorkspaceDatabase:
         with self.connect() as db:
             return self._public(db, self._strategy(db, public_id))
 
-    def catalog(self) -> list[dict]:
+    def retire(self, public_id: str, reason: str) -> None:
+        """Remove active routing while retaining the exact identity, agent and all evidence."""
+        if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 1000:
+            raise RegistryError("An explicit retirement reason is required")
+        with self.connect() as db:
+            self._strategy(db, public_id)
+            db.execute(
+                "INSERT OR IGNORE INTO retired_strategies VALUES (?,?,?)",
+                (public_id, reason, now()),
+            )
+
+    def is_retired(self, public_id: str) -> bool:
+        with self.connect() as db:
+            return bool(
+                db.execute(
+                    "SELECT 1 FROM retired_strategies WHERE public_id=?", (public_id,)
+                ).fetchone()
+            )
+
+    def catalog(self, *, include_retired=False) -> list[dict]:
         with self.connect() as db:
             return [
                 self._public(db, row)
                 for row in db.execute(
-                    "SELECT * FROM strategies ORDER BY created_at,public_id"
+                    "SELECT * FROM strategies WHERE ? OR public_id NOT IN "
+                    "(SELECT public_id FROM retired_strategies) ORDER BY created_at,public_id",
+                    (include_retired,),
                 ).fetchall()
             ]
 

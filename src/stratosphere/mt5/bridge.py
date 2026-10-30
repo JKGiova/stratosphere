@@ -10,6 +10,7 @@ import sqlite3
 import time
 import uuid
 from decimal import Decimal
+from importlib.metadata import version
 from pathlib import Path
 
 from stratosphere.connectors.mt5_probe import HISTORY_FRAMES
@@ -17,7 +18,7 @@ from stratosphere.phase0.contracts import decimal_text
 from stratosphere.research.store import ResearchError
 
 SCHEMA = "stratosphere.mt5.bridge/1"
-READS = {"account", "symbol", "quote", "rates", "positions", "orders", "deals"}
+READS = {"account", "symbols", "symbol", "quote", "rates", "positions", "orders", "deals"}
 SYMBOL = re.compile(r"[A-Za-z0-9_.#-]{1,64}")
 
 
@@ -228,7 +229,7 @@ class MT5Bridge:
         finally:
             os.close(lock)
 
-    async def _request(self, op: str, args=None, *, identity=None, trade=False):
+    async def _request(self, op: str, args=None, *, identity=None, trade=False, deadline=None):
         if op not in READS | {"check", "submit", "close"}:
             raise BridgeError("Unsupported MT5 operation")
         if (op in {"submit", "close"}) != trade:
@@ -251,6 +252,10 @@ class MT5Bridge:
             "op": op,
             "expires": str(int(time.time()) + int(self.timeout)),
         }
+        if deadline is not None:
+            if type(deadline) is not int or deadline <= int(time.time()):
+                raise BridgeError("MT5 operation deadline already expired")
+            fields["expires"] = str(min(int(fields["expires"]), deadline))
         if args:
             if set(args) & fields.keys():
                 raise BridgeError("MT5 arguments cannot override account/session/protocol pins")
@@ -348,6 +353,13 @@ class MT5Bridge:
                 raise ValueError("Crossed quote")
             int(result["server_time_ms"])
             int(result["age_ms"])
+        if op == "symbols":
+            count = int(result["count"])
+            if not 0 <= count <= 5000:
+                raise ValueError("Invalid MT5 symbol catalog count")
+            names = [result[f"s.{i}.symbol"] for i in range(1, count + 1)]
+            if len(set(names)) != count or any(not SYMBOL.fullmatch(name) for name in names):
+                raise ValueError("Invalid or duplicate MT5 symbol catalog name")
         if op in {"rates", "positions", "orders", "deals"}:
             count = int(result["count"])
             limit = int(args.get("count", 10000 if op == "deals" else 1000))
@@ -384,7 +396,24 @@ class MT5Bridge:
         return hashlib.sha256(
             b"".join(
                 (source / name).read_bytes()
-                for name in ("bridge.py", "trading.py", "gold.py", "gold_strategy.py")
+                for name in (
+                    "bridge.py",
+                    "trading.py",
+                    "gold.py",
+                    "gold_strategy.py",
+                    "overnight.py",
+                    "overnight_strategy.py",
+                    "overnight_markets.py",
+                    "overnight_basket.py",
+                )
             )
             + (source.parent / "phase0/contracts.py").read_bytes()
+            + (source.parent / "registry/workspace.py").read_bytes()
+            + (source.parent / "workflow/risk.py").read_bytes()
+            + (source.parent / "models/structured.py").read_bytes()
+            + b"".join(
+                path.read_bytes() for path in sorted((source.parent / "models").glob("*.py"))
+            )
+            + (source.parent / "credentials.py").read_bytes()
+            + version("exchange-calendars").encode()
         ).hexdigest()

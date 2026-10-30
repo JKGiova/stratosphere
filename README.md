@@ -1,7 +1,7 @@
 # stratosphere
 
 A personal terminal workspace for quantitative strategy research, part of **tradingsphere**.
-Linux and macOS are the initial targets. The repository is private.
+Linux and macOS are the initial targets. The repository is public; credentials and operational evidence stay private.
 
 ## Start
 
@@ -24,12 +24,14 @@ See [setup and usage](docs/usage.md) for installation and the research workflow.
 - [Source-grounded strategy intake](docs/agent-workflow.md) from public references and local PDFs.
 - [Strategy-agent development](docs/strategy-development.md): compiled SMA/EMA/RSI expression programs, native backtests, bounded revisions and sampled market comparisons. Arbitrary source conversion remains unfinished.
 - [MT5 local data/order connector](docs/mt5-bridge.md), with a compiled Expert Advisor, exact account/session pins, typed data reads and guarded market entry/owned exits.
+- [Overnight agents](docs/mt5-overnight.md): paper-grounded CFD adaptation, local calendars, bounded continuous agents and one account position across the matched markets. This replaces the active Gold Golden Cross pilot.
 - Alpaca/Liquid active commands and automatic credential restoration are retired; historical formats, journals and readers remain separate.
 - Gold MT5 history acquired and structurally validated across all 21 standard intervals; coarse intervals reach 2004.
 
 The [agent workflow rebuild](docs/agent-workflow.md) remains in progress. Automatic research and
 the headless MT5 connector are implemented separately: faithful broker-CFD research, final report
-ownership validation and automatic strategy/risk-agent execution are not connected yet.
+ownership validation and general automatic strategy/risk-agent execution are not connected yet.
+The overnight adapter is a separate operator-defined deployment with its own exact approval.
 MT5 trading requires an exact user-approved deployment and native enablement. One demo connector
 round-trip passed; strategy-driven broker execution, FTMO rules, sustained operation and recovery
 remain verification gates. There is no

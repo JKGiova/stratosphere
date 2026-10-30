@@ -171,11 +171,16 @@ class MT5Trading:
             fields.update(digest=digest, revoked="1")
             atomic_write(self.bridge.root / "approvals" / (digest + ".tsv"), encode(fields))
 
-    async def order(self, digest, order: Order, *, check_only=False):
+    async def order(self, digest, order: Order, *, check_only=False, expires_at=None):
         with self.lease():
             deployment = self.deployment(digest)
             account = await self.bridge.account()
             self.verify(deployment, account)
+            if expires_at is not None and (
+                type(expires_at) is not int
+                or not int(time.time()) < expires_at <= deployment.expires
+            ):
+                raise BridgeError("Order deadline must be current and inside deployment authority")
             if Decimal(order.volume) > Decimal(deployment.max_volume):
                 raise BridgeError("MT5 volume exceeds approved bound")
             identity = hashlib.sha256((digest + order.signal_sha256).encode()).hexdigest()[:32]
@@ -207,6 +212,7 @@ class MT5Trading:
                 args,
                 identity=None if check_only else identity,
                 trade=not check_only,
+                deadline=expires_at,
             )
             if not check_only:
                 await self.settle(identity, result, deployment.symbol, args["magic"])

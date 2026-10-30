@@ -42,8 +42,9 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
 | Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
 | MT5 bridge | Local typed EA/client, exact account/session binding and private durable journal; actual Intel macOS FTMO demo reads passed for account/specs/advancing quotes/M1-H1-D1 candles/positions/orders/deals with trading disabled | Linux deployment, disconnect/account-switch/restart, sustained feed freshness, timestamp/session/cost semantics and independent executable attestation remain unverified |
-| MT5 execution | Exact operator deployment approval, finite order/volume/cash-risk/margin/spread/equity bounds, mandatory SL, native checks, FOK/IOC entry, owned close/revoke, no uncertain replay; actual one-time demo entry/owned close and broker deal-history reconciliation passed | One account position at a time; diagnostic acceptance does not validate the finished-strategy deployment path. No automatic agent runner, FTMO daily/reset rules or multi-strategy allocation integration yet |
-| Gold strategy connection | Application-owned XAUUSD D1 50/200 regime, generated script, stable registry owner, current EA data, exact demo-only one-entry deployment, isolated bounded sizing adapter and deterministic owned exit | One tick per invocation; actual connected bearish/flat observation passed without sizing or orders. No CFD performance validation, strategy-order acceptance, scheduler or portfolio-management loop |
+| MT5 execution | Exact operator deployment approval, finite order/volume/cash-risk/margin/spread/equity bounds, mandatory SL, native checks, FOK/IOC entry, owned close/revoke, shortened signal deadlines and no uncertain replay; actual one-time demo round-trip passed | One account position at a time; connector diagnostics do not validate finished-strategy execution, FTMO daily/reset rules or portfolio allocation |
+| Overnight agents | Paper-grounded close-to-open CFD adaptation; exact catalog intersection, local exchange calendars, generated scripts, stable per-market owners, binary signal review/risk sizing, bounded continuous account coordinator and deterministic owned exits | Separate operator-defined adapter, not the general research pipeline. Eight FTMO benchmark families observed; authored execution tests and actual model fixture passed. Exact final deployment approval, actual strategy-order acceptance, sustained operation, CFD profitability and FTMO compliance remain separate gates |
+| Retired Gold pilot | XAUUSD daily golden-cross identity, historical reader/code, agent and private evidence retained; retirement removes active catalog routing and blocks new entries | Historical observation/connector evidence grants no overnight authority |
 | Historical services | Original research/studies, source/evidence readers, authored ledger/runtime, schemas and journals retained | Historical provider fixtures are not active accounts or transferred approvals |
 | Gold data | Actual MT5 export validated for all 21 intervals; H2–D1 reach June 2004 | Short intervals hit 100k terminal limit; full archives/UTC/session/cost semantics remain unverified; this is acquisition, not a CFD backtest |
 
@@ -57,8 +58,9 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 2. **Connect the agent workflow to MT5.** Source-to-specialist compiled historical research now
    runs separately. Build a faithful CFD research and final-report validator,
    exact registered strategy/report ownership and instrument mapping, timestamp/session/cost
-   semantics, signal evidence and MT5-specific portfolio risk/allocation. The headless gold pilot
-   connects one explicit operator strategy; its manual deployment approval does not complete the automatic research-to-execution pipeline. Retain old
+   semantics, signal evidence and MT5-specific portfolio risk/allocation. The bounded overnight
+   adapter connects explicit operator-defined strategies; it does not complete the automatic
+   research-to-execution pipeline. Retain old
    research and final-approval contracts without routing them to MT5.
 3. **Implement FTMO evaluation rules.** Verify actual Free Trial/two-step Swing profile and phase,
    dated rules, timezone/day-reset equity accounting, commissions/swaps, daily/total loss stops,
@@ -85,9 +87,9 @@ establish live-model extraction reliability or faithful strategy conversion. Spe
 now has actual generated-code Nautilus fixtures and a separate actual AMZN/TSLA Yahoo comparison
 with authored model replies: four cells / eight native starts completed. A real local Ollama check from an authored baseline also completed two native starts; an invalid
 revision was rejected. Small-model formalization/refinement reliability remains unresolved. The
-general research-to-MT5 agent pipeline remains unconnected; the headless gold pilot is a separate
-one-strategy adapter. See the [development guide](docs/strategy-development.md) for exact limits and
-evidence.
+general research-to-MT5 agent pipeline remains unconnected. The separately bounded
+[overnight adapter](docs/mt5-overnight.md) does not establish that integration or CFD profitability.
+See the [development guide](docs/strategy-development.md) for research limits and evidence.
 
 Distinguish authored fixtures/native simulation, actual model calls,
 provider checks and installed-client readiness. No phase or release is complete from a narrower test,

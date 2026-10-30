@@ -36,6 +36,7 @@ class Expression(Contract):
         "field",
         "indicator",
         "position",
+        "session",
         "add",
         "sub",
         "mul",
@@ -61,6 +62,14 @@ class Expression(Contract):
         elif self.op == "boolean":
             if type(self.value) is not bool:
                 raise ValueError("Boolean literal required")
+        elif self.op == "session":
+            if self.value not in {
+                "us_regular_close_window",
+                "us_next_regular_open",
+                "regular_close_window",
+                "next_regular_open",
+            }:
+                raise ValueError("Unknown application session event")
         elif self.op in {"field", "indicator", "position"}:
             if not isinstance(self.value, str):
                 raise ValueError("Named reference required")
@@ -70,7 +79,11 @@ class Expression(Contract):
                 raise ValueError("Unknown position state")
         elif self.value is not None:
             raise ValueError("Operators cannot contain literal values")
-        arity = 0 if self.op in {"decimal", "boolean", "field", "indicator", "position"} else 2
+        arity = (
+            0
+            if self.op in {"decimal", "boolean", "field", "indicator", "position", "session"}
+            else 2
+        )
         if self.op == "not":
             arity = 1
         if len(self.args) != arity:
@@ -115,7 +128,16 @@ class Timing(Contract):
 
 class InstrumentConstraints(Contract):
     asset_classes: tuple[
-        Literal["crypto_spot", "crypto_perpetual", "equity", "etf", "forex", "commodity_cfd"], ...
+        Literal[
+            "crypto_spot",
+            "crypto_perpetual",
+            "equity",
+            "etf",
+            "forex",
+            "commodity_cfd",
+            "index_cfd",
+        ],
+        ...,
     ]
     fixed_symbols: tuple[str, ...]
     selection: Literal["fixed", "deployment_choice"]
@@ -187,7 +209,7 @@ class StrategySpec(Contract):
         def expression_type(node: Expression) -> str:
             if node.op == "indicator" and node.value not in ids:
                 raise ValueError("Unknown indicator reference")
-            if node.op in {"boolean", "position"}:
+            if node.op in {"boolean", "position", "session"}:
                 return "boolean"
             if node.op in {"decimal", "field", "indicator"}:
                 return "numeric"

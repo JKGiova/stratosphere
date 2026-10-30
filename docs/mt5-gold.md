@@ -1,5 +1,10 @@
 # Gold Golden Cross connection
 
+Retired from the operator's active catalog in favor of the [overnight agents](mt5-overnight.md).
+The exact definition, stable agent, reports and journals remain historical evidence. A retired
+Gold identity cannot prepare or enter a new deployment; exactly owned protective exits remain.
+The following describes the retained pilot and its compatibility behavior.
+
 This headless pilot connects one application-owned XAUUSD daily strategy to the already attached
 `StratosphereBridge` EA. It is separate from the orchestrator/research-to-portfolio workflow and
 implements no portfolio allocation, FTMO loss/reset engine or general position-management service.

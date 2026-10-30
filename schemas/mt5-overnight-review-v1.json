@@ -1,0 +1,121 @@
+{
+  "$defs": {
+    "Window": {
+      "additionalProperties": false,
+      "properties": {
+        "session": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Session",
+          "type": "string"
+        },
+        "entry_start": {
+          "exclusiveMinimum": 0,
+          "title": "Entry Start",
+          "type": "integer"
+        },
+        "entry_end": {
+          "exclusiveMinimum": 0,
+          "title": "Entry End",
+          "type": "integer"
+        },
+        "exit_at": {
+          "exclusiveMinimum": 0,
+          "title": "Exit At",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "session",
+        "entry_start",
+        "entry_end",
+        "exit_at"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "mt5-overnight-review/1",
+      "default": "mt5-overnight-review/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "strategy_id": {
+      "title": "Strategy Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "specification_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Specification Sha256",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "profile": {
+      "additionalProperties": true,
+      "title": "Profile",
+      "type": "object"
+    },
+    "created_utc": {
+      "exclusiveMinimum": 0,
+      "title": "Created Utc",
+      "type": "integer"
+    },
+    "expires": {
+      "exclusiveMinimum": 0,
+      "title": "Expires",
+      "type": "integer"
+    },
+    "windows": {
+      "items": {
+        "$ref": "#/$defs/Window"
+      },
+      "maxItems": 7,
+      "minItems": 1,
+      "title": "Windows",
+      "type": "array"
+    },
+    "model_identity": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Model Identity",
+      "type": "object"
+    },
+    "max_model_calls": {
+      "maximum": 10,
+      "minimum": 2,
+      "title": "Max Model Calls",
+      "type": "integer"
+    },
+    "evidence": {
+      "const": "Source-grounded adaptation; no net-of-cost CFD backtest or FTMO certification",
+      "default": "Source-grounded adaptation; no net-of-cost CFD backtest or FTMO certification",
+      "title": "Evidence",
+      "type": "string"
+    }
+  },
+  "required": [
+    "strategy_id",
+    "agent_id",
+    "specification_sha256",
+    "implementation_sha256",
+    "profile",
+    "created_utc",
+    "expires",
+    "windows",
+    "model_identity",
+    "max_model_calls"
+  ],
+  "title": "Review",
+  "type": "object"
+}

@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "mt5-overnight-sizing-proposal/1",
+      "default": "mt5-overnight-sizing-proposal/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "context_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Context Sha256",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "enter",
+        "skip"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "volume": {
+      "title": "Volume",
+      "type": "string"
+    },
+    "explanation": {
+      "maxLength": 1500,
+      "minLength": 1,
+      "title": "Explanation",
+      "type": "string"
+    }
+  },
+  "required": [
+    "context_sha256",
+    "decision",
+    "volume",
+    "explanation"
+  ],
+  "title": "OvernightSizing",
+  "type": "object"
+}

@@ -139,7 +139,9 @@ class AdvisoryAgents:
             "Review this exact strategy trigger using only supplied facts. Return reliable or "
             "not_reliable, with explanation and literal fact IDs in evidence. Uncertainty or "
             "insufficient evidence means not_reliable. This is advisory, not a profit guarantee "
-            "or permission to allocate capital or trade. Copy owner/signal/context pins exactly.",
+            "or permission to allocate capital or trade. Copy owner/signal/context pins exactly. "
+            "Evidence entries must be these exact top-level fact keys, never nested paths: "
+            + json.dumps(sorted(facts)),
             {
                 "strategy_id": strategy_id,
                 "signal_sha256": signal_sha256,

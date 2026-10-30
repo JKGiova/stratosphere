@@ -23,7 +23,7 @@ def parser():
     root.add_argument("--root", type=Path)
     root.add_argument("--output", type=Path, help="New private diagnostic/result file")
     sub = root.add_subparsers(dest="command", required=True)
-    for name in ("account", "positions", "orders"):
+    for name in ("account", "symbols", "positions", "orders"):
         sub.add_parser(name)
     for name in ("symbol", "quote"):
         sub.add_parser(name).add_argument("symbol")

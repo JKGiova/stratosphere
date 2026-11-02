@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from stratosphere.mt5.bridge import BridgeError, MT5Bridge, private_path
-from stratosphere.mt5.trading import Deployment, MT5Trading, Order
+from stratosphere.mt5.trading import Deployment, MT5Trading, Order, deployment_reader
 from stratosphere.phase0.contracts import StrategyDocument
 
 
@@ -61,7 +61,7 @@ def parser():
 
 async def execute(args):
     if args.command == "review":
-        value = Deployment.model_validate_json(read_file(args.deployment))
+        value = deployment_reader.validate_json(read_file(args.deployment))
         return {"deployment": value.model_dump(mode="json"), "digest": value.digest}
     bridge = MT5Bridge(args.root)
     trading = MT5Trading(bridge)
@@ -84,7 +84,7 @@ async def execute(args):
         value = Deployment.model_validate(limits)
         return {"deployment": value.model_dump(mode="json"), "digest": value.digest}
     if args.command == "approve":
-        value = Deployment.model_validate_json(read_file(args.deployment))
+        value = deployment_reader.validate_json(read_file(args.deployment))
         return {"approved": await trading.approve(value, args.digest, allow_real=args.allow_real)}
     if args.command == "revoke":
         await trading.revoke(args.digest)

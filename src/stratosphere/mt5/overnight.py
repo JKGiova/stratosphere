@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import fcntl
+import hashlib
 import json
 import os
 import time
@@ -14,7 +15,9 @@ from typing import Literal
 from pydantic import Field
 
 from stratosphere.models.streaming import ModelError
-from stratosphere.mt5.bridge import BridgeError, MT5Bridge, decode, private_path
+from stratosphere.mt5.bridge import BridgeError, EntryBlocked, MT5Bridge, decode, private_path
+from stratosphere.mt5.exposure import coexistence_block, ownership
+from stratosphere.mt5.exposure import snapshot as exposure_snapshot
 from stratosphere.mt5.gold import SizingProposal, retain, save_new, saved_provider
 from stratosphere.mt5.gold_strategy import digest
 from stratosphere.mt5.overnight_markets import FX_TO_USD, intersection
@@ -31,7 +34,7 @@ from stratosphere.mt5.overnight_strategy import (
     validate_volume,
     windows,
 )
-from stratosphere.mt5.trading import Deployment, MT5Trading, Order
+from stratosphere.mt5.trading import CoexistingDeployment, Deployment, MT5Trading, Order
 from stratosphere.phase0.contracts import Contract, Digest, fingerprint
 from stratosphere.registry.workspace import WorkspaceDatabase
 from stratosphere.research.store import default_research_root
@@ -123,11 +126,40 @@ class OvernightAgent:
         return path
 
     def halt(self, message):
-        path = self.folder / "halt.json"
-        try:
-            save_new(path, {"state": "halted", "reason": message, "at": int(self.clock())})
-        except FileExistsError:
-            pass
+        for path in (self.folder / "halt.json", self.runtime / "halt.json"):
+            try:
+                save_new(path, {"state": "halted", "reason": message, "at": int(self.clock())})
+            except FileExistsError:
+                pass
+
+    def halted(self, deployment):
+        current = self.runtime / "halt.json"
+        previous = self.folder / "halt.json"
+        private_path(current)
+        private_path(previous)
+        if current.exists():
+            return True
+        if not previous.exists():
+            return False
+        recovery = self.runtime / ("recovery-" + deployment.digest + ".json")
+        private_path(recovery)
+        if not isinstance(deployment, CoexistingDeployment) or not recovery.is_file():
+            return True
+        receipt = json.loads(recovery.read_bytes())
+        if (
+            receipt.get("deployment") != deployment.digest
+            or receipt.get("previous_halt_sha256")
+            != hashlib.sha256(previous.read_bytes()).hexdigest()
+        ):
+            return True
+        basket = receipt.get("basket", "")
+        if len(basket) != 64 or any(c not in "0123456789abcdef" for c in basket):
+            return True
+        completed = (
+            self.bridge.state_directory() / "overnight" / "baskets" / basket / "recovered.json"
+        )
+        private_path(completed)
+        return not completed.is_file() or json.loads(completed.read_bytes()).get("basket") != basket
 
     async def capture(self, *, quote=False, planning=False):
         session = self.bridge.session()
@@ -182,7 +214,7 @@ class OvernightAgent:
             "activation": "Status does not activate a service or authorize orders",
         }
 
-    async def draft(self, limits):
+    async def draft(self, limits, *, manual_coexistence=False):
         expected = {
             "max_volume",
             "max_order_risk",
@@ -208,7 +240,13 @@ class OvernightAgent:
         if self.database.is_retired(self.record["public_id"]):
             raise BridgeError("This overnight strategy is retired")
         snapshot = await self.capture(quote=True, planning=True)
-        if int(snapshot["positions"]["count"]) or int(snapshot["orders"]["count"]):
+        if manual_coexistence:
+            if snapshot["account"].get("margin_mode") != "2":
+                raise BridgeError("Manual coexistence requires a verified hedging account")
+            owned, _, _ = ownership(self.bridge, snapshot["positions"], snapshot["orders"])
+            if owned:
+                raise BridgeError("Reconcile application positions before a new deployment")
+        elif int(snapshot["positions"]["count"]) or int(snapshot["orders"]["count"]):
             raise BridgeError("Prepare the overnight deployment only with a flat account")
         review = Review(
             strategy_id=self.record["public_id"],
@@ -223,7 +261,8 @@ class OvernightAgent:
             max_model_calls=2 * limits["max_orders"],
         )
         account = snapshot["account"]
-        deployment = Deployment.model_validate(
+        deployment_class = CoexistingDeployment if manual_coexistence else Deployment
+        deployment = deployment_class.model_validate(
             limits
             | {
                 "strategy_id": self.record["public_id"],
@@ -244,9 +283,12 @@ class OvernightAgent:
                 "meaning": "No feasibility or order acceptance claim; runtime gates remain strict",
             }
         else:
-            bounds = entry_bounds(
-                self.symbol, snapshot["quote"], snapshot["symbol"], account, deployment
-            )
+            try:
+                bounds = entry_bounds(
+                    self.symbol, snapshot["quote"], snapshot["symbol"], account, deployment
+                )
+            except EntryBlocked as error:
+                bounds = {"status": "entry_deferred", "reason": str(error)}
         path = self.runtime / (deployment.digest + ".deployment.json")
         retain(path, deployment.model_dump_json().encode())
         retain(
@@ -427,27 +469,43 @@ class OvernightAgent:
             raise
 
     async def cycle(self, deployment_digest):
+        try:
+            return await self._cycle(deployment_digest)
+        except EntryBlocked as error:
+            # Only typed, known pre-submit constraints are recoverable. Never clear uncertainty.
+            self.event({"kind": "overnight-entry-deferred/1", "reason": str(error)})
+            return {"action": "entry_deferred", "reason": str(error)}
+
+    async def _cycle(self, deployment_digest):
         # Exit path precedes entry expiry, retirement, halt and all model dependencies.
         deployment = self.trading.deployment(deployment_digest, exit_only=True)
         snapshot = await self.capture()
         self.trading.verify(deployment, snapshot["account"], entry=False)
         report = self.review(deployment)
-        if int(snapshot["positions"]["count"]):
-            ticket, entry = self.owned_position(snapshot["positions"], deployment)
+        coexistence = isinstance(deployment, CoexistingDeployment)
+        if coexistence:
+            owned, _, _ = ownership(self.bridge, snapshot["positions"], snapshot["orders"])
+            if len(owned) > 1:
+                raise BridgeError("Multiple application positions violate the approved scope")
+            matching = [r for r in owned if r["approval"] == deployment_digest]
+            if owned and not matching:
+                return {"action": "agent_slot_occupied"}
+            owned_snapshot = exposure_snapshot(matching)
+        else:
+            owned_snapshot = snapshot["positions"]
+        if int(owned_snapshot["count"]):
+            ticket, entry = self.owned_position(owned_snapshot, deployment)
             intent = self.entry_intent(deployment, entry["magic"])
             if self.clock() >= intent["window"]["exit_at"]:
                 result = await self.trading.close(deployment_digest, ticket)
                 self.event({"kind": "overnight-exit/1", "ticket": ticket, "result": result})
                 return {"action": "closed_owned_position", "result": result}
-            if int(snapshot["orders"]["count"]):
+            if int(snapshot["orders"]["count"]) and not coexistence:
                 raise BridgeError("Unexpected pending orders; protective exit deadline retained")
             return {"action": "hold_owned_position", "exit_at": intent["window"]["exit_at"]}
-        if int(snapshot["orders"]["count"]):
+        if int(snapshot["orders"]["count"]) and not coexistence:
             raise BridgeError("Pending/external account orders block overnight entry")
-        if (
-            self.database.is_retired(self.record["public_id"])
-            or (self.folder / "halt.json").exists()
-        ):
+        if self.database.is_retired(self.record["public_id"]) or self.halted(deployment):
             return {"action": "halted_flat"}
         if self.stop_event is not None and self.stop_event.is_set():
             return {"action": "stopping_flat"}
@@ -461,6 +519,12 @@ class OvernightAgent:
             return {"action": "waiting_for_entry_window"}
         if self.advisory_exhausted(report, deployment):
             return {"action": "advisory_budget_exhausted"}
+        if coexistence:
+            block = coexistence_block(
+                self.bridge, snapshot["positions"], snapshot["orders"], self.symbol
+            )
+            if block:
+                raise EntryBlocked(block)
         with self.bridge.journal() as db:
             rows = db.execute(
                 "SELECT payload,state FROM requests WHERE op IN ('submit','close')"
@@ -479,7 +543,13 @@ class OvernightAgent:
             raise BridgeError("Approved execution needs EA and terminal trading enabled")
         if not window.entry_start <= self.clock() < min(window.entry_end, deployment.expires):
             return {"action": "entry_window_missed"}
-        if int(snapshot["positions"]["count"]) or int(snapshot["orders"]["count"]):
+        if coexistence:
+            block = coexistence_block(
+                self.bridge, snapshot["positions"], snapshot["orders"], self.symbol
+            )
+            if block:
+                raise EntryBlocked(block)
+        elif int(snapshot["positions"]["count"]) or int(snapshot["orders"]["count"]):
             raise BridgeError("Account exposure changed before strategy review")
         started = time.monotonic()
         sig = signal(self.symbol, window)
@@ -491,17 +561,25 @@ class OvernightAgent:
             time.monotonic() - started > 120
             or refreshed["session"] != snapshot["session"]
             or not window.entry_start <= self.clock() < min(window.entry_end, deployment.expires)
-            or int(refreshed["positions"]["count"])
-            or int(refreshed["orders"]["count"])
+            or (not coexistence and int(refreshed["positions"]["count"]))
+            or (not coexistence and int(refreshed["orders"]["count"]))
             or self.database.is_retired(self.record["public_id"])
-            or (self.folder / "halt.json").exists()
+            or self.halted(deployment)
             or (self.stop_event is not None and self.stop_event.is_set())
         ):
             raise BridgeError("Signal window/session/exposure/review changed; no order")
         self.trading.verify(deployment, refreshed["account"])
+        if coexistence:
+            block = coexistence_block(
+                self.bridge, refreshed["positions"], refreshed["orders"], self.symbol
+            )
+            if block:
+                raise EntryBlocked(block)
         bounds = entry_bounds(
             self.symbol, refreshed["quote"], refreshed["symbol"], refreshed["account"], deployment
         )
+        if coexistence and Decimal(proposal.volume) > Decimal(bounds["max_lots"]):
+            raise EntryBlocked("Available account capacity fell during inference")
         validate_volume(proposal, bounds)
         order = Order(
             signal_sha256=sig["signal_sha256"],

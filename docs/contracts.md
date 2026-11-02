@@ -75,6 +75,14 @@ identity and finite advisory budgets. Basket approval binds every existing `mt5-
 new general portfolio authority. `symbols` is a bounded read-only catalog operation; entry request
 deadlines can shorten the existing transport expiry without widening a deployment's authority.
 
+`mt5-deployment/2` and `mt5-overnight-basket/2` add an explicit demo-only manual-coexistence policy:
+one journal-owned application position on a verified hedging account, no externally occupied target
+symbol and a native post-entry free-margin reserve of 10% of equity. V1 shapes/digests and strict
+account-flat semantics remain readable. A replacement basket additionally binds its predecessor,
+historical halt hashes and consumed budget; explicit recovery retains old evidence and revokes old
+entry policies without replenishing budgets. Known capacity rejections are observed pre-submit
+receipts, never uncertain outcomes or permission to replay a consumed signal.
+
 `mt5/bridge.py` owns `stratosphere.mt5.bridge/1` typed request/response rows and a durable local
 request journal. `mt5/trading.py` owns exact `mt5-deployment/1` approvals. Neither interprets old
 `finished-paper-strategy/1` approvals as MT5 authority. The EA checks native policy/account/session

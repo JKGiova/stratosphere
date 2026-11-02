@@ -64,10 +64,26 @@ execution. Unexpected broker/market closures remain an operational limitation.
   attempts and ten reserved advisory calls. A basket freezes all member limits and the sum of their
   finite budgets. It never renews them automatically.
 
-The basket permits **one position across the entire account**. When flat, select the earliest due
-window, then the least-attempted eligible member, then symbol order. While occupied, overlapping
-signals are skipped and reported; they do not create another position or become late entries.
-Covering all eight markets does not guarantee that all eight trade during one deployment.
+Historical v1 baskets permit **one position across the entire account**. New explicitly approved v2
+baskets permit **one application-owned position**, alongside manual/external positions on a verified
+MT5 hedging account. A journal-confirmed native fill establishes application ownership; symbol names
+and nonzero magic numbers alone never do. Agents never close or modify external positions or orders.
+An externally occupied target symbol (including a pending order) is skipped without stopping the
+service, preventing netting, mixing or reinforcement. Other symbols remain eligible.
+
+When the application slot is available, select the earliest due window, then the least-attempted
+eligible member, then symbol order. An application-owned position blocks overlapping agent entries;
+its timed exit still runs alongside manual trades. Covering all eight markets does not guarantee
+that all eight trade during one deployment.
+
+V2 sizing uses current whole-account equity and free margin, including external exposure. It
+reserves 10% of current equity as free margin after an entry, in addition to the deployment's
+unchanged per-position limits. Native preflight and a final broker `OrderCheck` enforce current
+post-order free margin before submission. Insufficient margin/equity and known pre-submit capacity
+changes defer entry without stopping the service; an already evaluated trigger remains consumed.
+Transport faults, ambiguous sends, unexpected application orders and changed owned fills still
+require reconciliation. The reserve is an entry-time check, not protection against subsequent manual
+trades, account losses, correlated exposure or broker stop-out.
 
 ## Agent and recovery behavior
 
@@ -112,6 +128,7 @@ Spreads are price distances in each CFD's quote units; money/risk/margin/equity 
 
 ```sh
 .venv/bin/python -m stratosphere.mt5.overnight_basket draft /private/limits.json
+.venv/bin/python -m stratosphere.mt5.overnight_basket draft /private/limits.json --manual-coexistence
 .venv/bin/python -m stratosphere.mt5.overnight_basket review /private/basket.json
 ```
 
@@ -127,6 +144,21 @@ basket digest and all member strategy/evidence/account/implementation/limit dige
 .venv/bin/python -m stratosphere.mt5.overnight_basket serve /private/basket.json
 ```
 
+V1 approvals never acquire v2 scope. To replace an inspected halted v1 basket, `replace` prepares
+an unapproved v2 package using the same exact account, strategy, model, symbols, numeric limits and
+expiry, subtracting previously reserved advisory pairs/native entry attempts from each member's
+remaining budget. It binds the old basket and historical halt hashes. After reviewing and approving
+that exact replacement, `recover` reconciles the account under owner locks, rejects unresolved
+native outcomes or application positions, revokes the old entry policies and writes recovery
+receipts. Old halts, journals and trigger slots are retained. A fresh runtime fault remains blocking;
+recovery is never an automatic retry or a budget renewal.
+
+```sh
+.venv/bin/python -m stratosphere.mt5.overnight_basket replace /private/old-basket.json
+.venv/bin/python -m stratosphere.mt5.overnight_basket approve /private/replacement.json EXACT_DIGEST
+.venv/bin/python -m stratosphere.mt5.overnight_basket recover /private/replacement.json EXACT_DIGEST
+```
+
 EA `EnableTrading=true` and terminal Algo Trading are also required; keep `AllowRealAccount=false`.
 The adapter rejects real accounts regardless of unrelated connector settings. One exact batch review
 can approve all listed member deployments; it cannot silently add another symbol or renew a budget.
@@ -140,6 +172,12 @@ exact catalog intersection, ownership/lineage retention, approvals/budgets, two 
 post-model gates, overlap handling, restart/SL deduplication, uncertain submissions, shutdown and
 model-independent exits. They use a filesystem EA peer, not a broker fill guarantee.
 
+V2 fixture checks cover external positions/pending orders, untouched manual trades through agent
+entry and exit, same-symbol conflicts, margin/equity changes during inference, retained uncertainty,
+hedging requirements and reviewed recovery without replenishing budgets. The revised EA compiled
+with zero errors/warnings and was installed. Connected v2 activation and broker execution still
+require the operator to reload that EA and approve the exact replacement package.
+
 Actual connected checks verified the updated EA catalog and individual market metadata. Separate
 real calls to the operator's saved Ollama model completed binary review and sizing using an authored
 account/quote fixture, with no orders. An earlier malformed evidence reference was rejected and
@@ -147,10 +185,12 @@ retained. These checks do not establish profitability, full FTMO loss/reset comp
 operation or actual strategy-order acceptance. Private evidence stays under the canonical account
 state and ignored `reports/mt5/overnight-201001727`; operational account IDs never enter Git.
 
-An exact operator-approved eight-member demo basket was activated through the frozen runtime and
-macOS login service. Connected verification confirmed matching client/native approvals, enabled
+The historical v1 operator-approved eight-member demo basket was activated through the frozen runtime
+and macOS login service. Connected verification confirmed matching client/native approvals, enabled
 demo trading with real accounts disabled, a live service process and advancing health across
 cycles. The account was flat with no pending orders or unresolved native operations, and the
-service was waiting for the next entry window. This verifies bounded startup, not an overnight
-fill, sustained operation or future signal acceptance; the finite limits and expiry remain those
+service was waiting for the next entry window. Its account-wide external-exposure gate subsequently
+stopped the service when manual exposure appeared; that historical approval cannot activate v2.
+This verifies bounded startup, not an overnight fill, sustained operation or future signal acceptance;
+the finite limits and expiry remain those
 in the private approved package.

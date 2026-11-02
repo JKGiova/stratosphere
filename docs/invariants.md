@@ -260,8 +260,10 @@ inside MT5; no password export, DLL/network fallback or credential-bearing worke
 The local EA and application must bind exact server/login/mode/session. Native trading is disabled
 by default; real-account activation requires explicit authorization in both the app and terminal.
 Only an exact user-approved MT5 deployment binds strategy/evidence/implementation/EA and finite
-volume, cash-risk, margin, spread, equity and order-count limits. Mandatory native SL, one account
-position at a time and no reinforcement are current conservative execution constraints. Freeze
+volume, cash-risk, margin, spread, equity and order-count limits. Mandatory native SL and no
+reinforcement remain required. Historical v1 authority requires an account-wide flat entry; explicit
+demo-only v2 authority permits one application-owned position alongside external exposure on a
+verified hedging account. Never treat v1 approval as v2 authority. Freeze
 request IDs before publication, claim natively before OrderSend, retain all confirmations and halt
 new entries on ambiguous outcomes. Never replay an uncertain request. Exact owned protective exits
 remain separate from entry expiry/revocation and do not depend on model availability.
@@ -366,9 +368,15 @@ intersection. Freeze each market's regular-session UTC schedule, model identity,
 account/EA and all member limits in the final deployment review. Historical research/Gold authority
 does not transfer. Retirement hides active catalog entries without deleting identities or evidence.
 
-Keep one stable isolated owner per exact instrument strategy, one account position total and no
-reinforcement. The account coordinator skips overlapping signals and cannot silently expand to a
-basket of concurrent positions. Each demo deployment allows at most seven entry-days, five entry
+Keep one stable isolated owner per exact instrument strategy and no reinforcement. V1 keeps one
+account position total; explicitly reviewed v2 permits one application-owned position alongside
+external/manual exposure on hedging accounts. Ownership requires an exact confirmed native journal
+fill, never just a symbol or magic. Never modify or close an external position/order. Skip externally
+occupied symbols and agent overlaps without stopping other eligible agents. V2 considers total
+account equity/free margin and requires a native post-entry free-margin reserve of 10% of equity.
+Known capacity constraints defer entry, while ambiguous native outcomes still halt new entries.
+This cannot silently expand to multiple concurrent agent positions. Each demo deployment allows at
+most seven entry-days, five entry
 attempts and ten reserved model calls; the reviewed basket includes their aggregate finite budgets.
 Only exact user approval of all listed deployments can activate the service. Models review signals
 and propose size; code owns time, USD conversion, notional and native risk/margin gates. Native entry
@@ -381,3 +389,10 @@ owned exits; other failures retain stopped health, halt receipts and all native 
 service must not automatically clear halts, replay failed cycles or claim liveness from stale health.
 Submitted SL/nominal risk does not bound gaps, financing or realized loss; no FTMO or CFD-performance
 certification follows from source access, fixtures or model replies.
+
+An explicit reviewed v1-to-v2 replacement binds the previous basket and halt hashes, exact unchanged
+strategy/account/model/numeric limits/expiry, and remaining budgets after all previously consumed
+native attempts/advisory pairs. Recovery requires exact replacement approval, owner locks, no
+application positions or unresolved native operations, revocation of prior entry policies and durable
+receipts. Retain old halts and all consumed triggers. A new runtime fault is never suppressed by a
+historical recovery receipt; services cannot automatically recover or renew authority.

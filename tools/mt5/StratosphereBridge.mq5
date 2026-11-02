@@ -81,6 +81,45 @@ bool OwnedMagic(string magic,string digest)
    FileClose(h);
    return first=="request" && Hex(request,32) && second=="approval" && approval==digest;
 }
+bool ApplicationMagic(long magic)
+{
+   if(magic<=0) return false;
+   int h=FileOpen(ROOT+"sent\\"+IntegerToString(magic)+".tsv",FILE_READ|FILE_CSV|FILE_ANSI,'\t',CP_UTF8);
+   if(h==INVALID_HANDLE) return false;
+   string first=FileReadString(h),request=FileReadString(h);
+   string second=FileReadString(h),approval=FileReadString(h);
+   FileClose(h);
+   return first=="request" && Hex(request,32) && second=="approval" && Hex(approval,64);
+}
+void EntryDeferred(int h,string message)
+{
+   Error(h,message); Put(h,"entry_blocked","1");
+}
+bool EntryExposure(int h,string symbol)
+{
+   if(Get("schema_version",true)=="mt5-deployment/1")
+   {
+      if(PositionsTotal()!=0 || OrdersTotal()!=0) { Error(h,"Account not flat; reinforcement/external exposure blocked"); return false; }
+      return true;
+   }
+   if(AccountInfoInteger(ACCOUNT_MARGIN_MODE)!=ACCOUNT_MARGIN_MODE_RETAIL_HEDGING)
+      { Error(h,"Manual coexistence requires a hedging account"); return false; }
+   for(int i=0;i<PositionsTotal();i++)
+   {
+      if(PositionGetTicket(i)==0) { Error(h,"Cannot inspect current positions"); return false; }
+      if(ApplicationMagic(PositionGetInteger(POSITION_MAGIC)) || PositionGetString(POSITION_SYMBOL)==symbol)
+         { EntryDeferred(h,"Application slot or target symbol occupied"); return false; }
+   }
+   for(int i=0;i<OrdersTotal();i++)
+   {
+      if(OrderGetTicket(i)==0) { Error(h,"Cannot inspect current orders"); return false; }
+      if(ApplicationMagic(OrderGetInteger(ORDER_MAGIC)))
+         { Error(h,"Application pending order needs reconciliation"); return false; }
+      if(OrderGetString(ORDER_SYMBOL)==symbol)
+         { EntryDeferred(h,"External pending order on target symbol"); return false; }
+   }
+   return true;
+}
 void Header(int h,string id,string op)
 {
    Put(h,"schema",SCHEMA); Put(h,"id",id); Put(h,"session",session); Put(h,"op",op);
@@ -119,7 +158,11 @@ bool SymbolReady(string symbol)
 bool Policy(string digest,string symbol,bool exit_only=false)
 {
    if(!Hex(digest,64) || !Load(ROOT+"approvals\\"+digest+".tsv",true)) return false;
-   if(Get("digest",true)!=digest || Get("schema_version",true)!="mt5-deployment/1" ||
+   string policy_schema=Get("schema_version",true);
+   if(policy_schema!="mt5-deployment/1" && policy_schema!="mt5-deployment/2") return false;
+   if(policy_schema=="mt5-deployment/2" && (Get("account_policy",true)!="one_agent_position_manual_coexistence" ||
+      Get("free_margin_reserve_fraction",true)!="0.10")) return false;
+   if(Get("digest",true)!=digest ||
       Get("login",true)!=IntegerToString(bound_login) || Get("server",true)!=bound_server ||
       Get("mode",true)!=bound_mode || Get("symbol",true)!=symbol || Get("ea_sha256",true)!=EA_SHA256 ||
       Get("currency",true)!=AccountInfoString(ACCOUNT_CURRENCY)) return false;
@@ -162,7 +205,7 @@ void Trade(int h,string op,string id)
    }
    else
    {
-      if(PositionsTotal()!=0 || OrdersTotal()!=0) { Error(h,"Account not flat; reinforcement/external exposure blocked"); return; }
+      if(!EntryExposure(h,symbol)) return;
       if(!Numeric(Get("volume")) || !Numeric(Get("sl")) || !Numeric(Get("tp")) ||
          (Get("side")!="buy" && Get("side")!="sell")) { Error(h,"Invalid order fields"); return; }
       request.volume=StringToDouble(Get("volume")); request.sl=StringToDouble(Get("sl")); request.tp=StringToDouble(Get("tp"));
@@ -178,26 +221,58 @@ void Trade(int h,string op,string id)
          (request.type==ORDER_TYPE_SELL && request.sl<=tick.ask)) { Error(h,"Stop-loss is not protective"); return; }
       if(tick.ask-tick.bid>StringToDouble(Get("max_spread",true)) ||
          AccountInfoDouble(ACCOUNT_EQUITY)<StringToDouble(Get("min_equity",true)))
-         { Error(h,"Spread/equity risk bound violated"); return; }
+      {
+         if(Get("schema_version",true)=="mt5-deployment/2") EntryDeferred(h,"Spread/equity risk bound violated");
+         else Error(h,"Spread/equity risk bound violated");
+         return;
+      }
       double risk=0,margin=0,price=request.type==ORDER_TYPE_BUY ? tick.ask : tick.bid;
       if(!OrderCalcProfit(request.type,symbol,request.volume,price,request.sl,risk) ||
          !OrderCalcMargin(request.type,symbol,request.volume,price,margin) ||
          risk>=0 || -risk+StringToDouble(Get("cost_buffer",true))>StringToDouble(Get("max_order_risk",true)) ||
          margin>StringToDouble(Get("max_order_margin",true))) { Error(h,"Native cash-risk/margin bound violated"); return; }
       Put(h,"estimated_stop_risk",Num(-risk)); Put(h,"estimated_margin",Num(margin));
+      if(Get("schema_version",true)=="mt5-deployment/2" &&
+         AccountInfoDouble(ACCOUNT_MARGIN_FREE)-margin<AccountInfoDouble(ACCOUNT_EQUITY)*0.10)
+         { EntryDeferred(h,"Insufficient current free margin after reserve"); return; }
    }
    request.price=request.type==ORDER_TYPE_BUY ? tick.ask : tick.bid;
-   if(!OrderCheck(request,check) || check.retcode!=0) { Error(h,"Broker OrderCheck rejected"); Put(h,"check_retcode",IntegerToString(check.retcode)); Put(h,"check_comment",check.comment); return; }
+   if(!OrderCheck(request,check) || check.retcode!=0)
+   {
+      if(!exit_only && Get("schema_version",true)=="mt5-deployment/2" && check.retcode==TRADE_RETCODE_NO_MONEY)
+         EntryDeferred(h,"Broker OrderCheck reports insufficient margin");
+      else Error(h,"Broker OrderCheck rejected");
+      Put(h,"check_retcode",IntegerToString(check.retcode)); Put(h,"check_comment",check.comment); return;
+   }
+   if(!exit_only && Get("schema_version",true)=="mt5-deployment/2" && check.margin_free<check.equity*0.10)
+      { EntryDeferred(h,"Broker post-order free margin below reserve"); return; }
    if(op=="check") { Put(h,"status","ok"); Put(h,"check_retcode",IntegerToString(check.retcode)); return; }
    // The processing file was claimed durably before this point. Never replay it after a crash.
    if(!Bound() || StringToInteger(Get("expires"))<(long)TimeGMT()) { Error(h,"Account/request expired before submit"); return; }
    if(!exit_only)
    {
+      if(!EntryExposure(h,symbol)) return;
+      // Manual trading can change margin during preflight: repeat the broker check before send.
+      if(Get("schema_version",true)=="mt5-deployment/2")
+      {
+         MqlTradeCheckResult fresh={};
+         if(!OrderCheck(request,fresh) || fresh.retcode!=0)
+         {
+            if(fresh.retcode==TRADE_RETCODE_NO_MONEY) EntryDeferred(h,"Current account margin unavailable");
+            else Error(h,"Final broker OrderCheck rejected");
+            return;
+         }
+         if(fresh.margin_free<fresh.equity*0.10 || AccountInfoDouble(ACCOUNT_EQUITY)<StringToDouble(Get("min_equity",true)))
+            { EntryDeferred(h,"Current account equity/margin below approved reserve"); return; }
+      }
       int sent=FileOpen(ROOT+"sent\\"+Get("magic")+".tsv",FILE_WRITE|FILE_CSV|FILE_ANSI,'\t',CP_UTF8);
       if(sent==INVALID_HANDLE) { Error(h,"Cannot persist order ownership"); return; }
       Put(sent,"request",id); Put(sent,"approval",digest); FileFlush(sent); FileClose(sent);
    }
    bool accepted=OrderSend(request,result);
+   if(!exit_only && Get("schema_version",true)=="mt5-deployment/2" && !accepted &&
+      result.retcode==TRADE_RETCODE_NO_MONEY && result.order==0 && result.deal==0 && result.volume==0)
+      { EntryDeferred(h,"Broker rejected entry for insufficient margin; attempt consumed"); return; }
    Put(h,"status","ok"); Put(h,"order_send_returned",accepted ? "1" : "0");
    Put(h,"retcode",IntegerToString(result.retcode)); Put(h,"order",IntegerToString((long)result.order));
    Put(h,"deal",IntegerToString((long)result.deal)); Put(h,"filled_volume",Num(result.volume));
@@ -214,6 +289,7 @@ void Read(int h,string op)
       Put(h,"balance",Num(AccountInfoDouble(ACCOUNT_BALANCE))); Put(h,"equity",Num(AccountInfoDouble(ACCOUNT_EQUITY)));
       Put(h,"free_margin",Num(AccountInfoDouble(ACCOUNT_MARGIN_FREE))); Put(h,"margin",Num(AccountInfoDouble(ACCOUNT_MARGIN)));
       Put(h,"leverage",IntegerToString(AccountInfoInteger(ACCOUNT_LEVERAGE)));
+      Put(h,"margin_mode",IntegerToString(AccountInfoInteger(ACCOUNT_MARGIN_MODE)));
       Put(h,"trading_input",EnableTrading ? "1" : "0"); Put(h,"allow_real_input",AllowRealAccount ? "1" : "0");
       Put(h,"terminal_trade_allowed",IntegerToString(TerminalInfoInteger(TERMINAL_TRADE_ALLOWED)));
       Put(h,"utc_epoch",IntegerToString((long)TimeGMT())); Put(h,"server_epoch",IntegerToString((long)TimeTradeServer()));

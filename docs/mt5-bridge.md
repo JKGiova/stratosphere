@@ -72,6 +72,12 @@ login/server/demo-or-real mode/currency, symbol, expiry and finite limits:
 - `max_spread` in the symbol's absolute price units; `min_equity` in account currency.
 - Positive `cost_buffer` added to the estimated stop risk; `max_orders` bounds consumed entries.
 
+An explicitly reviewed demo `mt5-deployment/2` adds manual coexistence on verified hedging accounts.
+External positions/orders remain untouched; entry requires an unoccupied target symbol and no
+other application-owned position. Current whole-account equity/margin and native post-order free
+margin are checked immediately before submission. Historical v1 authority stays account-flat.
+See the [overnight guide](mt5-overnight.md) for the exact reserve, recovery and scheduling behavior.
+
 The canonical client journal/lease and retained deployment evidence live under the native user
 state directory (`Library/Application Support/stratosphere/mt5` on macOS,
 `.local/state/stratosphere/mt5` on Linux), keyed by exact server/login/mode. Terminals logged
@@ -123,8 +129,9 @@ review; the connector does not ask a model or infer that a hash proves a reliabl
 The EA checks account/session, deployment, quote age, native tick/volume increments, stop direction,
 spread, equity floor, native `OrderCalcProfit` stop risk plus buffer, `OrderCalcMargin` and broker
 `OrderCheck`. Market orders use FOK where offered, otherwise IOC; other filling policies are blocked.
-Only a completely flat account without pending orders can open a position. This conservative
-connector currently allows one position across the account, with no reinforcement. Mandatory stops
+Historical v1 deployments require a completely flat account without pending orders. Explicit v2
+deployments isolate one application position from manual exposure as described above. Neither
+permits reinforcement. Mandatory stops
 limit nominal risk; gaps, slippage and financing can exceed the estimate. FTMO daily loss/reset and
 multi-strategy portfolio allocation are not implemented by these cash limits.
 

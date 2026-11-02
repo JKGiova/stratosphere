@@ -9,17 +9,18 @@ import os
 import time
 from contextlib import ExitStack
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, TypeAdapter, model_validator
 
 from stratosphere.models.streaming import ModelError
 from stratosphere.mt5.bridge import BridgeError, MT5Bridge, atomic_write, private_path
+from stratosphere.mt5.exposure import ownership
 from stratosphere.mt5.gold import retain, save_new
 from stratosphere.mt5.overnight import OvernightAgent
 from stratosphere.mt5.overnight_markets import intersection
 from stratosphere.mt5.overnight_strategy import signal
-from stratosphere.mt5.trading import Deployment, MT5Trading
+from stratosphere.mt5.trading import CoexistingDeployment, Deployment, MT5Trading, deployment_reader
 from stratosphere.phase0.contracts import Contract, Digest, fingerprint
 from stratosphere.registry.workspace import WorkspaceDatabase
 from stratosphere.research.store import default_research_root
@@ -49,6 +50,10 @@ class Basket(Contract):
                 d.mode != "demo" or d.implementation_sha256 != self.implementation_sha256
                 for d in self.deployments
             )
+            or (
+                self.schema_version == "mt5-overnight-basket/1"
+                and any(d.schema_version != "mt5-deployment/1" for d in self.deployments)
+            )
         ):
             raise ValueError(
                 "Basket requires unique symbols and one exact demo account/runtime/expiry"
@@ -58,6 +63,22 @@ class Basket(Contract):
     @property
     def digest(self):
         return fingerprint(self)
+
+
+class CoexistingBasket(Basket):
+    schema_version: Literal["mt5-overnight-basket/2"] = "mt5-overnight-basket/2"
+    deployments: tuple[CoexistingDeployment, ...] = Field(min_length=1, max_length=10)
+    concurrency: Literal["one_agent_position_manual_coexistence"] = (
+        "one_agent_position_manual_coexistence"
+    )
+    replaces: Digest | None = None
+    recovery_halts: dict[str, Digest] = Field(default_factory=dict)
+    previous_usage: dict[str, int] = Field(default_factory=dict)
+
+
+basket_reader = TypeAdapter(
+    Annotated[Basket | CoexistingBasket, Field(discriminator="schema_version")]
+)
 
 
 class OvernightBasket:
@@ -100,11 +121,160 @@ class OvernightBasket:
         except FileExistsError:
             pass
 
+    def previous(self):
+        if not isinstance(self.basket, CoexistingBasket) or self.basket.replaces is None:
+            return None
+        path = self.folder.parent / self.basket.replaces / "basket.json"
+        private_path(path)
+        previous = Basket.model_validate_json(path.read_bytes())
+        if previous.digest != self.basket.replaces:
+            raise BridgeError("Replacement source basket changed")
+        receipt = path.parent / "approved.json"
+        private_path(receipt)
+        if (
+            not receipt.is_file()
+            or json.loads(receipt.read_bytes()).get("basket") != previous.digest
+        ):
+            raise BridgeError("Replacement source basket has no exact historical approval")
+        if {d.symbol for d in previous.deployments} != set(self.deployments):
+            raise BridgeError("Replacement cannot change the approved universe")
+        expected_halts, usage = {}, {}
+        for old in previous.deployments:
+            new = self.deployments[old.symbol]
+            agent = self.agents[old.symbol]
+            halt = agent.folder / "halt.json"
+            private_path(halt)
+            if not halt.is_file():
+                raise BridgeError("Recovery requires retained historical halt evidence")
+            expected_halts[old.symbol] = hashlib.sha256(halt.read_bytes()).hexdigest()
+            with self.bridge.journal() as db:
+                prior = db.execute(
+                    "SELECT payload,state FROM approvals WHERE digest=?", (old.digest,)
+                ).fetchone()
+                if (
+                    not prior
+                    or prior[1] not in {"approved", "revoked"}
+                    or Deployment.model_validate_json(prior[0]) != old
+                ):
+                    raise BridgeError("Replacement source has no exact historical approval")
+                submits = db.execute(
+                    "SELECT COUNT(*) FROM requests WHERE op='submit' "
+                    "AND instr(CAST(payload AS TEXT),?)>0",
+                    (old.digest,),
+                ).fetchone()[0]
+            slots = agent.folder / "triggers"
+            private_path(slots)
+            consumed = 0
+            for slot in slots.glob("*.json"):
+                private_path(slot)
+                consumed += json.loads(slot.read_bytes()).get("deployment") == old.digest
+            usage[old.symbol] = max(submits, consumed)
+            old_report = self.bridge.state_directory() / "evidence" / (old.report_sha256 + ".bin")
+            private_path(old_report)
+            if hashlib.sha256(old_report.read_bytes()).hexdigest() != old.report_sha256:
+                raise BridgeError("Historical report evidence changed")
+            if (
+                json.loads(old_report.read_bytes())["model_identity"]
+                != self.reports[old.symbol].model_identity
+            ):
+                raise BridgeError("Replacement must preserve the reviewed model identity")
+            unchanged = (
+                "strategy_id",
+                "strategy_sha256",
+                "login",
+                "server",
+                "mode",
+                "currency",
+                "symbol",
+                "max_volume",
+                "max_order_risk",
+                "max_order_margin",
+                "max_spread",
+                "min_equity",
+                "cost_buffer",
+                "expires",
+            )
+            if (
+                any(getattr(new, k) != getattr(old, k) for k in unchanged)
+                or new.max_orders != old.max_orders - usage[old.symbol]
+            ):
+                raise BridgeError("Replacement cannot renew budget, extend expiry or change limits")
+        if self.basket.recovery_halts != expected_halts or self.basket.previous_usage != usage:
+            raise BridgeError("Recovery halt evidence or consumed budget changed")
+        return previous
+
+    async def recover(self, exact_digest):
+        """Explicit approved replacement, preserving old latches and every consumed operation."""
+        if exact_digest != self.basket.digest:
+            raise BridgeError("Recover only the exact reviewed replacement basket")
+        previous = self.previous()
+        if previous is None:
+            raise BridgeError("Only a reviewed v1-to-v2 replacement can recover old halts")
+        receipt = self.folder / "recovered.json"
+        if receipt.exists():
+            raise BridgeError("Recovery receipt already exists; never replay recovery")
+        approval = self.folder / "approved.json"
+        if (
+            not approval.is_file()
+            or json.loads(approval.read_bytes()).get("basket") != exact_digest
+        ):
+            raise BridgeError("Exact replacement approval required before recovery")
+        # Exclude a running account coordinator and every member worker throughout recovery.
+        lock_path = self.bridge.state_directory() / "overnight-basket.lock"
+        private_path(lock_path)
+        fd = os.open(lock_path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            with ExitStack() as stack:
+                for agent in self.agents.values():
+                    stack.enter_context(agent.owner())
+                first = next(iter(self.agents.values()))
+                observation = await first.capture()
+                owned, _, _ = ownership(
+                    self.bridge, observation["positions"], observation["orders"]
+                )
+                with self.bridge.journal() as db:
+                    uncertain = db.execute(
+                        "SELECT 1 FROM requests WHERE op IN ('submit','close') "
+                        "AND state IN ('reserved','uncertain')"
+                    ).fetchone()
+                if owned or uncertain:
+                    raise BridgeError("Reconcile application exposure/uncertainty before recovery")
+                trading = MT5Trading(self.bridge)
+                for d in self.basket.deployments:
+                    if trading.deployment(d.digest) != d:
+                        raise BridgeError("Replacement approval changed")
+                    trading.verify(d, observation["account"])
+                    if (self.agents[d.symbol].runtime / "halt.json").exists():
+                        raise BridgeError("New runtime fault requires separate investigation")
+                self.previous()  # Recheck consumed slots after acquiring all owner locks.
+                for old in previous.deployments:
+                    await trading.revoke(old.digest)
+                for d in self.basket.deployments:
+                    save_new(
+                        self.agents[d.symbol].runtime / ("recovery-" + d.digest + ".json"),
+                        {
+                            "deployment": d.digest,
+                            "basket": exact_digest,
+                            "replaces": previous.digest,
+                            "previous_halt_sha256": self.basket.recovery_halts[d.symbol],
+                            "at": int(self.clock()),
+                        },
+                    )
+                save_new(
+                    receipt,
+                    {"basket": exact_digest, "replaces": previous.digest, "at": int(self.clock())},
+                )
+        finally:
+            os.close(fd)
+        return {"recovered": exact_digest, "previous_halts": "retained", "budgets": "not renewed"}
+
     async def approve(self, exact_digest):
         if exact_digest != self.basket.digest:
             raise BridgeError("Approve the exact reviewed overnight basket digest")
         if (self.folder / "approved.json").exists():
             raise BridgeError("Basket approval receipt already exists; never recreate authority")
+        self.previous()
         # Validate all definitions/account/evidence before changing any native policy.
         account = await self.bridge.account()
         trading = MT5Trading(self.bridge)
@@ -118,9 +288,18 @@ class OvernightBasket:
                 raise BridgeError(
                     "A basket member already has an approval history; never recreate it"
                 )
-        if int((await self.bridge.read("positions"))["count"]) or int(
-            (await self.bridge.read("orders"))["count"]
-        ):
+        positions, orders = await self.bridge.read("positions"), await self.bridge.read("orders")
+        if isinstance(self.basket, CoexistingBasket):
+            owned, _, _ = ownership(self.bridge, positions, orders)
+            if owned:
+                raise BridgeError("Reconcile existing application positions before basket approval")
+            with self.bridge.journal() as db:
+                if db.execute(
+                    "SELECT 1 FROM requests WHERE op IN ('submit','close') "
+                    "AND state IN ('reserved','uncertain')"
+                ).fetchone():
+                    raise BridgeError("Unresolved native outcome blocks basket approval")
+        elif int(positions["count"]) or int(orders["count"]):
             raise BridgeError("Approve an overnight basket only while the account is flat")
         newly_approved = []
         try:
@@ -148,7 +327,38 @@ class OvernightBasket:
         first = next(iter(self.agents.values()))
         snapshot = await first.capture()
         positions = snapshot["positions"]
-        if int(positions["count"]):
+        coexistence = isinstance(self.basket, CoexistingBasket)
+        external_symbols = set()
+        if coexistence:
+            owned, external, pending = ownership(self.bridge, positions, snapshot["orders"])
+            if len(owned) > 1:
+                raise BridgeError("Multiple application positions violate this basket's scope")
+            external_symbols = {r["symbol"] for r in external + pending}
+            if owned:
+                row = owned[0]
+                symbol = row["symbol"]
+                if (
+                    symbol not in self.deployments
+                    or row["approval"] != self.deployments[symbol].digest
+                ):
+                    raise BridgeError("Another application deployment occupies this account")
+                result = await self.agents[symbol].cycle(self.deployments[symbol].digest)
+                return result | {
+                    "symbol": symbol,
+                    "blocked_entry_symbols": [
+                        s
+                        for s, r in self.reports.items()
+                        if s != symbol
+                        and any(w.entry_start <= self.clock() < w.entry_end for w in r.windows)
+                    ],
+                }
+            with self.bridge.journal() as db:
+                if db.execute(
+                    "SELECT 1 FROM requests WHERE op IN ('submit','close') "
+                    "AND state IN ('reserved','uncertain')"
+                ).fetchone():
+                    raise BridgeError("Unresolved native outcome; reconcile, never replay")
+        elif int(positions["count"]):
             if int(positions["count"]) != 1:
                 raise BridgeError("Multiple/external positions violate this basket's exact scope")
             symbol = positions["p.1.symbol"]
@@ -166,7 +376,7 @@ class OvernightBasket:
                 "symbol": symbol,
                 "blocked_entry_symbols": blocked,
             }
-        if int(snapshot["orders"]["count"]):
+        if int(snapshot["orders"]["count"]) and not coexistence:
             raise BridgeError("External/pending orders block the overnight basket")
         if (self.folder / "halt.json").exists():
             return {"action": "halted_flat"}
@@ -174,18 +384,20 @@ class OvernightBasket:
         if all(now >= d.expires for d in self.basket.deployments):
             return {"action": "expired_flat"}
         choices = []
+        deferred = []
         for symbol, agent in self.agents.items():
             deployment = self.deployments[symbol]
             agent.trading.deployment(deployment.digest)
             agent.trading.verify(deployment, snapshot["account"])
             if agent.advisory_exhausted(self.reports[symbol], deployment):
                 continue
-            if (agent.folder / "halt.json").exists() or self.database.is_retired(
-                agent.record["public_id"]
-            ):
+            if agent.halted(deployment) or self.database.is_retired(agent.record["public_id"]):
                 continue
             for window in self.reports[symbol].windows:
                 if not window.entry_start <= now < window.entry_end:
+                    continue
+                if coexistence and symbol in external_symbols:
+                    deferred.append(symbol)
                     continue
                 sig = signal(symbol, window)
                 slot = agent.folder / "triggers" / (sig["signal_sha256"] + ".json")
@@ -201,6 +413,8 @@ class OvernightBasket:
                 if attempts < deployment.max_orders:
                     choices.append((window.entry_start, attempts, symbol))
         if not choices:
+            if deferred:
+                return {"action": "external_symbol_occupied", "symbols": sorted(deferred)}
             return {"action": "waiting_for_entry_window"}
         _, _, symbol = min(choices)
         return (await self.agents[symbol].cycle(self.deployments[symbol].digest)) | {
@@ -220,6 +434,14 @@ class OvernightBasket:
         for d in self.basket.deployments:
             if MT5Trading(self.bridge).deployment(d.digest, exit_only=True) != d:
                 raise BridgeError("Basket deployment approval changed")
+        if isinstance(self.basket, CoexistingBasket) and self.basket.replaces is not None:
+            recovered = self.folder / "recovered.json"
+            private_path(recovered)
+            if (
+                not recovered.is_file()
+                or json.loads(recovered.read_bytes()).get("basket") != self.basket.digest
+            ):
+                raise BridgeError("Reviewed recovery has not completed")
         stop = stop or asyncio.Event()
         for agent in self.agents.values():
             agent.stop_event = stop
@@ -284,7 +506,9 @@ class OvernightBasket:
             os.close(fd)
 
 
-async def draft(bridge, database, limits, *, provider_factory=None):
+async def draft(
+    bridge, database, limits, *, provider_factory=None, manual_coexistence=False, previous=None
+):
     catalog = await bridge.read("symbols")
     universe = intersection(catalog)
     if not universe["matched"]:
@@ -304,16 +528,73 @@ async def draft(bridge, database, limits, *, provider_factory=None):
         }
     else:
         resolved = {m["symbol"]: limits for m in universe["matched"]}
+    recovery_halts, previous_usage = {}, {}
+    if previous is not None:
+        manual_coexistence = True
+        if type(previous) is not Basket or {d.symbol for d in previous.deployments} != set(
+            resolved
+        ):
+            raise BridgeError("Replacement requires the exact historical v1 basket universe")
+        resolved = {}
+        for old in previous.deployments:
+            agent = OvernightAgent(bridge, database, old.symbol, **kwargs)
+            halt = agent.folder / "halt.json"
+            private_path(halt)
+            if not halt.is_file():
+                raise BridgeError("Replacement requires retained historical agent halts")
+            recovery_halts[old.symbol] = hashlib.sha256(halt.read_bytes()).hexdigest()
+            with bridge.journal() as db:
+                submits = db.execute(
+                    "SELECT COUNT(*) FROM requests WHERE op='submit' "
+                    "AND instr(CAST(payload AS TEXT),?)>0",
+                    (old.digest,),
+                ).fetchone()[0]
+            slots = agent.folder / "triggers"
+            private_path(slots)
+            consumed = 0
+            for slot in slots.glob("*.json"):
+                private_path(slot)
+                consumed += json.loads(slot.read_bytes()).get("deployment") == old.digest
+            used = max(submits, consumed)
+            if used >= old.max_orders:
+                raise BridgeError("Historical member budget exhausted; cannot renew it")
+            previous_usage[old.symbol] = used
+            resolved[old.symbol] = {
+                k: getattr(old, k)
+                for k in (
+                    "max_volume",
+                    "max_order_risk",
+                    "max_order_margin",
+                    "max_spread",
+                    "min_equity",
+                    "cost_buffer",
+                    "expires",
+                )
+            } | {"max_orders": old.max_orders - used}
     for mapping in universe["matched"]:
         agent = OvernightAgent(bridge, database, mapping["symbol"], **kwargs)
-        drafts.append(await agent.draft(resolved[mapping["symbol"]]))
-    basket = Basket(
+        drafts.append(
+            await agent.draft(resolved[mapping["symbol"]], manual_coexistence=manual_coexistence)
+        )
+    basket_class = CoexistingBasket if manual_coexistence else Basket
+    extra = (
+        {
+            "replaces": previous.digest,
+            "recovery_halts": recovery_halts,
+            "previous_usage": previous_usage,
+        }
+        if previous
+        else {}
+    )
+    basket = basket_class(
         implementation_sha256=bridge.implementation_digest,
         catalog_sha256=bridge.retain_evidence(json.dumps(catalog, sort_keys=True).encode()),
         created_utc=int(time.time()),
-        deployments=tuple(Deployment.model_validate(d["deployment"]) for d in drafts),
+        deployments=tuple(deployment_reader.validate_python(d["deployment"]) for d in drafts),
+        **extra,
     )
     runtime = OvernightBasket(bridge, database, basket, **kwargs)
+    runtime.previous()
     return {
         "basket": basket.model_dump(mode="json"),
         "digest": basket.digest,
@@ -339,14 +620,25 @@ async def execute(args):
 
     bridge = MT5Bridge(args.root)
     database = WorkspaceDatabase(default_research_root() / "workspace.sqlite3")
-    if args.command == "draft":
-        return await draft(bridge, database, json.loads(read_file(args.input)))
-    basket = Basket.model_validate_json(read_file(args.input))
+    if args.command in {"draft", "replace"}:
+        previous = (
+            Basket.model_validate_json(read_file(args.input)) if args.command == "replace" else None
+        )
+        return await draft(
+            bridge,
+            database,
+            {} if previous else json.loads(read_file(args.input)),
+            manual_coexistence=getattr(args, "manual_coexistence", False),
+            previous=previous,
+        )
+    basket = basket_reader.validate_json(read_file(args.input))
     if args.command == "review":
         return {"basket": basket.model_dump(mode="json"), "digest": basket.digest}
     runtime = OvernightBasket(bridge, database, basket)
     if args.command == "approve":
         return await runtime.approve(args.digest)
+    if args.command == "recover":
+        return await runtime.recover(args.digest)
     import signal as signals
 
     stop = asyncio.Event()
@@ -359,10 +651,12 @@ def main():
     root = argparse.ArgumentParser(description=__doc__)
     root.add_argument("--root", type=Path)
     sub = root.add_subparsers(dest="command", required=True)
-    for command in ("draft", "review", "approve", "serve"):
+    for command in ("draft", "replace", "review", "approve", "recover", "serve"):
         child = sub.add_parser(command)
         child.add_argument("input", type=Path)
-        if command == "approve":
+        if command == "draft":
+            child.add_argument("--manual-coexistence", action="store_true")
+        if command in {"approve", "recover"}:
             child.add_argument("digest")
     try:
         print(json.dumps(asyncio.run(execute(root.parse_args())), indent=2))

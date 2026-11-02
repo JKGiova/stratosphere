@@ -12,10 +12,10 @@ from test_mt5_overnight import Advisors, epoch
 
 from stratosphere.mt5.bridge import BridgeError, MT5Bridge
 from stratosphere.mt5.overnight import OvernightAgent
-from stratosphere.mt5.overnight_basket import Basket, OvernightBasket
+from stratosphere.mt5.overnight_basket import Basket, CoexistingBasket, OvernightBasket
 from stratosphere.mt5.overnight_markets import intersection
 from stratosphere.mt5.overnight_strategy import entry_bounds, windows
-from stratosphere.mt5.trading import Deployment, MT5Trading
+from stratosphere.mt5.trading import MT5Trading, deployment_reader
 from stratosphere.registry.workspace import WorkspaceDatabase
 
 
@@ -58,7 +58,7 @@ def test_independent_global_calendar_oracles():
 
 
 @asynccontextmanager
-async def basket_fixture(tmp_path):
+async def basket_fixture(tmp_path, *, manual_coexistence=False, max_orders=1):
     async with connection(tmp_path) as (bridge, peer):
         clock = [int(time.time())]
         provider = Advisors()
@@ -66,18 +66,24 @@ async def basket_fixture(tmp_path):
 
         async def read(op, **args):
             symbol = args.get("symbol")
+            if op == "symbols":
+                return catalog(["FRA40.cash", "US500.cash"])
             if op == "account":
-                return peer.session | {
-                    "connected": "1",
-                    "currency": "USD",
-                    "equity": "100000",
-                    "balance": "100000",
-                    "free_margin": "100000",
-                    "margin": "0",
-                    "trading_input": "1",
-                    "terminal_trade_allowed": "1",
-                    "utc_epoch": str(clock[0]),
-                }
+                return (
+                    peer.session
+                    | {
+                        "connected": "1",
+                        "currency": "USD",
+                        "equity": "100000",
+                        "balance": "100000",
+                        "free_margin": "100000",
+                        "margin": "0",
+                        "trading_input": "1",
+                        "terminal_trade_allowed": "1",
+                        "utc_epoch": str(clock[0]),
+                    }
+                    | peer.account_updates
+                )
             if op == "symbol":
                 return {
                     "symbol": symbol,
@@ -115,7 +121,7 @@ async def basket_fixture(tmp_path):
             "max_spread": "2",
             "min_equity": "99500",
             "cost_buffer": "5",
-            "max_orders": 1,
+            "max_orders": max_orders,
             "expires": clock[0] + 7 * 86400,
         }
         agents = [
@@ -125,9 +131,12 @@ async def basket_fixture(tmp_path):
             for symbol in ("FRA40.cash", "US500.cash")
         ]
         deployments = [
-            Deployment.model_validate((await agent.draft(limits))["deployment"]) for agent in agents
+            deployment_reader.validate_python(
+                (await agent.draft(limits, manual_coexistence=manual_coexistence))["deployment"]
+            )
+            for agent in agents
         ]
-        value = Basket(
+        value = (CoexistingBasket if manual_coexistence else Basket)(
             implementation_sha256=bridge.implementation_digest,
             catalog_sha256=bridge.retain_evidence(
                 json.dumps(catalog([a.symbol for a in agents])).encode()

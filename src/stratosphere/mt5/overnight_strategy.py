@@ -8,9 +8,10 @@ from functools import lru_cache
 import exchange_calendars as calendars
 from pydantic import Field, model_validator
 
-from stratosphere.mt5.bridge import BridgeError, MT5Bridge
+from stratosphere.mt5.bridge import BridgeError, EntryBlocked, MT5Bridge
 from stratosphere.mt5.gold_strategy import digest, text, validate_volume
 from stratosphere.mt5.overnight_markets import MARKETS, market
+from stratosphere.mt5.trading import CoexistingDeployment
 from stratosphere.phase0.contracts import Contract, StrategyDocument, StrategySpec, fingerprint
 
 SOURCE = "https://arxiv.org/pdf/2010.01727"
@@ -187,8 +188,25 @@ def entry_bounds(symbol_name, quote, symbol, account, deployment):
         )
     ]
     bid, ask = positive(quote, "bid"), positive(quote, "ask")
-    equity, margin = positive(account, "equity"), positive(account, "free_margin")
+    coexistence = isinstance(deployment, CoexistingDeployment)
+    if coexistence:
+        equity = Decimal(account["equity"])
+        if not equity.is_finite():
+            raise BridgeError("Finite account equity required")
+        if equity < Decimal(deployment.min_equity):
+            raise EntryBlocked("Account equity is below the approved entry floor")
+        margin = Decimal(account["free_margin"])
+        if not margin.is_finite():
+            raise BridgeError("Finite free margin required")
+        margin -= equity * Decimal(deployment.free_margin_reserve_fraction)
+        if margin <= 0 or equity < Decimal(deployment.min_equity):
+            raise EntryBlocked("Insufficient free margin reserve or account equity")
+    else:
+        equity = positive(account, "equity")
+        margin = positive(account, "free_margin")
     if ask - bid > Decimal(deployment.max_spread) or equity < Decimal(deployment.min_equity):
+        if coexistence:
+            raise EntryBlocked("Current spread exceeds the approved entry bound")
         raise BridgeError("Overnight approved spread/equity gate failed")
     stop = ((bid * Decimal("0.99")) // tick) * tick
     if not 0 < stop < bid:
@@ -207,8 +225,10 @@ def entry_bounds(symbol_name, quote, symbol, account, deployment):
     )
     cap = (cap // step) * step
     if risk_budget <= 0 or cap < minimum:
+        if coexistence:
+            raise EntryBlocked("No broker-minimum size fits current account capacity")
         raise BridgeError("No broker-minimum overnight size fits all finite bounds")
-    return {
+    bounds = {
         "symbol": symbol_name,
         "side": "buy",
         "stop_loss": text(stop),
@@ -226,6 +246,12 @@ def entry_bounds(symbol_name, quote, symbol, account, deployment):
         "broker_triple_swap_day": symbol.get("swap_triple_day", "unverified"),
         "costs": "Native SL risk plus fixed buffer; gaps, financing and slippage may exceed it",
     }
+    if coexistence:
+        bounds["free_margin_reserve"] = text(
+            equity * Decimal(deployment.free_margin_reserve_fraction)
+        )
+        bounds["account_capacity"] = "Includes external positions and pending-order margin"
+    return bounds
 
 
 __all__ = [

@@ -30,6 +30,10 @@ class UncertainOrder(BridgeError):
     """An order request may have reached MT5; it must never be replayed."""
 
 
+class EntryBlocked(BridgeError):
+    """A known pre-submit account constraint; keep the scheduler and owned exits alive."""
+
+
 class JournalConnection(sqlite3.Connection):
     def __exit__(self, *args):
         try:
@@ -293,6 +297,8 @@ class MT5Bridge:
                         (raw, identity),
                     )
                     if value.get("status") != "ok":
+                        if op in {"check", "submit"} and value.get("entry_blocked") == "1":
+                            raise EntryBlocked(value.get("error", "Native entry deferred"))
                         raise BridgeError(value.get("error", "MT5 rejected request"))
                     return value
                 await asyncio.sleep(0.05)
@@ -405,6 +411,7 @@ class MT5Bridge:
                     "overnight_strategy.py",
                     "overnight_markets.py",
                     "overnight_basket.py",
+                    "exposure.py",
                 )
             )
             + (source.parent / "phase0/contracts.py").read_bytes()

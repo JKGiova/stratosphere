@@ -37,6 +37,8 @@ class Peer:
         self.mismatch = False
         self.retcode = "10009"
         self.positions = {}
+        self.orders = {"count": "0"}
+        self.account_updates = {"margin_mode": "2"}
         self.sent = 0
 
     async def serve(self):
@@ -64,8 +66,9 @@ class Peer:
                         margin="0",
                         ea_sha256="a" * 64,
                     )
+                    result.update(self.account_updates)
                 elif op in {"positions", "orders"}:
-                    result.update(self.positions if op == "positions" else {"count": "0"})
+                    result.update(self.positions if op == "positions" else self.orders)
                     result.setdefault("count", "0")
                 elif op == "quote":
                     result.update(bid="4000", ask="4000.1", server_time_ms="100000", age_ms="0")
@@ -95,17 +98,22 @@ class Peer:
                         deal="124",
                         fill_price="4000",
                     )
-                    self.positions = (
-                        {
-                            "count": "1",
-                            "p.1.ticket": "123",
-                            "p.1.magic": request["magic"],
-                            "p.1.symbol": request["symbol"],
-                            "p.1.volume": request["volume"],
-                        }
-                        if op == "submit"
-                        else {"count": "0"}
-                    )
+                    from stratosphere.mt5.exposure import rows, snapshot
+
+                    current = rows(self.positions or {"count": "0"})
+                    if op == "submit":
+                        current.append(
+                            {
+                                "ticket": "123",
+                                "magic": request["magic"],
+                                "symbol": request["symbol"],
+                                "volume": request["volume"],
+                                "type": "0",
+                            }
+                        )
+                    else:
+                        current = [r for r in current if r["ticket"] != request["ticket"]]
+                    self.positions = snapshot(current)
                 atomic_write(self.root / "responses" / path.name, encode(result))
             await asyncio.sleep(0.005)
 

@@ -24,7 +24,7 @@ See [setup and usage](docs/usage.md) for installation and the research workflow.
 - [Source-grounded strategy intake](docs/agent-workflow.md) from public references and local PDFs.
 - [Strategy-agent development](docs/strategy-development.md): compiled SMA/EMA/RSI expression programs, native backtests, bounded revisions and sampled market comparisons. Arbitrary source conversion remains unfinished.
 - [MT5 local data/order connector](docs/mt5-bridge.md), with a compiled Expert Advisor, exact account/session pins, typed data reads and guarded market entry/owned exits.
-- [Overnight agents](docs/mt5-overnight.md): paper-grounded CFD adaptation, local calendars, bounded continuous agents and one account position across the matched markets. This replaces the active Gold Golden Cross pilot.
+- [Overnight agents](docs/mt5-overnight.md): paper-grounded CFD adaptation, local calendars and bounded agents. Explicit v2 deployments isolate one agent position from manual exposure with account margin checks. This replaces the active Gold Golden Cross pilot.
 - Alpaca/Liquid active commands and automatic credential restoration are retired; historical formats, journals and readers remain separate.
 - Gold MT5 history acquired and structurally validated across all 21 standard intervals; coarse intervals reach 2004.
 

@@ -7,13 +7,14 @@ import time
 import uuid
 from contextlib import contextmanager
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, TypeAdapter, model_validator
 
 from stratosphere.mt5.bridge import (
     SYMBOL,
     BridgeError,
+    EntryBlocked,
     UncertainOrder,
     atomic_write,
     decode,
@@ -68,6 +69,30 @@ class Deployment(Contract):
     @property
     def digest(self):
         return fingerprint(self)
+
+
+class CoexistingDeployment(Deployment):
+    """Explicit new authority; historical v1 deployments retain their original digest/scope."""
+
+    schema_version: Literal["mt5-deployment/2"] = "mt5-deployment/2"
+    mode: Literal["demo"] = "demo"
+    account_policy: Literal["one_agent_position_manual_coexistence"] = (
+        "one_agent_position_manual_coexistence"
+    )
+    free_margin_reserve_fraction: Literal["0.10"] = "0.10"
+    limitations: tuple[str, ...] = (
+        "Not an FTMO rules certification or a validated strategy runner",
+        "One application-owned position; external positions remain untouched",
+        "Hedging accounts only; no entry on an externally occupied symbol",
+        "Reserve 10% of current equity as free margin after entry; mandatory broker stop-loss",
+        "Native stop risk excludes gap/slippage beyond the explicit cost buffer",
+    )
+
+
+DeploymentContract = Annotated[
+    Deployment | CoexistingDeployment, Field(discriminator="schema_version")
+]
+deployment_reader = TypeAdapter(DeploymentContract)
 
 
 class Order(Contract):
@@ -141,6 +166,8 @@ class MT5Trading:
                 raise BridgeError("MT5 approval/account/EA identity mismatch")
         if account.get("connected") != "1":
             raise BridgeError("MT5 account is disconnected")
+        if isinstance(deployment, CoexistingDeployment) and account.get("margin_mode") != "2":
+            raise BridgeError("Manual coexistence requires a verified hedging account")
         for digest in (deployment.strategy_sha256, deployment.report_sha256):
             path = self.bridge.state_directory() / "evidence" / (digest + ".bin")
             private_path(path)
@@ -158,7 +185,7 @@ class MT5Trading:
             ).fetchone()
             if not row or row[1] not in ({"approved", "revoked"} if exit_only else {"approved"}):
                 raise BridgeError("No current user-approved MT5 deployment")
-            value = Deployment.model_validate_json(row[0])
+            value = deployment_reader.validate_json(row[0])
             if value.digest != digest:
                 raise BridgeError("Retained MT5 approval changed")
             return value
@@ -176,6 +203,17 @@ class MT5Trading:
             deployment = self.deployment(digest)
             account = await self.bridge.account()
             self.verify(deployment, account)
+            if isinstance(deployment, CoexistingDeployment):
+                from stratosphere.mt5.exposure import coexistence_block
+
+                block = coexistence_block(
+                    self.bridge,
+                    await self.bridge.read("positions"),
+                    await self.bridge.read("orders"),
+                    deployment.symbol,
+                )
+                if block:
+                    raise EntryBlocked(block)
             if expires_at is not None and (
                 type(expires_at) is not int
                 or not int(time.time()) < expires_at <= deployment.expires
@@ -215,17 +253,25 @@ class MT5Trading:
                 deadline=expires_at,
             )
             if not check_only:
-                await self.settle(identity, result, deployment.symbol, args["magic"])
+                await self.settle(
+                    identity,
+                    result,
+                    deployment.symbol,
+                    args["magic"],
+                    coexistence=isinstance(deployment, CoexistingDeployment),
+                )
             return result
 
-    async def settle(self, identity, result, symbol, magic, *, closing_ticket=None):
+    async def settle(
+        self, identity, result, symbol, magic, *, closing_ticket=None, coexistence=False
+    ):
         """Do not release ambiguity merely because OrderSend returned true or a broker ID."""
         try:
             if result.get("retcode") not in {"10009", "10010"}:
                 raise BridgeError("Nonterminal or uncertain broker submission result")
             positions = await self.bridge.read("positions")
             orders = await self.bridge.read("orders")
-            if int(orders.get("count", "0")):
+            if int(orders.get("count", "0")) and not coexistence:
                 raise BridgeError("Provider orders remain open")
             rows = [
                 {
@@ -234,16 +280,24 @@ class MT5Trading:
                 }
                 for i in range(1, int(positions.get("count", "0")) + 1)
             ]
+            if coexistence:
+                from stratosphere.mt5.exposure import ownership
+
+                owned, _, _ = ownership(self.bridge, positions, orders)
+                if len(owned) > 1:
+                    raise BridgeError("Multiple application positions after broker execution")
             if closing_ticket:
                 if any(row["ticket"] == closing_ticket for row in rows):
                     raise BridgeError("Close is partial or position remains")
-            elif (
-                len(rows) != 1
-                or rows[0]["symbol"] != symbol
-                or rows[0]["magic"] != magic
-                or (Decimal(rows[0]["volume"]) != Decimal(result["filled_volume"]))
-            ):
-                raise BridgeError("Actual position differs from the reported fill")
+            else:
+                matched = [r for r in rows if r["magic"] == magic] if coexistence else rows
+                if (
+                    len(matched) != 1
+                    or matched[0]["symbol"] != symbol
+                    or matched[0]["magic"] != magic
+                    or Decimal(matched[0]["volume"]) != Decimal(result["filled_volume"])
+                ):
+                    raise BridgeError("Actual position differs from the reported fill")
         except BaseException as exc:
             with self.bridge.journal() as db:
                 db.execute("UPDATE requests SET state='uncertain' WHERE id=?", (identity,))
@@ -303,5 +357,12 @@ class MT5Trading:
                 identity=identity,
                 trade=True,
             )
-            await self.settle(identity, result, deployment.symbol, magic, closing_ticket=ticket)
+            await self.settle(
+                identity,
+                result,
+                deployment.symbol,
+                magic,
+                closing_ticket=ticket,
+                coexistence=isinstance(deployment, CoexistingDeployment),
+            )
             return result

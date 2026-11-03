@@ -6,12 +6,10 @@ import json
 import pytest
 from test_bounded_studies import studies as studies
 
-from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.phase0.contracts import fingerprint
 from stratosphere.registry.workspace import RegistryError, WorkspaceDatabase
 from stratosphere.research.contracts import SmaParameters, compile_sma_spec
-from stratosphere.research.service import ResearchService
-from stratosphere.research.store import ResearchError, ResearchStore
+from stratosphere.research.store import ResearchError
 from stratosphere.sources.captions import CaptionRequest
 from stratosphere.sources.contracts import SuppliedRequest
 from stratosphere.sources.registration import (
@@ -281,19 +279,6 @@ async def test_receipts_cannot_be_updated_or_deleted_and_damaged_source_cannot_b
     assert service.database.source_registration(receipt.id) == receipt
 
 
-async def test_explicit_bridge_registration_makes_no_model_request_and_preserves_active_history(
-    imports, tmp_path
-):
-    service, _, source = imports
-    research = ResearchService(ResearchStore(tmp_path / "research"), online_check=online)
-    bridge = Orchestrator(None, service.database, research, sources=service.sources)
-    reply = "".join([p async for p in bridge.respond("Register source " + source.id)])
-    registration = await bridge.source_registrations.open(bridge.last_action["id"])
-    assert registration.strategy_id in reply and bridge.active_strategy is None
-    assert not bridge.general.history and not bridge.database.history(registration.strategy_id)
-    assert not bridge.research.store.jobs() and not bridge.studies.store.jobs()
-
-
 async def test_duplicate_nested_keys_and_missing_defaulted_nodes_are_not_normalized_away(imports):
     service, spec, _ = imports
     payload = spec.model_dump(mode="json")
@@ -424,37 +409,6 @@ async def test_acquisition_request_bytes_remain_bound_even_if_normalized_snapsho
         await service.open(receipt.id)
 
 
-@pytest.mark.parametrize("registered", [False, True])
-async def test_model_generated_registration_route_is_not_authority(imports, tmp_path, registered):
-    from stratosphere.models.streaming import ModelError
-
-    service, spec, source = imports
-    if registered:
-        service.database.register(spec, "Existing fixture", {"kind": "authored_fixture"})
-
-    class Untrusted:
-        async def stream_json(self, *args):
-            yield json.dumps({"action": "source_register", "source": source.id})
-
-        async def stream(self, *args):
-            yield json.dumps({"action": "source_register", "source": source.id})
-
-    bridge = Orchestrator(
-        Untrusted(),
-        service.database,
-        ResearchService(ResearchStore(tmp_path / "research"), online_check=online),
-        sources=service.sources,
-    )
-    if registered:
-        with pytest.raises(ModelError):
-            _ = [p async for p in bridge.respond("Tell me what this source describes")]
-    else:
-        _ = [p async for p in bridge.respond("Tell me what this source describes")]
-        assert bridge.last_action is None
-    assert not bridge.source_registrations.store.jobs()
-    assert counts(service.database)["strategies"] == int(registered)
-
-
 async def test_pinned_github_native_file_retains_original_request_tree_and_blob_refs(imports):
     import hashlib
 
@@ -478,45 +432,6 @@ async def test_pinned_github_native_file_retains_original_request_tree_and_blob_
     assert receipt.proof.source_request.submitted_url == url
     assert receipt.proof.source_request.url == "https://github.com/owner/repo/blob/main/strategy.py"
     assert native_definition(receipt.proof.snapshot) == spec
-
-
-async def test_registration_source_and_private_context_stay_fixed_across_navigation(
-    imports, tmp_path
-):
-    service, spec, source = imports
-    other_spec = compile_sma_spec(SmaParameters(fast_period=5, slow_period=12, quantity="0.02"))
-    other = service.database.register(other_spec, "Other active definition", {"kind": "authored"})
-    service.database.append_turn(
-        other["public_id"], "PRIVATE_OTHER_CONTEXT", "Private reply", "fixture"
-    )
-    research = ResearchService(ResearchStore(tmp_path / "research"), online_check=online)
-    bridge = Orchestrator(None, service.database, research, sources=service.sources)
-    reached, release = asyncio.Event(), asyncio.Event()
-    original = service.sources.open
-
-    async def pause(identity):
-        reached.set()
-        await release.wait()
-        return await original(identity)
-
-    service.sources.open = pause
-
-    async def run():
-        return "".join([p async for p in bridge.respond("Register source " + source.id)])
-
-    task = asyncio.create_task(run())
-    await reached.wait()
-    bridge.select(other["public_id"])
-    release.set()
-    reply = await task
-    receipt = await bridge.source_registrations.open(bridge.last_action["id"])
-    assert receipt.proof.strategy_sha256 == fingerprint(spec)
-    assert (
-        receipt.strategy_id != other["public_id"] and bridge.active_strategy == other["public_id"]
-    )
-    assert "PRIVATE_OTHER_CONTEXT" not in reply
-    assert len(service.database.history(other["public_id"])) == 2
-    assert not service.database.history(receipt.strategy_id)
 
 
 async def test_committed_native_example_is_a_complete_supported_input(imports):

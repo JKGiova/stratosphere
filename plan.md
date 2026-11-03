@@ -10,8 +10,9 @@ Keep English, local SQLite, private artifacts and native OS credential storage. 
 frameworks own conversation, strategy research coordination and model selection. The engine owns
 validated strategy programs, market data, backtests, evidence, approvals, deterministic risk gates
 and the MT5 connector. The rebuild covers both backtesting and execution through a common strategy
-definition. The TUI and slash-command router are removed; general external-agent tools/MCP and
-internal agent-runner extraction are not implemented yet. No billing, app login, hosted user
+definition. The TUI, slash-command router, internal research crew and persistent tool runner are
+removed. General external-agent tools/MCP are not implemented yet. Research uses explicit typed
+program jobs; frozen operator-approved MT5 adapters retain their separate model/risk dependencies. No billing, app login, hosted user
 database, strategy sharing or release deadline.
 NautilusTrader wheel production belongs to the separate `nautilus-trader-macos-intel` repository.
 stratosphere consumes its pinned Intel artifact and matching runtime dependencies; Linux and Apple
@@ -44,9 +45,9 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 | Area | Implemented | Limits / remaining verification |
 | --- | --- | --- |
 | Headless interface | Package help, MT5 connector dispatch and compatibility inspection; no TUI dependency or slash-command router | General research CLI/tools, external-agent/MCP integration and remote connectivity remain pending |
-| Retained orchestrator and specialists | Typed routing, isolated clarification drafts, public source discovery with optional Agent Reach/OpenCLI/anonymous-browser fallback, local PDF/page extraction and sealed source-grounded strategy briefs; exact registered owners, duplicate reuse and variant lineage | Descriptions may cover any family; unsupported execution semantics remain blocked. Faithful conversion, independent validation and MT5 integration remain unfinished |
+| Source and compatibility operations | Public source readers, PDF extraction, sealed briefs, explicit one-shot model adapters and stable registry ownership remain | Internal conversation/router/crew modules are removed. External agent integration and faithful conversion remain unfinished; retained model helpers are not an embedded crew |
 | Legacy SMA research | `research-campaign/2` campaigns; at most 12 candidates / 24 native starts, all attempts retained, no consumed-start replay, sealed reports | No generic optimizer, independent holdout or global-best claim; real model reliability still needs checks |
-| Strategy development | Complete brief → stable strategy agent → validated SMA/EMA/RSI expression program → application-compiled Python → native Yahoo comparisons and a persistent typed-tool loop covering inspection, signal edits, tests, analysis and report preview with checkpoint continuation and application-owned progress stopping; all attempts, code, scopes and descriptive year/regime summaries retained | V2: 4 frozen targets, 32 model calls / 128 reserved native starts / finite active time; first insufficient evaluated revision stops. V1 limits/readers preserved. Long-only fixed units, hourly/daily; no stop orders, shorts or arbitrary Python. Live-model reliability, semantic source conformance and independent holdout remain unverified |
+| Strategy development | V3 Python operations accept an externally supplied validated definition, freeze datasets and run one application-compiled program with base/stress comparisons; reports retain exact owners, attempts and scopes | At most 4 targets / 8 native starts / 0 model calls / 1,200 execution seconds. No internal refinement or checkpoint continuation. V1/v2 reports and consumed receipts remain read-only. Long-only fixed units, hourly/daily; source conformance, independent holdout and CFD execution remain unverified |
 | Final strategy | Exact selected report/definition/account/instrument/implementation and complete paper limits; one human approval and inactive rejection | Historical fixed-quantity evidence does not validate variable paper-policy returns; retirement/upgrades remain unfinished |
 | Broker setup | Sole active MT5 role; Alpaca/Liquid commands and automatic credential restoration retired | Historical journals, contracts and readers remain; their approvals cannot activate MT5 |
 | MT5 bridge | Local typed EA/client, exact account/session binding and private durable journal; actual Intel macOS FTMO demo reads passed for account/specs/advancing quotes/M1-H1-D1 candles/positions/orders/deals with trading disabled | Linux deployment, disconnect/account-switch/restart, sustained feed freshness, timestamp/session/cost semantics and independent executable attestation remain unverified |
@@ -58,10 +59,11 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 
 ## Next development gates
 
-1. **Extract the headless engine from internal agents.** Keep validated compilation, frozen research
-   jobs, native workers, evidence/identity and approval/risk checks behind explicit engine operations.
-   Replace internal model/conversation dependencies before removing their remaining modules. Preserve
-   historical readers and exact approvals. External frameworks own the crew and model lifecycle.
+1. **Finish compatibility separation.** The general research crew and model tool loop are removed;
+   explicit program jobs own compilation, frozen native work and evidence validation. Retained
+   one-shot source/report helpers and exactly pinned MT5 model/risk adapters must be separated
+   without breaking old readers, deployment approvals or protective exits. External frameworks own
+   the crew and model lifecycle. Do not reactivate historical research checkpoints.
 2. **Expose a small external-agent interface.** Support structured research operations, job status,
    reports and deployment proposals through the same engine operations. Keep account diagnostics,
    credentials and human approval outside strategy-model tools. MCP is an intended adapter, not an
@@ -72,8 +74,8 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
    evidence retention. A separately approved one-time demo connector round-trip passed; next verify
    the normal finished-strategy deployment path and limits. Do not infer sustained readiness from
    one successful diagnostic or acceptance from authored tests.
-4. **Connect the agent workflow to MT5.** Source-to-specialist compiled historical research now
-   runs separately. Build a faithful CFD research and final-report validator,
+4. **Connect the agent workflow to MT5.** Explicit compiled-program historical research now
+   runs separately from external agent coordination and broker execution. Build a faithful CFD research and final-report validator,
    exact registered strategy/report ownership and instrument mapping, timestamp/session/cost
    semantics, signal evidence and MT5-specific portfolio risk/allocation. The bounded overnight
    adapter connects explicit operator-defined strategies; it does not complete the automatic
@@ -95,7 +97,7 @@ Mandatory boundaries: [invariants](docs/invariants.md). Other guides: [docs inde
 
 Run focused tests for each change, then necessary integration/compatibility checks. Keep failed logs
 and environmental limits. Keep native integration tests in the engine-marked suite, including
-headless orchestration paths; engine-free compatibility must not depend on an installed native engine.
+headless engine paths; engine-free compatibility must not depend on an installed native engine.
 The cross-platform application matrix installs verified dependency wheels without compiling them;
 external wheel release readiness and application acceptance remain separate checks.
 Source-intake verification on October 29, 2026 includes actual local PDF parsing, authored HTTP/model

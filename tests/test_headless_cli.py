@@ -53,3 +53,25 @@ def test_unknown_command_fails_without_creating_state(tmp_path):
     assert result.returncode == 2
     assert "invalid choice" in result.stderr
     assert not state.exists()
+
+
+def test_development_engine_imports_without_a_crew_or_workflow_graph():
+    script = """
+import sys
+class NoRunner:
+    def find_spec(self, fullname, path=None, target=None):
+        removed = ('stratosphere.agents', 'stratosphere.chat',
+                   'stratosphere.workflow.runtime', 'stratosphere.development.runner',
+                   'stratosphere.development.agent', 'stratosphere.development.tools',
+                   'langgraph', 'langsmith')
+        if any(fullname == n or fullname.startswith(n + '.') for n in removed):
+            raise AssertionError('Engine imported a removed internal runner')
+sys.meta_path.insert(0, NoRunner())
+from stratosphere.development.service import StrategyDevelopment
+from stratosphere.development.history import LoopHistory
+assert not hasattr(LoopHistory, 'run')
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script], capture_output=True, text=True, timeout=20
+    )
+    assert result.returncode == 0, result.stderr

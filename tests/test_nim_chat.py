@@ -5,7 +5,6 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
-from stratosphere.chat import ChatSession
 from stratosphere.models.nim import ModelError, ModelSettings, NimChat
 
 KEY = "unit-test-secret"
@@ -132,27 +131,7 @@ async def test_incomplete_and_failed_streams(parts, expected):
 
 
 @pytest.mark.asyncio
-async def test_history_commits_only_completed_turns():
-    requests = []
-    client, _ = provider(
-        [event("hello"), event(finish="stop"), "data: [DONE]\n\n"], requests=requests
-    )
-    session = ChatSession(client)
-    assert requests == []
-    assert "".join([part async for part in session.respond("Hi")]) == "hello"
-    assert session.history == [
-        {"role": "user", "content": "Hi"},
-        {"role": "assistant", "content": "hello"},
-    ]
-    session.provider, _ = provider([event("broken"), httpx.ReadTimeout(KEY)])
-    with pytest.raises(ModelError):
-        _ = [part async for part in session.respond("failed question")]
-    assert len(session.history) == 2
-    assert session.busy is False
-
-
-@pytest.mark.asyncio
-async def test_cancellation_closes_stream_and_discards_turn():
+async def test_cancellation_closes_stream():
     started = asyncio.Event()
     closed = asyncio.Event()
 
@@ -175,10 +154,9 @@ async def test_cancellation_closes_stream_and_discards_turn():
             )
         ),
     )
-    session = ChatSession(client)
 
     async def consume():
-        return [part async for part in session.respond("question")]
+        return [part async for part in client.stream([{"role": "user", "content": "question"}])]
 
     task = asyncio.create_task(consume())
     await asyncio.wait_for(started.wait(), timeout=3)
@@ -186,8 +164,6 @@ async def test_cancellation_closes_stream_and_discards_turn():
     with pytest.raises(asyncio.CancelledError):
         await task
     assert closed.is_set()
-    assert session.history == []
-    assert session.busy is False
 
 
 @pytest.mark.asyncio
@@ -204,49 +180,3 @@ async def test_non_streaming_response_is_rejected_without_displaying_body():
     with pytest.raises(ModelError, match="streaming") as error:
         _ = [part async for part in client.stream([])]
     assert KEY not in str(error.value)
-
-
-@pytest.mark.asyncio
-async def test_ambient_tracing_disabled_for_chat(monkeypatch):
-    from langsmith.utils import tracing_is_enabled
-
-    monkeypatch.setenv("LANGSMITH_TRACING", "true")
-    monkeypatch.setenv("LANGCHAIN_TRACING_V2", "true")
-
-    class PrivateProvider:
-        async def stream(self, messages):
-            assert tracing_is_enabled() is False
-            yield "private reply"
-
-    session = ChatSession(PrivateProvider())
-    assert [part async for part in session.respond("private input")] == ["private reply"]
-
-
-@pytest.mark.asyncio
-async def test_second_turn_has_only_successful_history():
-    requests = []
-
-    def handler(request):
-        requests.append(json.loads(request.content))
-        return httpx.Response(
-            200,
-            headers={"content-type": "text/event-stream"},
-            stream=Body(
-                [
-                    event("reply"),
-                    event(finish="stop"),
-                    "data: [DONE]\n\n",
-                ]
-            ),
-        )
-
-    session = ChatSession(NimChat(SETTINGS, transport=httpx.MockTransport(handler)))
-    _ = [part async for part in session.respond("first")]
-    _ = [part async for part in session.respond("second")]
-    assert [message["role"] for message in requests[-1]["messages"]] == [
-        "system",
-        "user",
-        "assistant",
-        "user",
-    ]
-    assert requests[-1]["messages"][-1]["content"] == "second"

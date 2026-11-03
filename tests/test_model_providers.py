@@ -7,7 +7,6 @@ import httpx
 import pytest
 from pydantic import SecretStr, ValidationError
 
-from stratosphere.chat import ChatSession
 from stratosphere.models import create_provider
 from stratosphere.models.claude import ClaudeChat
 from stratosphere.models.compatible import CompatibleChat
@@ -104,11 +103,10 @@ async def test_direct_provider_stream_and_exact_request(provider):
         ],
         requests=requests,
     )
-    session = ChatSession(adapter)
-    stream = session.respond("Hi")
+    stream = adapter.stream([{"role": "user", "content": "Hi"}])
     assert await anext(stream) == "Hello "
     assert "".join([part async for part in stream]) == "world"
-    assert len(session.history) == 2 and wire.closed
+    assert wire.closed
     request = requests[0]
     assert str(request.url) == BASE_URLS[provider] + "/chat/completions"
     if provider == "ollama":
@@ -139,24 +137,22 @@ def test_factory_and_missing_key(provider):
 
 @pytest.mark.parametrize("provider", DIRECT + ["claude"])
 @pytest.mark.parametrize("status", [401, 429, 503, 307])
-async def test_no_fallback_redirect_or_history_on_provider_failure(provider, status):
+async def test_no_fallback_or_redirect_on_provider_failure(provider, status):
     requests = []
     adapter, wire = client(provider, [KEY], status=status, requests=requests)
-    session = ChatSession(adapter)
     with pytest.raises(ModelError) as error:
-        _ = [part async for part in session.respond("Hi")]
+        _ = [part async for part in adapter.stream([{"role": "user", "content": "Hi"}])]
     assert KEY not in str(error.value)
-    assert len(requests) == 1 and session.history == [] and wire.closed
+    assert len(requests) == 1 and wire.closed
 
 
 @pytest.mark.parametrize("provider", DIRECT)
 @pytest.mark.parametrize("ending", ["", "data: [DONE]\n\n", frame(finish="length")])
-async def test_compatible_incomplete_stream_does_not_commit(provider, ending):
+async def test_compatible_incomplete_stream_is_rejected(provider, ending):
     adapter, wire = client(provider, [frame("partial"), ending])
-    session = ChatSession(adapter)
     with pytest.raises(ModelError):
-        _ = [part async for part in session.respond("Hi")]
-    assert session.history == [] and wire.closed
+        _ = [part async for part in adapter.stream([{"role": "user", "content": "Hi"}])]
+    assert wire.closed
 
 
 async def test_native_claude_system_auth_thinking_redaction_and_multi_turn():
@@ -185,8 +181,17 @@ async def test_native_claude_system_auth_thinking_redaction_and_multi_turn():
         ),
     ]
     adapter, wire = client("claude", parts, requests=requests)
-    session = ChatSession(adapter)
-    reply = "".join([p async for p in session.respond("First")])
+    reply = "".join(
+        [
+            p
+            async for p in adapter.stream(
+                [
+                    {"role": "system", "content": "Fixture instructions"},
+                    {"role": "user", "content": "First"},
+                ]
+            )
+        ]
+    )
     assert reply == "Hi [redacted][31m" and wire.closed
     request = requests[0]
     assert str(request.url) == "https://api.anthropic.com/v1/messages"
@@ -198,7 +203,17 @@ async def test_native_claude_system_auth_thinking_redaction_and_multi_turn():
     assert body["messages"] == [{"role": "user", "content": "First"}]
     assert body["stream"] is True and body["max_tokens"] == 4096
     # A new request retains only user-visible text and preserves system separation.
-    _ = [p async for p in session.respond("Second")]
+    _ = [
+        p
+        async for p in adapter.stream(
+            [
+                {"role": "system", "content": "Fixture instructions"},
+                {"role": "user", "content": "First"},
+                {"role": "assistant", "content": reply},
+                {"role": "user", "content": "Second"},
+            ]
+        )
+    ]
     second = json.loads(requests[1].content)
     assert [m["role"] for m in second["messages"]] == ["user", "assistant", "user"]
     assert KEY not in second["messages"][1]["content"]
@@ -251,10 +266,9 @@ async def test_native_claude_rejects_invalid_or_incomplete_messages(mutation):
     elif mutation == "late-text":
         parts.insert(5, parts[2])
     adapter, wire = client("claude", parts)
-    session = ChatSession(adapter)
     with pytest.raises(ModelError) as error:
-        _ = [p async for p in session.respond("Hi")]
-    assert KEY not in str(error.value) and session.history == [] and wire.closed
+        _ = [p async for p in adapter.stream([{"role": "user", "content": "Hi"}])]
+    assert KEY not in str(error.value) and wire.closed
 
 
 @pytest.mark.parametrize("provider", DIRECT + ["claude"])
@@ -276,17 +290,16 @@ async def test_cancel_closes_new_provider_stream(provider):
             stream=wire,
         )
     )
-    session = ChatSession(adapter)
 
     async def consume():
-        return [p async for p in session.respond("Hi")]
+        return [p async for p in adapter.stream([{"role": "user", "content": "Hi"}])]
 
     task = asyncio.create_task(consume())
     await entered.wait()
     task.cancel()
     with pytest.raises(asyncio.CancelledError):
         await task
-    assert wire.closed and not session.history
+    assert wire.closed
 
 
 @pytest.mark.parametrize(

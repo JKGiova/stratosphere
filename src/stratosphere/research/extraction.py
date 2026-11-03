@@ -2,10 +2,7 @@
 
 import json
 import re
-from typing import TypedDict
 
-from langgraph.graph import END, START, StateGraph
-from langsmith import tracing_context
 from pydantic import ValidationError
 
 from stratosphere.models.streaming import ModelError
@@ -57,12 +54,6 @@ def parse_extraction(text: str, source: str) -> Extraction:
         ) from None
 
 
-class ExtractionState(TypedDict):
-    source: str
-    reply: str
-    draft: Extraction
-
-
 async def extract_strategy(provider, source: str) -> Extraction:
     if re.search(r"(?m)^\s*//@version\s*=|\b(?:strategy|indicator)\s*\(", source):
         # A model cannot prove that Pine's arithmetic, properties and complete rule
@@ -85,30 +76,14 @@ async def extract_strategy(provider, source: str) -> Extraction:
             ),
         )
 
-    async def request_model(state: ExtractionState):
-        reply = ""
-        messages = [
-            {"role": "system", "content": EXTRACTION_PROMPT},
-            {"role": "user", "content": state["source"]},
-        ]
-        stream = (
-            provider.stream_json(messages, Extraction.model_json_schema())
-            if hasattr(provider, "stream_json")
-            else provider.stream(messages)
-        )
-        async for delta in stream:
-            reply += delta
-        return {"reply": reply}
-
-    def validate(state: ExtractionState):
-        return {"draft": parse_extraction(state["reply"], state["source"])}
-
-    graph = StateGraph(ExtractionState)
-    graph.add_node("extract", request_model)
-    graph.add_node("validate", validate)
-    graph.add_edge(START, "extract")
-    graph.add_edge("extract", "validate")
-    graph.add_edge("validate", END)
-    with tracing_context(enabled=False):
-        result = await graph.compile().ainvoke({"source": source})
-    return result["draft"]
+    messages = [
+        {"role": "system", "content": EXTRACTION_PROMPT},
+        {"role": "user", "content": source},
+    ]
+    stream = (
+        provider.stream_json(messages, Extraction.model_json_schema())
+        if hasattr(provider, "stream_json")
+        else provider.stream(messages)
+    )
+    reply = "".join([delta async for delta in stream])
+    return parse_extraction(reply, source)

@@ -1,35 +1,59 @@
-# Strategy-agent development
+# Strategy development engine
 
-Interface status: the TUI and slash-command router are removed. Slash-command examples below
-are historical; retained Python contracts remain during engine extraction. See
-[headless usage](usage.md) for current entry points and pending external-agent integration.
+The internal research crew, conversations, automatic formalization/refinement and persistent tool
+runner have been removed. External frameworks supply explicit typed definitions. The engine owns
+validation, exact strategy identity, compilation, frozen native work, evidence and deterministic
+selection. This is a Python interface; there is no general MCP server or research CLI yet.
 
-The orchestrator hands a complete sealed intake to an implementation specialist. A validated formal
-definition gets an exact registered strategy and stable agent; that agent owns compilation,
-backtests and measured-result revisions. The orchestrator does not place orders. Trading remains
-outside this service, under the separate final-approval/account/position-risk workflow.
+## Explicit program jobs (v3)
 
-## Entry and ownership
+`StrategyDevelopment.prepare(intake_id, definition, *, focus="", parent=None)` accepts a validated
+`Definition` or its JSON-compatible fields. It verifies the sealed source brief and every rule
+index before registration or acquisition. The application takes its own copy of the definition;
+callers cannot mutate the frozen job through their original object. Source citations do not prove
+faithful conversion. Unsupported or unresolved definitions cannot start research.
 
-A newly created intake with all six rule categories and no unresolved questions can hand off
-automatically. `/develop <brief-id> [focus]` explicitly starts the same path; `/development-show
-<campaign-id>` opens complete reports or retained partial evidence. Tests/Reports include development
-campaigns. Reading a report never starts a worker or inference call.
+```python
+from stratosphere.development.contracts import Definition
 
-Initial formalization must map entry, exit, market, timing, sizing and risk to exact intake rule
-indices. Citations prove the passages exist, not semantic conformance. Missing or unsupported
-behavior stops with retained questions/failures, rather than a substitute implementation.
-Definition and code remain explicitly unverified conversions of their source.
+job = await service.prepare(intake_id, Definition.model_validate(proposal), parent=parent_id)
+plan = service.plan(job)
+report = await service.run(job, owner=plan["owner"])
+```
 
-An existing developed strategy can request further research through its own agent. Its exact
-registered definition is pinned before inference and must remain the new baseline. Changes belong
-to explicit behavioral variants. Private histories and account/credential diagnostics are excluded
-from implementation/refinement contexts. Related candidate results retain exact child IDs, scopes
-and variant lineage; unrelated strategy histories are never supplied.
+The caller supplies the existing configured source reader and local registry when constructing the
+service. The engine does not choose a provider, run inference, keep conversations, propose a
+revision or recursively create another job. Changed behavior is an explicitly supplied definition
+with a separate exact owner and declared parent. Exact duplicate registration reuses identity.
 
-Exact behavior reuses the same registry owner/agent. Exact re-delivery of an intake/focus/parent/code
-request reuses its campaign without replenishing budget. Legacy v1 interrupted campaigns cannot replay. V2 checkpoint continuation is described below;
-an explicitly changed intake/focus creates a distinct campaign.
+Each `strategy-development-plan/3` freezes one program, at most four exact market/interval/window/
+quantity/cost targets, at most eight native starts, zero model calls and a 1,200-second execution
+deadline. Each ready target runs once with base and doubled costs. Acquisition workers also have
+finite technical timeouts. These are per-job ceilings, not a generic external-agent campaign budget;
+a future adapter must not use new jobs to replenish a consumed campaign's authorization.
+
+Exact re-delivery reuses the same intake/definition/focus/parent/implementation job. It does not
+repeat dataset acquisition. Failed or canceled preparation/execution remains consumed. Native
+slots are written before dispatch; an interrupted/uncertain start cannot replay. `run` rejects an
+already consumed job. `report` and `show` read retained evidence without running work.
+
+Reports use `strategy-development-report/3`; their schema is separate from historical formats.
+A report grants no final strategy approval, account allocation or broker authority.
+
+## Historical v1/v2 readers
+
+Old reports, native cells, source/owner pins, compiler bytes and journals remain under their exact
+schemas. V1 retains three programs, four targets and twenty-four native starts. V2 retains four
+frozen targets, 32 model slots, 128 reserved native starts, four searches, three technical errors
+and 3,600 active seconds. Its action schemas, hash chains and application-owned progress policy
+remain validation dependencies, not an executable tool interface.
+
+`development/history.py` validates completed v2 reports and inspects pending checkpoints. Pending
+native reservations remain consumed even without an outcome receipt. Historical campaigns cannot
+prepare another turn, reconcile by executing work, resume or refill any budget. Reading a selected
+case still validates its concrete child owner and native evidence; it never transfers a challenger's
+results to a predecessor. Frozen authored archives exercise both historical versions without
+rewriting their bytes. Operational artifacts are not migrated or deleted.
 
 ## Executable language and code
 
@@ -54,56 +78,6 @@ modified/generated-from-elsewhere/acquired Python cannot pass this gate. There i
 model-controlled shell/import/file/SQL facility. Preserve the v1 compiler output and historical
 readers when introducing a future compiler format.
 
-## Persistent research loop (v2)
-
-New orchestrator handoffs use a persistent typed-tool agent. Its tools cover source discovery,
-program/data inspection, complete signal proposals, targeted indicator tuning, structural tests,
-native backtests, aggregate and condition analysis, report preview and completion. The complete
-[tool contract and public-reader fallback](research-tools.md) defines arguments, state gates and
-optional dependencies. The application validates arguments and executes allowlisted operations. A local Ollama model can drive the same loop; selecting it does not change tool authority.
-The existing compiler and signal language remain the execution boundary. Arbitrary Python and
-unrestricted shell tools are not introduced.
-
-Preparation formalizes the sealed brief and freezes at most four exact symbol/interval/window/
-quantity/cost scopes, acquiring each dataset once. The persistent loop reuses those snapshots.
-Each new program must pass structural compilation and synthetic runtime checks before native
-base/doubled-cost evaluation. These checks do not establish faithful source conversion. All other
-execution/sizing/data semantics stay frozen; only signals, filters and bounded warmup may change.
-
-There is no fixed two-revision stopping rule. After each complete native comparison, application
-code compares the challenger with the retained best program. Progress uses the minimum across
-frozen target scores, each stress return minus stress drawdown. Required gain is the greater of
-0.10 percentage points or 5% of the absolute prior score. Each target must have at least five
-completed stress trades and stress drawdown at most 20%; no target score may regress by more than
-0.10 percentage points. The first insufficient challenger stops refinement and preserves the best
-predecessor. These are explicit conservative research heuristics, not statistical significance,
-profitability certification or a validated general-purpose optimizer. Baseline evaluation establishes
-a comparison point; final selection still requires the report's separate positive-return filters.
-
-Technical errors are not economic non-progress. A failed synthetic check permits a signal repair;
-native failures stay consumed and cannot replay. Three technical errors end the loop. Repeated
-programs stop without another native experiment. The agent can finish earlier.
-
-One immutable session freezes resource ceilings: 32 actual model calls including initial
-formalization, 128 reserved native starts, four public searches, three technical errors, and 3,600
-active loop seconds. Each action has a 180-second bound. Preparation keeps its separate finite
-stages. These are resource ceilings rather than a promised iteration count. The full possible
-base/stress allocation is reserved before dispatch, including failed/interrupted attempts. Resource
-exhaustion produces a report with its stopping reason; it does not approve a strategy.
-
-Every model slot, typed action, observation and experiment is journaled before/after use. Hash-chained
-turn receipts reconstruct state, best program and consumed budgets. Repeating `/develop <brief-id>`
-with the same focus resumes a paused compatible checkpoint or reads its completed report; it never
-refills the budget. Interrupted inference consumes its slot. A completed native child is reconciled
-from its sealed report; an uncertain native operation stops instead of replaying. Changed runtime,
-damaged receipts or unresolved evidence block continuation. Checkpoints are persisted between runs;
-there is no always-on daemon or automatic trading activation.
-
-The execution tool reuses the sealed v1 single-program adapter with an application-generated stop
-receipt, not another inference call. Preparation and native child evidence remain retained under
-their original contracts. Legacy v1 campaigns keep their three-program/four-target/twenty-four-start
-limits and no-replay readers. Their reports and compiler output are not rewritten.
-
 ## Data and report interpretation
 
 Historical acquisition uses the same strict Yahoo normalization as existing research, with a
@@ -126,11 +100,14 @@ prove predictive regime suitability. Revisions saw these results: there is no in
 global-best claim or profitability-only deployment authority. A selected case is a candidate for
 human review, not an approved finished MT5 strategy.
 
-## Evidence
+## Verification and retained evidence
 
-Tests cover exact SMA parity, EMA/RSI seed arithmetic, compiler tampering, source/data/owner pins,
-finite budgets, no replay, cancellation, partial evidence, revisions and the UI handoff. Actual
-Nautilus runs exercise generated SMA/EMA/RSI code and an equity program in a credential-free child.
+Tests cover exact SMA parity, EMA/RSI arithmetic, compiler/input tampering, source/owner pins,
+finite single-program jobs, cancellation, no replay and read-only historical evidence. Native
+checks execute generated SMA/EMA/RSI code and an equity program in credential-free children.
+
+The following checks belong to the removed internal runner and remain historical evidence, not
+current runner capabilities or a release-readiness claim.
 
 A logged public-data integration check on October 29, 2026 used AMZN/TSLA daily Yahoo history for
 2025, two RSI programs and eight base/stress native starts. All four candidate cells completed.

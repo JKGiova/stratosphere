@@ -9,7 +9,7 @@ external wheel dependency; its build/release tooling lives in its own repository
 .venv/bin/ruff check src tests
 .venv/bin/ruff format --check src tests
 .venv/bin/pytest -q
-.venv/bin/pytest -q tests/test_strategy_agents.py tests/test_structured_models.py
+.venv/bin/pytest -q tests/test_strategy_development.py tests/test_development_history.py
 .venv/bin/pytest -q -m engine
 ```
 
@@ -39,17 +39,14 @@ Fixture tests are not real-provider tests; a green suite is not operational read
 
 ## Current verification snapshot
 
-The focused creation checks cover exact duplicate reuse, isolated histories, immutable generated
-provenance, unresolved/malformed proposals, cancellation, failed analysis, registration rollback,
-restart recovery and approval gates. UI-only coverage was removed with the terminal interface; service-level ownership, approval and
-evidence tests remain. Headless startup is checked without importing Textual or Rich.
-The native creation integration compares approved base/stress runs on authored candles against an
-independent SMA/accounting oracle. Authored candles establish software behavior, not profitability.
-
-Model transport/schema fixtures include Cheaper Inference; no authenticated Qwen Flash completion
-has been established for this provider. The exposed chat credential was not used. The current persistent specialist and optional public-source fallback are documented in
-[research tools](research-tools.md); older discarded drafts are not evidence for this implementation.
-Fixture checks do not establish real provider feeds, order transport or sustained operation.
+Engine checks cover externally supplied program validation, exact ownership/lineage, frozen budgets,
+failed/consumed native starts, cancellation, input/code tampering and retained report interpretation.
+Frozen authored v1/v2 archives check that historical reports reopen without inference, execution,
+rewrites or resume. Pending native reservations remain consumed. Provider-wire tests exercise
+explicit compatibility adapters directly; there is no internal conversation/session runner.
+Headless startup blocks UI imports. Native tests exercise compiled SMA/EMA/RSI and equity programs
+in isolated workers. Authored candles and fixture model replies establish software behavior, not
+profitability, real-provider reliability or broker readiness.
 
 ## Distribution and privacy
 

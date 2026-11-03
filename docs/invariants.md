@@ -17,7 +17,7 @@ preserve exact frozen account-read session pins.
 
 ## Stable strategy ownership
 
-The orchestrator bridges the user to strategy specialists. Each exact registered strategy has one
+External orchestrators bridge the user to strategy specialists. Each exact registered strategy has one
 stable agent identity; private conversation contexts remain separated by strategy. Historical
 shared-service contracts retain their owner boundaries, but a new hosted service is outside the
 personal-use scope. Exact duplicate registration reuses the strategy/agent and accumulates
@@ -325,18 +325,23 @@ deployment/bridge contract above. No historical grant or paper mandate transfers
 
 ## Compiled strategy-agent development
 
-A complete sealed intake can pass to its exact registered strategy specialist under finite
-application research policy. Validate source-rule indices and typed program capabilities before
+New v3 development accepts an explicit externally supplied typed definition and sealed intake.
+It runs one program over at most four targets, eight native starts, zero model calls and a
+1,200-second execution deadline. No internal crew, inference/refinement loop or checkpoint runner
+is permitted. Changed definitions require explicit variant lineage; exact job re-delivery cannot
+reacquire data or replenish consumed work. Historical v1/v2 campaigns are read-only.
+Validate source-rule indices and typed program capabilities before
 registration/compilation. The application emits code; only bytes exactly equal to the versioned
 compiler output may run in credential-free children. Never execute arbitrary model/acquired Python
 or let the model alter a loader, worker path, account, environment or source/evidence check.
 Preserve v1 source/owner/runtime/scope pins, three program slots, twelve cells and twenty-four
-native-start slots. V2 freezes four scopes, 32 model calls including formalization, 128 reserved
+native-start slots. Historical V2 freezes four scopes, 32 model calls including formalization, 128 reserved
 native starts, four searches, three technical errors and 3,600 active loop seconds. Application code
 owns frozen progress thresholds; the first insufficient complete revision stops and retains the best
 predecessor. Technical repair is separate and bounded. Record slots before use; failures consume them.
-V2 continuation reconstructs hash-chained receipts and reconciles completed native children; uncertain
-starts cannot replay. Exact re-delivery cannot replenish any budget. No arbitrary Python or shell tools.
+V2 readers reconstruct hash-chained receipts and validate completed native children without
+executing them. Pending native reservations remain consumed. No historical continuation, uncertain
+start replay or budget replenishment is permitted. No arbitrary Python or shell tools.
 Every behavior/market/interval variant gets exact ownership and lineage; do not move its returns
 to the parent. Revisions see bounded own measured summaries and cannot change frozen market, cost,
 sizing or execution scope. Retain blocked datasets, failed cells, code, partials and all variants.

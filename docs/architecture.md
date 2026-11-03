@@ -5,10 +5,10 @@
 | Component | Responsibility | Code |
 | --- | --- | --- |
 | Headless dispatcher | Help, MT5 connector commands and runtime compatibility inspection | `src/stratosphere/__main__.py` |
-| Retained model transport | Provider-specific text streaming and exact workflow-schema delivery | `src/stratosphere/models/`, `chat.py` |
-| Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/workflow/`, `agents/` (retained during engine extraction) |
+| Compatibility model transport | Explicit one-shot services and exactly pinned MT5 model/risk adapters | `src/stratosphere/models/` |
+| Historical campaign readers | Validate old v1/v2 reports, action chains and consumed reservations without resuming | `src/stratosphere/development/history.py`, `history_contracts.py` |
 | Local library | Canonical identities, duplicate reuse, provenance, lineage, jobs and reports | `src/stratosphere/registry/` |
-| Strategy development | Typed formalization, application code generation, stable-agent research, finite native comparisons/revisions | `src/stratosphere/development/` |
+| Strategy development | Explicit validated definitions, application compilation, single-program native comparisons and sealed evidence | `src/stratosphere/development/` |
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
 | Research/studies | Reviewed plans, finite native starts, variants and retained results | `src/stratosphere/research/`, `studies/` |
 | Source/evidence services | Public discovery, local PDF extraction, cited strategy briefs, immutable snapshots, reviews, registration and report inspection | `src/stratosphere/sources/`, `report_evidence.py`, `report_analysis.py` |
@@ -20,13 +20,15 @@
 Application services are authoritative. External-agent adapters must reuse their validation and
 approval boundaries. Models cannot grant permission or mutate an active strategy. The TUI, its
 widgets/layout/style code and slash-command router have been removed. There is no general
-external-agent/MCP interface yet. Internal research runners and model transports remain until
-their engine operations are extracted; they are not the target crew architecture.
-The replacement research-to-portfolio lifecycle is described in [agent workflow](agent-workflow.md).
+external-agent/MCP interface yet. The internal research crew, chat sessions, automatic definition/
+revision prompts and persistent execution loop are removed. LangGraph is no longer required.
+[Strategy development](strategy-development.md) owns the explicit v3 engine operations and legacy
+readers. [Agent workflow](agent-workflow.md) owns external role responsibilities.
 
-The persistent specialist separates typed decisions (`development/agent.py`), allowlisted tools
-(`tools.py`), deterministic continuation criteria (`progress.py`) and checkpoint execution
-(`runner.py`). Historical v1 services/readers remain the native single-program execution boundary.
+Existing source/report interpretation helpers still accept explicitly supplied model transports.
+The operator-approved MT5 overnight and retired Gold adapters retain their pinned implementation
+and protective-exit behavior. Those compatibility modules are not the general research crew;
+their extraction must preserve exact deployment identities and exit access.
 
 ## State
 

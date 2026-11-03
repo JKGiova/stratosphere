@@ -57,8 +57,11 @@ sealed reports and historical readers remain available in the Python modules. Se
 or external-agent tool server yet. Historical guides that describe slash commands document the
 removed interface; those commands are unavailable.
 
-The internal model transports and research-agent runners remain while engine operations are
-extracted from them. Their presence does not mean the external-agent rebuild is complete.
+The internal research crew, conversations and persistent tool runner are removed. The Python
+[development engine](strategy-development.md) accepts explicit typed definitions without model
+calls. Historical v1/v2 campaigns remain read-only; they cannot resume or acquire fresh budgets.
+One-shot compatibility model helpers and pinned operator-approved MT5 adapters remain separately.
+Their presence does not mean the external-agent rebuild is complete.
 The full historical research-to-MT5 deployment path also remains unfinished. Historical Yahoo
 results or approvals cannot silently become CFD execution authority.
 

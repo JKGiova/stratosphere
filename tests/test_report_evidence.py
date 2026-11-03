@@ -1,6 +1,7 @@
 """Exact retained result inspection, paging, ownership and shared deterministic operations."""
 
 import json
+from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
@@ -8,7 +9,7 @@ from test_bounded_studies import prepare as prepare_study
 from test_bounded_studies import studies as studies
 from test_research_service import service as service
 
-from stratosphere.agents.orchestrator import Orchestrator
+from stratosphere.report_analysis import ReportAnalysisService
 from stratosphere.report_evidence import (
     PAGE_SIZE,
     ReportInspector,
@@ -18,6 +19,18 @@ from stratosphere.report_evidence import (
 from stratosphere.research.contracts import ResearchConfig
 from stratosphere.research.service import ResearchService
 from stratosphere.research.store import ResearchError, ResearchStore
+from stratosphere.studies.service import StudyService
+from stratosphere.studies.store import StudyStore
+
+
+def service_bundle(research, database, *, studies=None):
+    studies = studies or StudyService(StudyStore(research.store.root / "studies"), database)
+    return SimpleNamespace(
+        research=research,
+        studies=studies,
+        database=database,
+        report_analyses=ReportAnalysisService(research, studies, database),
+    )
 
 
 async def online():
@@ -30,12 +43,19 @@ async def completed_research(service, research_source, research_provider, tmp_pa
     from stratosphere.registry.workspace import WorkspaceDatabase
 
     database = WorkspaceDatabase(tmp_path / "registry.sqlite3")
-    bridge = Orchestrator(research_provider, database, service)
+    bridge = service_bundle(service, database)
     job, _, plan = await service.prepare(research_source, ResearchConfig(), research_provider)
-    owner = bridge.register_job(job)["public_id"]
+    record = database.register(
+        plan.specification,
+        plan.draft.name,
+        service.store.read(job, "source.json"),
+        [e.model_dump(mode="json") for e in plan.draft.evidence],
+    )
+    owner = record["public_id"]
     service.approve(job, plan.digest)
     report = await service.run(job)
-    bridge.sync_research()
+    database.attach_job(owner, job, plan.digest, "completed")
+    database.record_report(job, report)
     return bridge, job, owner, report
 
 
@@ -45,7 +65,9 @@ async def completed_study(studies, tmp_path):
     studies.approve(job, protocol.digest)
     report = await studies.run(job)
     research = ResearchService(ResearchStore(tmp_path / "research"), online_check=online)
-    bridge = Orchestrator(None, studies.database, research, studies=studies)
+    bridge = service_bundle(research, studies.database, studies=studies)
+    studies.database.attach_job(protocol.parent_strategy_id, job, protocol.digest, "completed")
+    studies.database.record_report(job, report, kind="study")
     return bridge, job, protocol.parent_strategy_id, report
 
 
@@ -187,33 +209,6 @@ async def test_invalid_and_failed_candidates_remain_visible_without_fake_empty_s
             ReportQuery(job_id=job, section="equity", cell="c2:validation:1"),
             strategy_id=protocol.parent_strategy_id,
         )
-
-
-async def test_shared_inspection_does_not_call_models_or_cross_strategy_histories(completed_study):
-    bridge, job, owner, report = completed_study
-    sibling = report["attempts"][1]["strategy_id"]
-    bridge.select(sibling)
-    bridge.database.append_turn(sibling, "PRIVATE_SIBLING_CONTEXT", "private reply", "fixture")
-    bridge.database.append_turn(owner, "PRIVATE_OWNER_CONTEXT", "private reply", "fixture")
-    before = {identity: bridge.database.history(identity) for identity in (owner, sibling)}
-    q = ReportQuery(job_id=job, section="equity", cell="c0:validation:2")
-    forced = await bridge.inspect_report(q)
-    reply = "".join(
-        [part async for part in bridge.respond(f"Inspect report {job} equity c0:validation:2 1")]
-    )
-    assert reply == forced.markdown() and "PRIVATE_" not in reply
-    assert bridge.responding_strategy == owner and bridge.active_strategy == sibling
-    assert bridge.last_action["page"] == forced
-    assert {identity: bridge.database.history(identity) for identity in (owner, sibling)} == before
-    with pytest.raises(ResearchError, match="different strategy"):
-        await bridge.agent(sibling).inspect_report(q)
-    with bridge.database.connect() as db:
-        operations = db.execute(
-            "SELECT status FROM operations WHERE action='report_evidence' "
-            "AND strategy_id=(SELECT id FROM strategies WHERE public_id=?) ORDER BY created_at",
-            (owner,),
-        ).fetchall()
-    assert [row["status"] for row in operations] == ["completed", "completed"]
 
 
 @pytest.mark.parametrize("artifact", ["report.json", "base.json", "artifact_manifest.json"])

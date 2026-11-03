@@ -247,12 +247,12 @@ def test_unsupported_definition_cannot_generate_executable_code(field, change):
         compile_strategy(StrategySpec.model_validate(data))
 
 
-async def test_handoff_registers_one_stable_owner_and_does_not_repeat_planning(
+async def test_external_definition_registers_one_stable_owner_without_reacquisition(
     intake, database, tmp_path
 ):
     discovery, brief = intake
     calls = []
-    provider = Replies(definition().model_dump(mode="json"))
+    program = Definition.model_validate(definition().model_dump(mode="json"))
     service = StrategyDevelopment(
         tmp_path / "development",
         discovery,
@@ -260,33 +260,25 @@ async def test_handoff_registers_one_stable_owner_and_does_not_repeat_planning(
         runner=runner_factory(calls),
         online_check=online,
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
+    job = await service.prepare(brief["id"], program)
     plan = service.plan(job)
     assert database.strategy(plan["owner"])["agent_id"]
     assert calls == [("fetch", 1)]
-    assert await service.prepare(brief["id"], provider, "fixture") == job
-    assert len(provider.requests) == 1 and len(calls) == 1
-    with pytest.raises(ResearchError, match="exact strategy agent"):
-        await service.run(job, provider, owner="9" * 24)
+    assert await service.prepare(brief["id"], program) == job
+    assert len(calls) == 1
+    with pytest.raises(ResearchError, match="exact frozen strategy"):
+        await service.run(job, owner="9" * 24)
 
 
-async def test_three_program_budget_and_complete_attempt_history(intake, database, tmp_path):
+async def test_one_program_four_target_budget_and_complete_attempt_history(
+    intake, database, tmp_path
+):
     discovery, brief = intake
     calls = []
-    provider = Replies(
+    program = Definition.model_validate(
         definition(
             markets=(market(), market("SOL-USD"), market("ETH-USD"), market("DOGE-USD"))
-        ).model_dump(mode="json"),
-        {
-            "action": "revise",
-            "reason": "Test a slower fast average",
-            "specification": specification(fast=4).model_dump(mode="json"),
-        },
-        {
-            "action": "revise",
-            "reason": "Test another declared variant",
-            "specification": specification(fast=5).model_dump(mode="json"),
-        },
+        ).model_dump(mode="json")
     )
     service = StrategyDevelopment(
         tmp_path / "development",
@@ -295,27 +287,24 @@ async def test_three_program_budget_and_complete_attempt_history(intake, databas
         runner=runner_factory(calls),
         online_check=online,
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    result = await service.run(job, provider, owner=service.plan(job)["owner"])
-    assert len(result["programs"]) == 3 and len(result["results"]) == 12
-    assert result["native_starts"] == 24 and result["selected_cell_id"] is None
+    job = await service.prepare(brief["id"], program)
+    result = await service.run(job, owner=service.plan(job)["owner"])
+    assert len(result["programs"]) == 1 and len(result["results"]) == 4
+    assert result["native_starts"] == 8 and result["selected_cell_id"] is None
     assert result["execution"] == "blocked" and result["holdout"] == "none"
-    assert len(provider.requests) == 3 and len([a for a, _ in calls if a == "fetch"]) == 4
-    assert len({r["strategy_id"] for r in result["results"]}) == 12
+    assert len([a for a, _ in calls if a == "fetch"]) == 4
+    assert len({r["strategy_id"] for r in result["results"]}) == 4
     for row in result["results"]:
         assert (service.cells.directory(row["cell_id"]) / "strategy.py").is_file()
         assert row["conditions"]["prior_20_bar_direction"]
     with pytest.raises(ResearchError, match="consumed"):
-        await service.run(job, provider, owner=result["owner"])
+        await service.run(job, owner=result["owner"])
 
 
 async def test_native_failure_consumes_slot_and_is_not_retried(intake, database, tmp_path):
     discovery, brief = intake
     calls = []
-    provider = Replies(
-        definition().model_dump(mode="json"),
-        {"action": "stop", "reason": "Stop after measured failure", "specification": None},
-    )
+    program = Definition.model_validate(definition().model_dump(mode="json"))
     service = StrategyDevelopment(
         tmp_path / "development",
         discovery,
@@ -323,36 +312,10 @@ async def test_native_failure_consumes_slot_and_is_not_retried(intake, database,
         runner=runner_factory(calls, fail_at=("simulate", 1)),
         online_check=online,
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    report = await service.run(job, provider, owner=service.plan(job)["owner"])
+    job = await service.prepare(brief["id"], program)
+    report = await service.run(job, owner=service.plan(job)["owner"])
     assert report["native_starts"] == 1 and report["results"][0]["state"] == "failed"
     assert calls == [("fetch", 1), ("simulate", 1)]
-
-
-async def test_scope_change_by_revision_is_rejected_and_partial_trials_survive(
-    intake, database, tmp_path
-):
-    discovery, brief = intake
-    calls = []
-    changed = specification().model_dump(mode="json")
-    changed["position_sizing"]["amount"] = "2"
-    provider = Replies(
-        definition().model_dump(mode="json"),
-        {"action": "revise", "reason": "Forbidden sizing change", "specification": changed},
-    )
-    service = StrategyDevelopment(
-        tmp_path / "development",
-        discovery,
-        database,
-        runner=runner_factory(calls),
-        online_check=online,
-    )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    with pytest.raises(ResearchError, match="frozen non-signal"):
-        await service.run(job, provider, owner=service.plan(job)["owner"])
-    assert service.store.state(job) == "failed"
-    assert (service.store.directory(job) / "partial_a.json").is_file()
-    assert len([a for a, _ in calls if a == "simulate"]) == 2
 
 
 @pytest.mark.engine
@@ -360,9 +323,8 @@ async def test_scope_change_by_revision_is_rejected_and_partial_trials_survive(
 async def test_actual_compiled_code_drives_native_backtest(intake, database, tmp_path, algorithm):
     discovery, brief = intake
     calls = []
-    provider = Replies(
-        definition(specification(algorithm=algorithm)).model_dump(mode="json"),
-        {"action": "stop", "reason": "Retain measured baseline", "specification": None},
+    program = Definition.model_validate(
+        definition(specification(algorithm=algorithm)).model_dump(mode="json")
     )
     service = StrategyDevelopment(
         tmp_path / "development",
@@ -371,8 +333,8 @@ async def test_actual_compiled_code_drives_native_backtest(intake, database, tmp
         runner=runner_factory(calls, native=True),
         online_check=online,
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    report = await service.run(job, provider, owner=service.plan(job)["owner"])
+    job = await service.prepare(brief["id"], program)
+    report = await service.run(job, owner=service.plan(job)["owner"])
     cell = report["results"][0]
     assert cell["state"] == "completed", cell
     assert report["native_starts"] == 2
@@ -399,7 +361,7 @@ async def test_dataset_tamper_blocks_every_native_start(intake, database, tmp_pa
         online_check=online,
     )
     job = await service.prepare(
-        brief["id"], Replies(definition().model_dump(mode="json")), "fixture"
+        brief["id"], Definition.model_validate(definition().model_dump(mode="json"))
     )
     pin = service.plan(job)["datasets"][0]
     path = service.datasets.directory(pin["id"]) / "returned_frame.json"
@@ -407,7 +369,7 @@ async def test_dataset_tamper_blocks_every_native_start(intake, database, tmp_pa
     raw["rows"][0]["close"] = "100.5"
     path.write_text(json.dumps(raw))
     with pytest.raises(ResearchError, match="dataset changed"):
-        await service.run(job, Replies(), owner=service.store.read(job, "plan.json")["owner"])
+        await service.run(job, owner=service.store.read(job, "plan.json")["owner"])
     assert calls == [("fetch", 1)]
 
 
@@ -427,10 +389,10 @@ async def test_cancellation_retains_consumed_cell_without_resume(intake, databas
         tmp_path / "development", discovery, database, runner=blocked, online_check=online
     )
     job = await service.prepare(
-        brief["id"], Replies(definition().model_dump(mode="json")), "fixture"
+        brief["id"], Definition.model_validate(definition().model_dump(mode="json"))
     )
     owner = service.plan(job)["owner"]
-    task = asyncio.create_task(service.run(job, Replies(), owner=owner))
+    task = asyncio.create_task(service.run(job, owner=owner))
     await entered.wait()
     task.cancel()
     with pytest.raises(asyncio.CancelledError):
@@ -439,7 +401,7 @@ async def test_cancellation_retains_consumed_cell_without_resume(intake, databas
     cell_id = service.store.read(job, "candidate_a.json")["cell_id"]
     assert service.cells.read(cell_id, "start_base.json")["consumed"] is True
     with pytest.raises(ResearchError, match="consumed"):
-        await service.run(job, Replies(), owner=owner)
+        await service.run(job, owner=owner)
 
 
 async def test_all_blocked_markets_are_reported_without_native_or_revision_calls(
@@ -454,23 +416,20 @@ async def test_all_blocked_markets_are_reported_without_native_or_revision_calls
         result["rows"][0]["dividends"] = "1"
         return result
 
-    provider = Replies(definition().model_dump(mode="json"))
+    program = Definition.model_validate(definition().model_dump(mode="json"))
     service = StrategyDevelopment(
         tmp_path / "development", discovery, database, runner=bad, online_check=online
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    report = await service.run(job, provider, owner=service.plan(job)["owner"])
+    job = await service.prepare(brief["id"], program)
+    report = await service.run(job, owner=service.plan(job)["owner"])
     assert report["datasets"][0]["state"] == "blocked" and not report["results"]
-    assert report["native_starts"] == 0 and len(provider.requests) == 1 and calls == ["fetch"]
+    assert report["native_starts"] == 0 and calls == ["fetch"]
 
 
 async def test_generated_code_tamper_blocks_report_reader(intake, database, tmp_path):
     discovery, brief = intake
     calls = []
-    provider = Replies(
-        definition().model_dump(mode="json"),
-        {"action": "stop", "reason": "Done", "specification": None},
-    )
+    program = Definition.model_validate(definition().model_dump(mode="json"))
     service = StrategyDevelopment(
         tmp_path / "development",
         discovery,
@@ -478,8 +437,8 @@ async def test_generated_code_tamper_blocks_report_reader(intake, database, tmp_
         runner=runner_factory(calls),
         online_check=online,
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    result = await service.run(job, provider, owner=service.plan(job)["owner"])
+    job = await service.prepare(brief["id"], program)
+    result = await service.run(job, owner=service.plan(job)["owner"])
     path = service.cells.directory(result["results"][0]["cell_id"]) / "strategy.py"
     path.write_text("raise RuntimeError('Never import modified code')")
     with pytest.raises(ResearchError, match="code/input changed"):
@@ -514,76 +473,24 @@ async def test_actual_equity_program_and_model_free_subprocess(intake, database,
             return raw
         return await worker(directory, action, name, multiplier=multiplier)
 
-    provider = Replies(
-        definition(spec, markets=(target,)).model_dump(mode="json"),
-        {"action": "stop", "reason": "Retain actual equity evidence", "specification": None},
-    )
+    program = Definition.model_validate(definition(spec, markets=(target,)).model_dump(mode="json"))
     service = StrategyDevelopment(
         tmp_path / "development", discovery, database, runner=native, online_check=online
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    result = await service.run(job, provider, owner=service.plan(job)["owner"])
+    job = await service.prepare(brief["id"], program)
+    result = await service.run(job, owner=service.plan(job)["owner"])
     row = result["results"][0]
     assert row["state"] == "completed", row
     assert row["market"]["asset_class"] == "equity"
     assert row["metrics"]["base"]["filled_orders"] > 0
     assert (service.store.directory(job) / "report.md").is_file()
-    assert "code_path" not in provider.requests[-1][-1]["content"]
-
-
-async def test_orchestrator_hands_to_exact_agent_and_reuses_completed_campaign(
-    intake, database, tmp_path
-):
-    from stratosphere.research.service import ResearchService
-    from stratosphere.research.store import ResearchStore
-    from stratosphere.workflow.runtime import Orchestrator
-
-    discovery, brief = intake
-    calls = []
-    provider = Replies(
-        definition(specification(algorithm="rsi")).model_dump(mode="json"),
-        *[
-            {"tool": tool, "reason": "Authored decision"}
-            for tool in ("test_program", "backtest", "finish")
-        ],
-    )
-    service = StrategyDevelopment(
-        tmp_path / "development",
-        discovery,
-        database,
-        runner=runner_factory(calls),
-        online_check=online,
-    )
-    bridge = Orchestrator(
-        provider,
-        database,
-        ResearchService(ResearchStore(tmp_path / "research"), online_check=online),
-        sources=discovery.sources,
-        discovery=discovery,
-        development=service,
-    )
-    output = "".join([delta async for delta in bridge.respond("/develop " + brief["id"])])
-    job = bridge.last_action["id"]
-    owner = service.plan(job)["owner"]
-    agent = bridge.agent(owner)
-    assert bridge.responding_strategy == owner and bridge.active_strategy == owner
-    assert "Strategy-agent development" in output and "compiling and testing" in output
-    assert bridge.last_action["action"] == "development_completed"
-    before = list(calls)
-    reused = "".join([delta async for delta in bridge.respond("/develop " + brief["id"])])
-    assert "no native starts repeated" in reused and calls == before
-    assert bridge.agent(owner) is agent and len(provider.requests) == 4
-    reopened = "".join([delta async for delta in bridge.respond("/development-show " + job)])
-    assert "Compiled code:" in reopened and calls == before
+    assert not list(service.store.directory(job).glob("model_*.json"))
 
 
 async def test_owner_development_evidence_excludes_unrelated_strategy(intake, database, tmp_path):
     discovery, brief = intake
     calls = []
-    provider = Replies(
-        definition().model_dump(mode="json"),
-        {"action": "stop", "reason": "Done", "specification": None},
-    )
+    program = Definition.model_validate(definition().model_dump(mode="json"))
     service = StrategyDevelopment(
         tmp_path / "development",
         discovery,
@@ -591,42 +498,13 @@ async def test_owner_development_evidence_excludes_unrelated_strategy(intake, da
         runner=runner_factory(calls),
         online_check=online,
     )
-    job = await service.prepare(brief["id"], provider, "fixture")
-    report = await service.run(job, provider, owner=service.plan(job)["owner"])
+    job = await service.prepare(brief["id"], program)
+    report = await service.run(job, owner=service.plan(job)["owner"])
     unrelated = database.register(specification(fast=6), "Private unrelated strategy", {})
     assert service.evidence_for(unrelated["public_id"]) == []
     own = service.evidence_for(report["owner"])
     assert own and own[0]["intake_id"] == brief["id"]
     assert "Private unrelated strategy" not in json.dumps(own)
-
-
-async def test_existing_baseline_is_pinned_before_new_agent_research(intake, database, tmp_path):
-    discovery, brief = intake
-    calls = []
-    spec = specification(algorithm="rsi")
-    owner = database.register(spec, "Existing RSI", {})["public_id"]
-    provider = Replies(definition(spec).model_dump(mode="json"))
-    service = StrategyDevelopment(
-        tmp_path / "development",
-        discovery,
-        database,
-        runner=runner_factory(calls),
-        online_check=online,
-    )
-    job = await service.prepare(
-        brief["id"], provider, "fixture", parent=owner, focus="Compare target assets"
-    )
-    assert service.plan(job)["owner"] == owner
-    payload = json.loads(provider.requests[0][-1]["content"])
-    assert payload["existing_strategy"]["public_id"] == owner
-    with pytest.raises(ResearchError, match="baseline changed"):
-        await service.prepare(
-            brief["id"],
-            Replies(definition().model_dump(mode="json")),
-            "fixture",
-            parent=owner,
-            focus="Another explicit study",
-        )
 
 
 def test_retained_hourly_scope_does_not_expire_with_provider_download_window():
@@ -661,7 +539,12 @@ async def test_symbol_summary_prefers_filtered_candidate_over_high_score_with_on
 
     report = service.build_report(
         "a" * 32,
-        {"owner": "1" * 24, "datasets": [], "definition": {"markets": []}},
+        {
+            "schema_version": "strategy-development-plan/3",
+            "owner": "1" * 24,
+            "datasets": [],
+            "definition": {"markets": []},
+        },
         [],
         [row("a" * 32, 20, 1), row("b" * 32, 5, 10)],
         4,
@@ -671,22 +554,60 @@ async def test_symbol_summary_prefers_filtered_candidate_over_high_score_with_on
     assert report["market_summary"][0]["passes_research_filters"] is True
 
 
-async def test_invalid_refinement_preserves_prior_trials_and_reports_consumption(
-    tmp_path, intake, database
+async def test_external_variants_have_explicit_lineage_and_no_internal_model_calls(
+    intake, database, tmp_path, monkeypatch
 ):
+    async def forbidden(*args, **kwargs):
+        raise AssertionError("The engine attempted model inference")
+
+    monkeypatch.setattr("stratosphere.models.structured.structured_response", forbidden)
     discovery, brief = intake
     calls = []
     service = StrategyDevelopment(
         tmp_path / "development", discovery, database, runner=runner_factory(calls)
     )
-    provider = Replies(definition().model_dump(mode="json"), {"invalid": "revision"})
-    identity = await service.prepare(brief["id"], provider, "fixture")
-    with pytest.raises(ResearchError, match="earlier trials and consumed slots remain retained"):
-        await service.run(identity, provider, owner=service.plan(identity)["owner"])
-    assert service.store.state(identity) == "failed"
-    assert [action for action, _ in calls] == ["fetch", "simulate", "simulate"]
-    assert service.store.read(identity, "model_revision_a.json")["consumed"] is True
-    assert "completed" in service.show(identity)
-    with pytest.raises(ResearchError, match="no replay"):
-        await service.prepare(brief["id"], provider, "fixture")
-    assert len(calls) == 3
+    first = await service.prepare(brief["id"], definition())
+    owner = service.plan(first)["owner"]
+    await service.run(first, owner=owner)
+    variant = await service.prepare(brief["id"], definition(specification(fast=4)), parent=owner)
+    variant_owner = service.plan(variant)["owner"]
+    assert variant_owner != owner
+    assert owner in database.strategy(variant_owner)["parent_public_ids"]
+    plan = service.plan(variant)
+    assert plan["schema_version"] == "strategy-development-plan/3"
+    assert plan["limits"]["max_model_calls"] == 0
+    assert plan["limits"]["max_native_starts"] == 8
+    assert not list(service.store.root.glob("*/model_*.json"))
+
+
+async def test_external_budget_tampering_cannot_start_native_work(intake, database, tmp_path):
+    from stratosphere.workflow.discovery import digest
+
+    discovery, brief = intake
+    calls = []
+    service = StrategyDevelopment(
+        tmp_path / "development", discovery, database, runner=runner_factory(calls)
+    )
+    identity = await service.prepare(brief["id"], definition())
+    plan = service.plan(identity)
+    owner = plan["owner"]
+    plan["limits"]["max_native_starts"] = 1000
+    directory = service.store.directory(identity)
+    (directory / "plan.json").write_text(json.dumps(plan))
+    (directory / "plan_seal.json").write_text(json.dumps({"sha256": digest(plan)}))
+    with pytest.raises(ResearchError, match="budget/selection"):
+        await service.run(identity, owner=owner)
+    assert calls == [("fetch", 1)]
+
+
+async def test_wrong_source_rule_cannot_register_or_acquire_data(intake, database, tmp_path):
+    discovery, brief = intake
+    calls = []
+    program = definition().model_dump(mode="json")
+    program["rule_indices"]["entry"] = 1
+    service = StrategyDevelopment(
+        tmp_path / "development", discovery, database, runner=runner_factory(calls)
+    )
+    with pytest.raises(ResearchError, match="invalid intake rule"):
+        await service.prepare(brief["id"], program)
+    assert calls == [] and database.catalog() == []

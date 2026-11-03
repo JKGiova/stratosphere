@@ -1,46 +1,15 @@
-# Strategy research tools and public-reader fallbacks
+# Research inspection and public readers
 
-Interface status: the TUI and slash-command router are removed. Slash-command examples below
-are historical; retained Python contracts remain during engine extraction. See
-[headless usage](usage.md) for current entry points and pending external-agent integration.
+The internal specialist tool loop and its model action executor are removed. External frameworks
+must call explicit engine operations through a future adapter; no generic MCP/tool server is
+implemented. The [development engine](strategy-development.md) owns program validation, frozen
+native execution and historical campaign readers.
 
-The orchestrator discovers sources and clarifies a strategy. Its strategy specialist develops a
-validated signal program through the persistent v2 loop. These tools expose application operations,
-not a general terminal. They cannot inspect accounts, retrieve credentials, execute acquired Python,
-change frozen research scopes, approve a strategy or place MT5 orders.
-
-## Specialist tools
-
-| Tool | Behavior |
-| --- | --- |
-| `inspect_brief` | Read this campaign's sealed intake and citations |
-| `research_capabilities` | Report installed public readers and their fallback order |
-| `search_sources` | Search public strategy terms under the frozen search allowance |
-| `read_source` | Acquire a retained search-result index; return bounded source passages, including PDF page text |
-| `inspect_program` | Read the current validated definition and application-generated Python |
-| `inspect_data` | Inspect frozen target coverage, gaps, currency and snapshot identities |
-| `propose_program` | Propose a complete signal revision while preserving nonsignal behavior |
-| `tune_indicator` | Change one existing indicator's period; application increases required warmup |
-| `test_program` | Compile and run structural/synthetic signal checks |
-| `backtest` | Reserve and run native base/stress experiments on the frozen datasets |
-| `compare_results` | Compare this campaign's measured summaries |
-| `analyze_results` | Inspect aggregate return, drawdown, costs, turnover, exposure and trade distribution |
-| `analyze_conditions` | Inspect same-sample year and prior-direction attribution |
-| `build_report` | Preview the retained best case and evidence; grants no approval |
-| `finish` | Ask the application to seal the final report |
-
-The available-tool schema changes with application state. A structural test must precede a native
-backtest; economic revision or completion requires evaluation. Technical repair remains separately
-bounded. Indicator edits pass the same validation, duplicate, exact variant-owner and progress gates
-as full proposals. All tool turns consume the existing model/time ceilings. Analysis exposes the
-latest eight result rows with an explicit omitted count; full attempts remain in the sealed report.
-Raw fills/equity curves are excluded from these analysis observations. Search response evidence stays
-in receipts, while model observations omit raw search payloads.
-
-Market/asset suitability is measured only across the preparation's four frozen target scopes.
-These tools do not expand that universe mid-loop or establish a global optimum. See
-[strategy development](strategy-development.md) for supported language, budgets, stopping and
-checkpoint rules.
+`development/research_tools.py` retains deterministic program/data inspection, typed indicator
+edits, bounded result summaries and report preview helpers. They do not start an agent, model,
+backtest, account read or order. An edit is a proposal that needs a new validated job and exact
+variant identity; it cannot mutate a frozen running program. Historical action contracts exist only
+to validate retained v2 receipts. They cannot be dispatched or resumed.
 
 ## Public source routing
 

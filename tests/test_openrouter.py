@@ -4,7 +4,6 @@ import httpx
 import pytest
 from pydantic import SecretStr, ValidationError
 
-from stratosphere.chat import ChatSession
 from stratosphere.models import create_provider
 from stratosphere.models.nim import NimChat
 from stratosphere.models.openrouter import OpenRouterChat
@@ -42,9 +41,8 @@ async def test_exact_free_model_request_and_openrouter_usage_frame():
         requests.append(request)
         return httpx.Response(200, headers={"content-type": "text/event-stream"}, stream=Stream())
 
-    session = ChatSession(OpenRouterChat(SETTINGS, transport=httpx.MockTransport(handler)))
-    assert [part async for part in session.respond("Hi")] == ["OK"]
-    assert len(session.history) == 2
+    provider = OpenRouterChat(SETTINGS, transport=httpx.MockTransport(handler))
+    assert [part async for part in provider.stream([{"role": "user", "content": "Hi"}])] == ["OK"]
     assert len(requests) == 1
     request = requests[0]
     assert str(request.url) == "https://openrouter.ai/api/v1/chat/completions"
@@ -59,18 +57,18 @@ async def test_exact_free_model_request_and_openrouter_usage_frame():
 
 @pytest.mark.parametrize("status", [401, 402, 404, 429, 503])
 @pytest.mark.asyncio
-async def test_provider_failure_never_falls_back_or_commits_history(status):
+async def test_provider_failure_never_falls_back(status):
     requests = []
 
     def handler(request):
         requests.append(request)
         return httpx.Response(status, json={"error": "or-test-key"})
 
-    session = ChatSession(OpenRouterChat(SETTINGS, transport=httpx.MockTransport(handler)))
+    provider = OpenRouterChat(SETTINGS, transport=httpx.MockTransport(handler))
     with pytest.raises(ModelError) as error:
-        _ = [part async for part in session.respond("Hi")]
+        _ = [part async for part in provider.stream([{"role": "user", "content": "Hi"}])]
     assert "or-test-key" not in str(error.value)
-    assert session.history == [] and len(requests) == 1
+    assert len(requests) == 1
 
 
 @pytest.mark.asyncio
@@ -110,11 +108,11 @@ async def test_overload_inside_http_200_stream_is_reported_safely_without_retry(
             content=('data: {"choices":[],"error":{"code":503,"message":"or-test-key"}}\n\n'),
         )
 
-    session = ChatSession(OpenRouterChat(SETTINGS, transport=httpx.MockTransport(handler)))
+    provider = OpenRouterChat(SETTINGS, transport=httpx.MockTransport(handler))
     with pytest.raises(ModelError, match="overloaded") as error:
-        _ = [part async for part in session.respond("Hi")]
+        _ = [part async for part in provider.stream([{"role": "user", "content": "Hi"}])]
     assert "or-test-key" not in str(error.value)
-    assert session.history == [] and len(requests) == 1
+    assert len(requests) == 1
 
 
 def test_provider_credentials_and_free_only_selection_are_explicit():

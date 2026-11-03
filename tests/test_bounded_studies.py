@@ -3,7 +3,6 @@
 import asyncio
 import hashlib
 import io
-import json
 import zipfile
 from decimal import Decimal
 
@@ -378,71 +377,6 @@ def test_native_warmup_only_matches_independent_batch_sma_and_resets_flat(
     )
     mutated = run_simulation(research_plan, changed, trade_start_ns=start)
     assert result["equity_curve"][:50] == mutated["equity_curve"][:50]
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "case",
-    ["valid", "single", "duplicate", "unsupported", "no_baseline", "empty_hypothesis", "sql"],
-)
-async def test_specialist_drafts_bounded_proposal_without_approval_or_download(
-    studies, tmp_path, research_provider, research_source, case
-):
-    from stratosphere.agents.orchestrator import ROUTER_PROMPT, Orchestrator
-    from stratosphere.models.streaming import ModelError
-    from stratosphere.research.contracts import ResearchConfig
-    from stratosphere.research.service import ResearchService
-    from stratosphere.research.store import ResearchStore
-
-    proposal = {
-        "hypothesis": "Slower pairs reduce cost sensitivity",
-        "month": "2025-01",
-        "candidates": [{"fast": 3, "slow": 8}, {"fast": 4, "slow": 10}],
-    }
-    if case == "single":
-        proposal["candidates"] = proposal["candidates"][:1]
-    elif case == "duplicate":
-        proposal["candidates"] = [proposal["candidates"][0]] * 2
-    elif case == "unsupported":
-        proposal["candidates"][1] = {"fast": 100, "slow": 5}
-    elif case == "no_baseline":
-        proposal["candidates"] = [{"fast": 5, "slow": 12}, {"fast": 6, "slow": 15}]
-    elif case == "empty_hypothesis":
-        proposal["hypothesis"] = "  "
-    elif case == "sql":
-        proposal["sql"] = "SELECT private_turns FROM unrelated_strategy"
-
-    class Provider:
-        requests = []
-
-        async def stream(self, messages):
-            self.requests.append(messages)
-            yield json.dumps(
-                {"action": "study"} if messages[0]["content"] == ROUTER_PROMPT else proposal
-            )
-
-    provider = Provider()
-    research = ResearchService(ResearchStore(tmp_path / "jobs"), online_check=studies.online_check)
-    job, _, _ = await research.prepare(research_source, ResearchConfig(), research_provider)
-    bridge = Orchestrator(provider, studies.database, research, studies=studies)
-    identity = bridge.register_job(job)
-    bridge.select(identity["public_id"])
-    if case == "valid":
-        _ = [s async for s in bridge.respond("Propose a bounded comparison")]
-        assert bridge.last_action == {
-            "action": "study",
-            "job_id": job,
-            "suggestion": proposal | {"max_simulations": 10},
-        }
-        assert (
-            json.loads(studies.database.history(identity["public_id"])[-1]["content"]) == proposal
-        )
-    else:
-        with pytest.raises(ModelError):
-            _ = [s async for s in bridge.respond("Propose a bounded comparison")]
-        assert not bridge.last_action and not studies.database.history(identity["public_id"])
-    assert len(provider.requests) == 2
-    assert not studies.store.jobs() and not any(c[0] == "fetch" for c in studies.test_calls)
 
 
 @pytest.mark.asyncio

@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 PINNED = {
-    "langgraph": "1.2.15",
     "pydantic": "2.14.1",
     "httpx": "0.28.1",
     "nautilus_trader": "1.231.0",

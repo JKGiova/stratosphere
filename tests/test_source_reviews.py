@@ -1,6 +1,5 @@
 """Specialist-owned source interpretations retain evidence, never execution authority."""
 
-import asyncio
 import json
 import sqlite3
 
@@ -8,7 +7,6 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.models.streaming import ModelError
 from stratosphere.phase0.contracts import StrategySpec
 from stratosphere.registry.workspace import RegistryError, WorkspaceDatabase
@@ -154,37 +152,6 @@ async def test_metadata_and_inaccessible_sources_do_not_invoke_a_model(reviews, 
     assert value.questions and not provider.requests and len(db.source_reviews()) == 1
 
 
-async def test_cancel_keeps_attempt_and_operation_without_partial_history(reviews):
-    db, first, _, sources, snapshot, service, research = reviews
-    started = asyncio.Event()
-
-    class Waiting(ReviewProvider):
-        async def stream_json(self, messages, schema):
-            started.set()
-            await asyncio.Future()
-            yield ""
-
-    orchestrator = Orchestrator(Waiting(), db, research, sources=sources)
-    agent = orchestrator.agent(first["public_id"])
-    task = asyncio.create_task(agent.review_source(snapshot.id, "Review this source."))
-    try:
-        await asyncio.wait_for(started.wait(), 5)
-    except TimeoutError:
-        if task.done():
-            await task  # Surface a pre-provider failure instead of waiting indefinitely.
-        else:
-            task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
-        raise
-    task.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await task
-    assert not db.history(first["public_id"]) and not db.source_reviews()
-    assert service.store.state(service.store.jobs()[0]) == "canceled"
-    with db.connect() as sql:
-        assert sql.execute("SELECT status FROM operations").fetchone()[0] == "canceled"
-
-
 async def test_changed_source_during_model_request_cannot_publish(reviews):
     db, first, _, sources, snapshot, service, _ = reviews
 
@@ -212,78 +179,6 @@ async def test_review_file_corruption_blocks_inspection(reviews, name):
     path.write_text(json.dumps(content))
     with pytest.raises((ResearchError, ValidationError, ValueError)):
         await service.open(value.id)
-
-
-async def test_source_reviews_are_private_completed_agent_context(reviews):
-    db, first, second, sources, snapshot, _, research = reviews
-    provider = ReviewProvider()
-    orchestrator = Orchestrator(provider, db, research, sources=sources)
-    first_agent = orchestrator.agent(first["public_id"])
-    second_agent = orchestrator.agent(second["public_id"])
-    value = await first_agent.review_source(snapshot.id, "Review my source.")
-    assert len(db.history(first["public_id"])) == 2 and db.history(second["public_id"]) == []
-    _ = "".join([p async for p in second_agent.respond("Analyze my own evidence.")])
-    assert value.id not in json.dumps(provider.requests[-1])
-    _ = "".join([p async for p in first_agent.respond("Analyze my own evidence.")])
-    assert value.id in json.dumps(provider.requests[-1])
-    assert "not_verified" in json.dumps(provider.requests[-1])
-    restored = Orchestrator(provider, WorkspaceDatabase(db.path), research, sources=sources)
-    assert restored.agent(first["public_id"]).session.history == db.history(first["public_id"])
-
-
-@pytest.mark.parametrize("reference", ["source_id", "url", "markdown_url"])
-async def test_natural_review_uses_the_same_specialist_operation(reviews, reference):
-    db, first, _, sources, snapshot, _, research = reviews
-    url = "https://www.instagram.com/p/fixture/"
-    source = snapshot.id if reference == "source_id" else url
-    request = "Review " + (f"[this]({url})" if reference == "markdown_url" else source)
-    provider = ReviewProvider(
-        route={"action": "source_review", "source": source, "strategy_id": None, "target": None}
-    )
-    orchestrator = Orchestrator(provider, db, research, sources=sources)
-    orchestrator.select(first["public_id"])
-    text = "".join([p async for p in orchestrator.respond(request)])
-    assert (
-        "Execution remains blocked" in text
-        and orchestrator.responding_strategy == first["public_id"]
-    )
-    assert orchestrator.last_action["action"] == "source_review" and len(db.source_reviews()) == 1
-    assert not db.jobs(first["public_id"]) and len(db.catalog()) == 2
-
-
-@pytest.mark.parametrize(
-    "source", ["f" * 32, "https://www.instagram.com/p/other/", "https://github.com/owner/repo"]
-)
-async def test_router_cannot_invent_a_snapshot_or_rewrite_a_source_url(reviews, source):
-    db, first, _, sources, snapshot, _, research = reviews
-    provider = ReviewProvider(
-        route={"action": "source_review", "source": source, "strategy_id": None, "target": None}
-    )
-    orchestrator = Orchestrator(provider, db, research, sources=sources)
-    orchestrator.select(first["public_id"])
-    with pytest.raises(ModelError):
-        _ = "".join(
-            [
-                p
-                async for p in orchestrator.respond(
-                    "Check the evidence in "
-                    + snapshot.id
-                    + " https://github.com/owner/repo/blob/main/strategy.py"
-                )
-            ]
-        )
-    assert not db.source_reviews() and not orchestrator.source_reviews.store.jobs()
-
-
-async def test_plain_url_intake_works_before_any_strategy_and_never_registers(reviews):
-    db, _, _, sources, _, _, research = reviews
-    # Separate empty registry: no routing or interpretation call is needed for an exact URL.
-    empty = WorkspaceDatabase(db.path.parent / "empty.sqlite3")
-    provider = ReviewProvider()
-    orchestrator = Orchestrator(provider, empty, research, sources=sources)
-    reply = "".join([p async for p in orchestrator.respond("https://www.instagram.com/p/fixture/")])
-    assert "requires_credentials" in reply and not provider.requests and not empty.catalog()
-    assert orchestrator.last_action["action"] == "source"
 
 
 async def test_credential_bearing_model_interpretation_is_not_saved(reviews):
@@ -325,94 +220,6 @@ async def test_source_review_open_is_online_and_symlink_safe(reviews, tmp_path):
     path.symlink_to(moved)
     with pytest.raises(ResearchError, match="integrity"):
         await service.open(value.id)
-
-
-@pytest.mark.parametrize(
-    "prefix",
-    [
-        "Review source",
-        "Please review snapshot",
-        "Can you inspect source",
-        "Analyze retained source",
-    ],
-)
-async def test_explicit_source_review_never_routes_to_applicability(reviews, prefix):
-    db, first, _, sources, snapshot, _, research = reviews
-    provider = ReviewProvider(route={"action": "assess"})
-    bridge = Orchestrator(provider, db, research, sources=sources)
-    bridge.select(first["public_id"])
-    reply = "".join([p async for p in bridge.respond(prefix + " " + snapshot.id)])
-    assert bridge.last_action["action"] == "source_review" and "Source review" in reply
-    assert len(provider.requests) == 1 and not db.assessments()
-
-
-@pytest.mark.parametrize(
-    "format_string", ["Review [source]({url})", "Inspect source `{url}`", "Analyze source <{url}>"]
-)
-async def test_source_url_wrappers_do_not_rewrite_or_create_duplicate_references(
-    reviews, format_string
-):
-    db, first, _, sources, _, _, research = reviews
-    bridge = Orchestrator(ReviewProvider(), db, research, sources=sources)
-    bridge.select(first["public_id"])
-    url = "https://github.com/owner/repo/blob/main/" + "a" * 32 + ".py"
-    route = await bridge.route(format_string.format(url=url))
-    assert route.action == "source_review" and route.source == url and route.strategy_id is None
-
-
-async def test_source_review_targets_must_be_explicit_and_unambiguous(reviews):
-    db, first, second, sources, snapshot, _, research = reviews
-    bridge = Orchestrator(ReviewProvider(), db, research, sources=sources)
-    bridge.select(first["public_id"])
-    route = await bridge.route("Review source " + snapshot.id + " for " + second["public_id"])
-    assert route.strategy_id == second["public_id"]
-    with pytest.raises(ModelError, match="one exact strategy"):
-        await bridge.route(
-            "Review source " + snapshot.id + " for " + first["public_id"] + " and Second fixture"
-        )
-    with pytest.raises(ModelError, match="one exact strategy"):
-        await bridge.route(
-            "Review source "
-            + snapshot.id
-            + " for "
-            + first["public_id"]
-            + " and "
-            + second["public_id"]
-        )
-    with pytest.raises(ModelError, match="one source"):
-        await bridge.route("Review sources " + snapshot.id + " and " + "f" * 32)
-
-
-@pytest.mark.parametrize(
-    "text,calls",
-    [
-        ("Do not review source", 0),
-        ("Please don't inspect source", 0),
-        ("Never acquire source", 0),
-        ("Review research job", 1),
-    ],
-)
-async def test_source_parser_does_not_override_negation_or_other_id_namespaces(
-    reviews, text, calls
-):
-    db, first, _, sources, snapshot, _, research = reviews
-    provider = ReviewProvider(
-        route={"action": "source_review", "source": snapshot.id}
-        if calls == 0
-        else {"action": "chat"}
-    )
-    bridge = Orchestrator(provider, db, research, sources=sources)
-    bridge.select(first["public_id"])
-    route = await bridge.route(text + " " + snapshot.id)
-    assert route.action == "chat" and len(provider.requests) == calls
-
-
-async def test_mixed_case_https_source_is_acquired_as_a_url(reviews):
-    db, _, _, sources, _, _, research = reviews
-    provider = ReviewProvider()
-    bridge = Orchestrator(provider, db, research, sources=sources)
-    reply = "".join([p async for p in bridge.respond("HTTPS://WWW.INSTAGRAM.COM/p/fixture/")])
-    assert "requires_credentials" in reply and not provider.requests
 
 
 async def test_empty_model_output_and_questions_only_do_not_publish_a_grounded_review(reviews):

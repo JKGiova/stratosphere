@@ -5,15 +5,16 @@ These are focused reference guides, not separate roadmaps.
 
 [Headless usage](usage.md) owns current entry points. The TUI and slash-command router are removed.
 Guides retaining slash-command examples describe historical interfaces and internal contracts;
-those examples are unavailable. Internal agent extraction and external-agent/MCP tools are pending.
+those examples are unavailable. Internal research runners are removed; historical checkpoints are
+read-only. External-agent/MCP tools and remaining compatibility-adapter separation are pending.
 
 | Guide | Purpose |
 | --- | --- |
 | [Usage](usage.md) | Installation, headless entry points and rebuild limits |
 | [Architecture](architecture.md) | Components, state ownership and code locations |
-| [Strategy development](strategy-development.md) | Specialist handoff, compiled code, bounded revisions and market/interval comparison |
-| [Research tools](research-tools.md) | Specialist tool contract, optional public readers, fallback and verification |
-| [Agent workflow](agent-workflow.md) | Automatic research, final approval, paper portfolios, commands and execution limits |
+| [Strategy development](strategy-development.md) | Explicit program jobs, compiled code, finite backtests and historical v1/v2 readers |
+| [Research tools](research-tools.md) | Deterministic inspection helpers, optional public readers and verification |
+| [Agent workflow](agent-workflow.md) | External-agent responsibilities, engine operations and retained approval contracts |
 | [Yahoo backtesting](yahoo-backtesting.md) | Historical Yahoo setup, supported models and data limitations |
 | [Research](research.md) | Supported strategy, approval, studies and report evidence |
 | [Sources](sources.md) | Actual intake capabilities, provenance and conversion limits |

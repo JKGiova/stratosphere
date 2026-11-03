@@ -1,6 +1,5 @@
 """Dated context, exact-variant evidence attribution and conservative local candidates."""
 
-import asyncio
 import json
 from datetime import UTC, datetime, timedelta
 
@@ -167,71 +166,6 @@ async def test_corrupted_report_cannot_become_applicability_evidence(studies, tm
     with pytest.raises(ResearchError, match="integrity"):
         await service.assess(studies.test_parent["public_id"], target())
     assert not studies.database.assessments()
-
-
-async def test_bridge_delegates_every_candidate_to_own_agent_without_profit_ranking(
-    studies, tmp_path
-):
-    from stratosphere.agents.orchestrator import Orchestrator
-
-    await completed_study(studies)
-    service = assessments(studies, tmp_path)
-    bridge = Orchestrator(
-        None, studies.database, service.research, studies=studies, assessments=service
-    )
-    records = await bridge.recommend(target())
-    assert [r["assessment"]["strategy_id"] for r in records] == sorted(bridge.agents)
-    assert len(records) == len(studies.database.catalog()) == 2
-    with studies.database.connect() as db:
-        assert (
-            db.execute(
-                "SELECT count(*) FROM operations WHERE action='applicability' "
-                "AND status='completed'"
-            ).fetchone()[0]
-            == 2
-        )
-
-
-async def test_canceling_agent_context_lookup_keeps_no_partial_assessment(studies, tmp_path):
-    from stratosphere.agents.orchestrator import Orchestrator
-
-    entered = asyncio.Event()
-
-    async def waiting(request):
-        entered.set()
-        await asyncio.Event().wait()
-
-    service = assessments(studies, tmp_path, context_provider=waiting)
-    bridge = Orchestrator(
-        None, studies.database, service.research, studies=studies, assessments=service
-    )
-    specialist = bridge.agent(studies.test_parent["public_id"])
-    task = asyncio.create_task(specialist.assess(target()))
-    await asyncio.wait_for(entered.wait(), 2)
-    task.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await task
-    assert not studies.database.assessments()
-    with studies.database.connect() as db:
-        assert (
-            db.execute("SELECT status FROM operations WHERE action='applicability'").fetchone()[0]
-            == "canceled"
-        )
-
-
-async def test_an_empty_catalog_recommendation_is_still_online_only(studies, tmp_path):
-    from stratosphere.agents.orchestrator import Orchestrator
-
-    empty = WorkspaceDatabase(tmp_path / "empty.sqlite3")
-
-    async def offline():
-        raise ValueError("offline")
-
-    research = ResearchService(ResearchStore(tmp_path / "empty-jobs"), online_check=offline)
-    bridge = Orchestrator(None, empty, research)
-    with pytest.raises(ResearchError, match="online access"):
-        await bridge.recommend(target())
-    assert not empty.assessments()
 
 
 async def test_drawdown_preference_and_overnight_conflicts_do_not_transfer_between_variants(

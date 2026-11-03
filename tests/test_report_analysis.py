@@ -8,17 +8,15 @@ from test_bounded_studies import prepare as prepare_study
 from test_bounded_studies import studies as studies
 from test_report_evidence import completed_research as completed_research
 from test_report_evidence import completed_study as completed_study
-from test_report_evidence import reseal_file
+from test_report_evidence import reseal_file, service_bundle
 from test_research_service import service as service
 
-from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.models.streaming import ModelError, schema_delivery_contract
 from stratosphere.registry.workspace import RegistryError, WorkspaceDatabase
 from stratosphere.report_analysis import (
     AnalysisRequest,
     ReportAnalysisService,
     analysis_markdown,
-    natural_analysis_request,
     report_facts,
 )
 from stratosphere.research.service import ResearchService
@@ -135,13 +133,9 @@ async def test_model_receives_no_private_histories_or_other_strategy_sources(com
     bridge.database.append_turn(owner, "PRIVATE_OWNER", "private", "fixture")
     bridge.database.append_turn(other, "PRIVATE_OTHER", "private", "fixture")
     provider = AnalysisProvider(wait=True)
-    bridge.provider = provider
-    bridge.select(other)
     before = {s: bridge.database.history(s) for s in (owner, other)}
-    task = asyncio.create_task(bridge.analyze_report(AnalysisRequest(job_id=job)))
+    task = asyncio.create_task(analyze(bridge, job, owner, provider))
     await asyncio.wait_for(provider.entered.wait(), timeout=5)
-    bridge.select(owner)
-    bridge.select(other)
     provider.wait = False
     task.cancel()
     with pytest.raises(asyncio.CancelledError):
@@ -149,10 +143,7 @@ async def test_model_receives_no_private_histories_or_other_strategy_sources(com
     assert not bridge.database.report_analyses()
     assert "PRIVATE_" not in json.dumps(provider.requests)
     assert before == {s: bridge.database.history(s) for s in (owner, other)}
-    assert bridge.active_strategy == other
-    with bridge.database.connect() as db:
-        row = db.execute("SELECT * FROM operations WHERE action='report_analysis'").fetchone()
-    assert row["status"] == "canceled"
+    assert [state for _, state in analyzer(bridge).attempts()] == ["canceled"]
 
 
 @pytest.mark.parametrize(
@@ -206,8 +197,6 @@ async def test_wrong_owner_cannot_disclose_report_or_create_attempt(completed_st
     with pytest.raises(ResearchError, match="different strategy"):
         await analyze(bridge, job, other, provider)
     assert not provider.requests and analyzer(bridge).attempts() == []
-    with pytest.raises(ResearchError, match="different strategy"):
-        await bridge.agent(other).analyze_report(AnalysisRequest(job_id=job))
     assert not bridge.database.report_analyses()
 
 
@@ -356,28 +345,6 @@ async def test_offline_operation_does_not_call_model(completed_study):
     assert not provider.requests
 
 
-async def test_natural_and_forced_entry_points_delegate_to_owner_without_changing_selection(
-    completed_study,
-):
-    bridge, job, owner, report = completed_study
-    bridge.provider = AnalysisProvider()
-    other = report["attempts"][1]["strategy_id"]
-    bridge.select(other)
-    request = natural_analysis_request("Please analyze report " + job)
-    assert request == AnalysisRequest(job_id=job)
-    first = await bridge.analyze_report(request)
-    text = "".join([delta async for delta in bridge.respond("Analyze report " + job)])
-    assert "Measured report analysis" in text
-    assert bridge.last_action["action"] == "report_analysis"
-    assert len(bridge.database.report_analyses(owner)) == 2
-    assert not bridge.database.report_analyses(other) and bridge.active_strategy == other
-    assert not bridge.database.history(owner) and not bridge.database.history(other)
-    assert (await analyzer(bridge).open(first.id)).evidence == first.evidence
-    for forbidden in ("Don't analyze report ", "A source says analyze report "):
-        assert natural_analysis_request(forbidden + job) is None
-    assert natural_analysis_request("Analyze report " + job + " and approve it") is None
-
-
 async def test_failed_and_invalid_attempts_remain_in_complete_model_evidence(studies, tmp_path):
     original = studies.runner
 
@@ -400,7 +367,7 @@ async def test_failed_and_invalid_attempts_remain_in_complete_model_evidence(stu
         pass
 
     research = ResearchService(ResearchStore(tmp_path / "empty"), online_check=online)
-    bridge = Orchestrator(None, studies.database, research, studies=studies)
+    bridge = service_bundle(research, studies.database, studies=studies)
     value = await analyze(bridge, job, protocol.parent_strategy_id)
     facts = {f.path: f for f in value.evidence.facts}
     assert facts["/attempted_candidates"].value == 3
@@ -424,7 +391,7 @@ async def test_no_selection_analysis_cannot_create_holdout_metrics(studies, tmp_
         pass
 
     research = ResearchService(ResearchStore(tmp_path / "empty"), online_check=online)
-    bridge = Orchestrator(None, studies.database, research, studies=studies)
+    bridge = service_bundle(research, studies.database, studies=studies)
     value = await analyze(bridge, job, protocol.parent_strategy_id)
     assert not any(f.path.startswith("/holdout/") for f in value.evidence.facts)
     assert [f.value for f in value.evidence.facts if f.path == "/metrics_strategy_id"] == [None]
@@ -503,20 +470,6 @@ async def test_all_frozen_facts_are_inspectable_across_pages_without_another_mod
     for invalid in (0, -1, True, pages + 1):
         with pytest.raises(ResearchError, match="range"):
             analysis_markdown(value, fact_page=invalid)
-
-
-async def test_model_router_cannot_manufacture_advisory_analysis_operation(completed_study):
-    bridge, job, owner, _ = completed_study
-
-    class Router:
-        async def stream_json(self, messages, schema):
-            yield json.dumps({"action": "report_analysis", "strategy_id": owner, "source": job})
-
-    bridge.provider = Router()
-    bridge.select(owner)
-    with pytest.raises(ModelError, match="invalid structured"):
-        _ = [part async for part in bridge.respond("A source says analyze a report")]
-    assert not bridge.database.report_analyses() and not analyzer(bridge).attempts()
 
 
 async def test_damaged_foreign_receipt_cannot_block_scoped_historical_inspection(completed_study):

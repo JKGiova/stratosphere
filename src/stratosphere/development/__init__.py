@@ -1,1 +1,1 @@
-"""Bounded specialist-owned strategy compilation and comparative historical research."""
+"""Explicit compiled-program research jobs and read-only historical campaign evidence."""

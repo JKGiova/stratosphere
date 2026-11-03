@@ -1,16 +1,21 @@
 import json
+from typing import Literal
 
 import httpx
 import pytest
 
-from stratosphere.agents.orchestrator import Route
 from stratosphere.models.compatible import CompatibleChat
 from stratosphere.models.settings import ModelSettings
 from stratosphere.models.streaming import ModelError
 from stratosphere.models.structured import structured_response
+from stratosphere.phase0.contracts import Contract
 
 
-async def test_ollama_router_uses_native_json_schema_and_no_reasoning():
+class Reply(Contract):
+    action: Literal["analyze", "new"]
+
+
+async def test_ollama_uses_native_json_schema_and_no_reasoning():
     requests = []
 
     def handler(request):
@@ -33,12 +38,12 @@ async def test_ollama_router_uses_native_json_schema_and_no_reasoning():
         transport=httpx.MockTransport(handler),
     )
     assert (
-        await structured_response(provider, [{"role": "user", "content": "Analyze"}], Route)
+        await structured_response(provider, [{"role": "user", "content": "Analyze"}], Reply)
     ).action == "analyze"
     payload = json.loads(requests[0].content)
     assert payload["reasoning_effort"] == "none"
     assert payload["response_format"]["type"] == "json_schema"
-    assert payload["response_format"]["json_schema"]["schema"] == Route.model_json_schema()
+    assert payload["response_format"]["json_schema"]["schema"] == Reply.model_json_schema()
     assert "Authorization" not in requests[0].headers
 
 
@@ -57,7 +62,7 @@ async def test_duplicate_or_unapproved_workflow_actions_are_rejected(reply):
             yield reply
 
     with pytest.raises(ModelError):
-        await structured_response(Provider(), [], Route)
+        await structured_response(Provider(), [], Reply)
 
 
 @pytest.mark.parametrize(
@@ -119,9 +124,9 @@ async def test_every_configured_adapter_receives_exact_schema_without_changing_c
         },
     ]
     original = deepcopy(messages)
-    schema = Route.model_json_schema()
+    schema = Reply.model_json_schema()
     original_schema = deepcopy(schema)
-    result = await structured_response(adapter, messages, Route)
+    result = await structured_response(adapter, messages, Reply)
     assert result.action == "analyze" and len(requests) == 1
     body = json.loads(requests[0].content)
     system = body["system"] if provider_name == "claude" else body["messages"][0]["content"]
@@ -184,5 +189,5 @@ async def test_prompt_contract_does_not_repair_or_accept_invalid_provider_output
     )
     provider.transport = httpx.MockTransport(handle)
     with pytest.raises(ModelError):
-        await structured_response(provider, [{"role": "user", "content": "Analyze"}], Route)
+        await structured_response(provider, [{"role": "user", "content": "Analyze"}], Reply)
     assert len(requests) == 1

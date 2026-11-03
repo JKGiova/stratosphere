@@ -423,28 +423,6 @@ async def test_damaged_journal_is_rejected_before_any_model_or_artifact(reviews)
     assert service.journal.read_bytes() == before
 
 
-async def test_model_cannot_route_unrelated_chat_to_private_account_snapshot(
-    decision, tmp_path, research_plan
-):
-    from stratosphere.agents.orchestrator import Orchestrator
-    from stratosphere.research.service import ResearchService
-
-    class Router:
-        async def stream_json(self, messages, schema):
-            yield json.dumps({"action": "paper_review"})
-
-    database = decision[0].registry
-    bridge = Orchestrator(
-        Router(),
-        database,
-        ResearchService(ResearchStore(tmp_path / "research"), online_check=online),
-    )
-    with pytest.raises(ModelError, match="invalid route"):
-        _ = [part async for part in bridge.respond("Analyze the registered strategy")]
-    assert bridge.last_action is None
-    assert not database.history(database.catalog()[0]["public_id"])
-
-
 async def test_matching_file_hashes_do_not_bypass_proposal_validation(reviews):
     import hashlib
 

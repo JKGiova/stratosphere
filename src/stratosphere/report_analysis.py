@@ -46,13 +46,6 @@ class AnalysisRequest(Contract):
     job_id: Identifier
 
 
-def natural_analysis_request(text):
-    match = re.fullmatch(
-        r"\s*(?:please\s+)?analy[sz]e\s+report\s+([a-f0-9]{32})\s*", text, re.IGNORECASE
-    )
-    return AnalysisRequest(job_id=match[1]) if match else None
-
-
 class Fact(Contract):
     id: str = Field(pattern=r"^f[0-9]+$")
     path: str

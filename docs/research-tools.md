@@ -5,11 +5,15 @@ must call explicit engine operations through a future adapter; no generic MCP/to
 implemented. The [development engine](strategy-development.md) owns program validation, frozen
 native execution and historical campaign readers.
 
-`development/research_tools.py` retains deterministic program/data inspection, typed indicator
-edits, bounded result summaries and report preview helpers. They do not start an agent, model,
-backtest, account read or order. An edit is a proposal that needs a new validated job and exact
-variant identity; it cannot mutate a frozen running program. Historical action contracts exist only
-to validate retained v2 receipts. They cannot be dispatched or resumed.
+`development/research_tools.py` retains only the deterministic indicator edit required to validate
+historical v2 receipts. The former runner's inspection, summary and report-preview helpers are
+removed with their callers. Historical action contracts exist only to validate retained receipts;
+they cannot be dispatched or resumed. New definitions require a new validated job and exact variant
+identity; historical receipt validation cannot mutate a frozen program.
+
+Retained report inspection accepts a typed `ReportQuery` through `ReportInspector.open`;
+rendered pagination refers to this API. Authored account snapshots use `JournalInspector.capture`
+and `JournalView.page`. Removed slash commands and natural-language routing are not entry points.
 
 ## Public source routing
 

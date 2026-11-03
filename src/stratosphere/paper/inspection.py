@@ -18,16 +18,6 @@ Section = Literal["positions", "orders", "fills", "health"]
 PAGE_SIZE = 20
 
 
-def natural_account_inspection(value):
-    match = re.fullmatch(
-        r"\s*(?:please\s+)?inspect\s+(?:the\s+)?authored\s+(?:paper\s+)?account\s+"
-        r"(positions|orders|fills|health)(?:\s+page\s+([1-9][0-9]{0,8}))?\s*",
-        value,
-        re.IGNORECASE,
-    )
-    return (match[1].lower(), match[2] or "1") if match else None
-
-
 def _json(value):
     if isinstance(value, Decimal):
         return text(value)
@@ -65,10 +55,10 @@ class JournalView(Contract):
         lines = [
             "# Authored account · " + section,
             "Retained fixture observations; provider account, feed and execution are unverified.",
-            "Captured " + self.captured_at.isoformat() + ". Refresh explicitly with /paper.",
+            f"Captured {self.captured_at.isoformat()}. Refresh with `await inspector.capture()`.",
             f"Journal `{self.journal_sha256}` · account `{self.account.account_id}`",
             f"Page {number}/{pages} · {len(getattr(self, section))} total rows · "
-            f"use `/paper {section} <page>` for another capture.",
+            f"use `view.page('{section}', number)` to inspect another page of this capture.",
             "## Account summary\n\n```json\n" + summary + "\n```",
         ]
         if not rows:

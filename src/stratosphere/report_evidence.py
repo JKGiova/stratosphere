@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import re
 from dataclasses import dataclass
 from typing import Literal
 
@@ -15,7 +14,7 @@ from stratosphere.studies.contracts import load_study_protocol
 
 PAGE_SIZE = 20
 SECTIONS = "overview|attempts|metrics|trades|fills|equity|signals|baselines"
-USAGE = "/report-data <job-id> [section] [cell|-] [page]"
+USAGE = "ReportQuery(job_id=..., section='overview', cell=None, page=1)"
 
 
 class ReportQuery(Contract):
@@ -27,39 +26,6 @@ class ReportQuery(Contract):
         default=None, pattern=r"^(base|stress|c[0-9]+:(development|validation):[12]|holdout:[12])$"
     )
     page: int = Field(default=1, ge=1, strict=True)
-
-    @classmethod
-    def arguments(cls, args):
-        if not 1 <= len(args) <= 4:
-            raise ResearchError("Usage: " + USAGE)
-        job, section, cell, page = (*args, *[None] * (4 - len(args)))
-        if page is not None and not re.fullmatch(r"[1-9][0-9]*", page):
-            raise ResearchError("Use a positive whole page number. Usage: " + USAGE)
-        return cls(
-            job_id=job,
-            section=section or "overview",
-            cell=None if cell in {None, "-"} else cell,
-            page=int(page) if page else 1,
-        )
-
-    def command(self, page=None):
-        return f"/report-data {self.job_id} {self.section} {self.cell or '-'} {page or self.page}"
-
-
-def natural_report_query(text):
-    match = re.fullmatch(
-        r"\s*(?:please\s+)?inspect\s+report\s+([a-f0-9]{32})"
-        r"(?:\s+(" + SECTIONS + r"))?(?:\s+(\S+))?(?:\s+([1-9][0-9]*))?\s*",
-        text,
-        re.IGNORECASE,
-    )
-    if match:
-        return ReportQuery.arguments(tuple(v for v in match.groups() if v is not None))
-    return None
-
-
-def evidence_hint(job_id):
-    return f"\n\nInspect retained cells and detailed evidence: `/report-data {job_id}`."
 
 
 @dataclass(frozen=True)
@@ -104,14 +70,14 @@ class EvidencePage:
             f"Plan: `{self.plan_sha256}`",
             f"Report bytes: `{self.report_sha256}`",
             "",
-            f"Overview: `/report-data {q.job_id}`",
-            f"Reviewed plan: `/show {q.job_id}`",
+            "Inspect evidence with `await inspector.open(query, strategy_id=owner)`.",
+            "Build the typed query with `" + USAGE + "`.",
             "Sections: " + ", ".join(SECTIONS.split("|")),
         ]
         if q.page > 1:
-            lines += [f"Previous: `{q.command(q.page - 1)}`"]
+            lines += [f"Previous: use the same query with `page={q.page - 1}`."]
         if q.page < self.pages:
-            lines += [f"Next: `{q.command(q.page + 1)}`"]
+            lines += [f"Next: use the same query with `page={q.page + 1}`."]
         lines += [
             "",
             "## Cell and report context",

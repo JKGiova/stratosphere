@@ -93,26 +93,6 @@ def breakdown(result, snapshot):
     }
 
 
-def measured_context(results):
-    return [
-        {
-            "strategy_id": row["strategy_id"],
-            "market": row["market"],
-            "round": row["round"],
-            "state": row["state"],
-            "error": row.get("error"),
-            "metrics": {
-                label: {
-                    key: values[key]
-                    for key in ("net_return_pct", "max_drawdown_pct", "completed_trades", "fees")
-                }
-                for label, values in row.get("metrics", {}).items()
-            },
-        }
-        for row in results
-    ]
-
-
 class StrategyDevelopment:
     def __init__(self, root, discovery, database, *, runner=worker, online_check=None):
         self.store = ResearchStore(root)
@@ -123,15 +103,6 @@ class StrategyDevelopment:
 
     def clean(self, value):
         self.discovery.clean(value)
-
-    def recover(self):
-        for identity in self.store.jobs():
-            try:
-                with self.store.lock(identity):
-                    if self.store.state(identity) in {"planning", "preparing", "running"}:
-                        self.store.event(identity, "interrupted", "No automatic replay")
-            except ResearchError:
-                continue
 
     def plan(self, identity):
         if self.is_continuous(identity):
@@ -715,20 +686,6 @@ class StrategyDevelopment:
                 }
             )
         return evidence[-5:]
-
-    def intake_for(self, owner):
-        for identity in reversed(self.store.jobs()):
-            if self.store.state(identity) != "completed":
-                continue
-            report = self.report(identity)
-            owners = {
-                report["owner"],
-                *(p["strategy_id"] for p in report["programs"]),
-                *(r["strategy_id"] for r in report["results"]),
-            }
-            if owner in owners:
-                return self.plan(identity)["intake_id"]
-        return None
 
     def show(self, identity):
         if self.is_continuous(identity) and self.store.state(identity) != "completed":

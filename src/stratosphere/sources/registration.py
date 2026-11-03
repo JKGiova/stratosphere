@@ -261,38 +261,3 @@ class SourceRegistrationService:
                 strategy = None
             rows.append({"id": identity, "state": state, "strategy_id": strategy})
         return rows
-
-
-def registration_markdown(value):
-    proof = value.proof
-    submitted = (
-        getattr(proof.source_request, "submitted_url", None)
-        or getattr(proof.source_request, "attribution_url", None)
-        or "not supplied"
-    )
-    return "\n\n".join(
-        [
-            f"# Native source registration {value.id}",
-            f"Strategy `{value.strategy_id}` · agent `{value.agent_id}` · {value.resolution}",
-            f"Name: {value.registered_name}",
-            f"Requested name: {value.request.name or '(source label)'} · "
-            f"declared parent: {value.request.parent_strategy_id or 'none'}",
-            f"Source `{value.request.source_id}` · snapshot `{proof.snapshot.digest}`",
-            f"Acquisition request `{proof.source_request_sha256}` · "
-            f"retained submitted URL/attribution `{submitted}`",
-            f"Definition `{proof.strategy_sha256}` · piece `{proof.piece_sha256}`",
-            f"Captured {proof.snapshot.retrieved_at.isoformat()} · "
-            f"requested {value.requested_at.isoformat()} · "
-            f"recorded {value.recorded_at.isoformat()}",
-            "The whole native JSON matches the supported definition contract. Source attribution, "
-            "external-code equivalence, executable identity and market performance "
-            "are not verified.",
-            "Registration did not approve or start a test, link an account or activate trading.",
-            f"Select its agent: `/agent {value.strategy_id}`. "
-            f"Prepare a separate reviewed study: `/study {value.strategy_id}`.",
-            f"Receipt `{value.digest}` · reader `{proof.reader_sha256}` · "
-            f"reviewed source implementation `{proof.reviewed_implementation_sha256}`",
-            "## Retained source limitations",
-            *proof.snapshot.limitations,
-        ]
-    )

@@ -14,6 +14,8 @@ definition. The TUI, slash-command router, internal research crew and persistent
 removed. General external-agent tools/MCP are not implemented yet. Research uses explicit typed
 program jobs; frozen operator-approved MT5 adapters retain their separate model/risk dependencies. No billing, app login, hosted user
 database, strategy sharing or release deadline.
+Unused conversation parsers, presentation helpers and runner-only research helpers are removed.
+Historical contracts and evidence readers remain; development checkpoints have no recovery mutator.
 NautilusTrader wheel production belongs to the separate `nautilus-trader-macos-intel` repository.
 stratosphere consumes its pinned Intel artifact and matching runtime dependencies; Linux and Apple
 Silicon retain upstream wheels. No engine build tooling or vendored wheel belongs in this project.

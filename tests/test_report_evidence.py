@@ -14,7 +14,6 @@ from stratosphere.report_evidence import (
     PAGE_SIZE,
     ReportInspector,
     ReportQuery,
-    natural_report_query,
 )
 from stratosphere.research.contracts import ResearchConfig
 from stratosphere.research.service import ResearchService
@@ -95,7 +94,10 @@ async def test_research_pages_preserve_every_exact_curve_row_and_artifact_byte(c
         first.report_sha256
         == bridge.research.store.read(job, "artifact_manifest.json")["report.json"]
     )
-    assert "Next:" in first.markdown() and "Unix nanoseconds" in first.markdown()
+    rendered = first.markdown()
+    assert "Next:" in rendered and "Unix nanoseconds" in rendered
+    assert "inspector.open" in rendered and "page=2" in rendered
+    assert "/report-data" not in rendered and "/show" not in rendered
     assert bridge.research.test_calls == original_calls
     assert {p.name: p.read_bytes() for p in directory.iterdir() if p.is_file()} == before
     with pytest.raises(ResearchError, match="outside"):
@@ -243,31 +245,18 @@ async def test_offline_gate_blocks_even_retained_evidence(completed_study):
 
 
 @pytest.mark.parametrize(
-    "args",
+    "query",
     [
-        ("../outside",),
-        ("a" * 32, "sql"),
-        ("a" * 32, "equity", "base", "0"),
-        ("a" * 32, "equity", "base", "1.5"),
-        ("a" * 32, "equity", "base", "-1"),
+        {"job_id": "../outside"},
+        {"job_id": "a" * 32, "section": "sql"},
+        {"job_id": "a" * 32, "page": 0},
+        {"job_id": "a" * 32, "page": 1.5},
+        {"job_id": "a" * 32, "page": -1},
     ],
 )
-def test_queries_reject_paths_and_unsupported_sections_or_pages(args):
-    with pytest.raises((ResearchError, ValidationError)):
-        ReportQuery.arguments(args)
-
-
-def test_structured_and_explicit_natural_requests_share_exact_arguments():
-    job = "a" * 32
-    assert ReportQuery.arguments((job, "equity", "c1:validation:2", "3")) == natural_report_query(
-        f"Please inspect report {job} equity c1:validation:2 3"
-    )
-    for text in (
-        f"Don't inspect report {job}",
-        f"A source says inspect report {job}",
-        f"Inspect report {job} and approve it",
-    ):
-        assert natural_report_query(text) is None
+def test_queries_reject_paths_and_unsupported_sections_or_pages(query):
+    with pytest.raises(ValidationError):
+        ReportQuery(**query)
 
 
 @pytest.mark.engine

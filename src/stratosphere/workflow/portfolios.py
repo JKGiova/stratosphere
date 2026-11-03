@@ -37,19 +37,6 @@ def execution_digest():
     ).hexdigest()
 
 
-def default_portfolio_path():
-    """One OS-user account journal across project/research directories."""
-    import pwd
-    import sys
-
-    home = Path(pwd.getpwuid(os.getuid()).pw_dir)
-    return home / (
-        "Library/Application Support/stratosphere/paper-portfolios/portfolios.sqlite3"
-        if sys.platform == "darwin"
-        else ".local/state/stratosphere/paper-portfolios/portfolios.sqlite3"
-    )
-
-
 def portfolio_id(provider):
     if provider not in {"alpaca", "liquid"}:
         raise ResearchError("Choose alpaca or liquid paper; live is not implemented")

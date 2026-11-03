@@ -338,34 +338,3 @@ def assessment_markdown(record):
         "No profitability ranking, validation badge, promotion or trading activation.",
     ]
     return "\n".join(lines)
-
-
-def recommendations_markdown(records, target):
-    compatible = [r for r in records if r["assessment"]["conclusion"] != "incompatible_rules"]
-    lines = [
-        "# Local research candidates",
-        "",
-        f"Requested: {target.asset_class} · {target.symbol} · {target.timeframe_seconds} seconds.",
-        "",
-        f"Compatible rule sets: {len(compatible)} of {len(records)} assessed.",
-        "",
-        "Candidates are in stable identity order, without a profitability score. "
-        "This private development catalog is not a verified shared-user leaderboard.",
-        "",
-    ]
-    for record in records:
-        value = record["assessment"]
-        lines += [
-            f"- **{value['name']}** · `{value['strategy_id']}` · "
-            f"{value['conclusion'].replace('_', ' ')}. "
-            f"Evidence references: {len(value['evidence'])}; candidate evaluations: "
-            f"{value['attempted_variants']}; context: "
-            f"{value['current_context_status'].replace('_', ' ')}. "
-            f"Assessment `{record['id']}` at {value['assessed_at']}."
-        ]
-    lines += [
-        "",
-        "Inspect a dated record with /assessment <assessment-id>. "
-        "Missing verification remains blocking; this does not activate trading.",
-    ]
-    return "\n".join(lines)

@@ -6,15 +6,13 @@ import json
 import httpx
 import pytest
 from pydantic import SecretStr, ValidationError
-from textual.widgets import Input, Select
 
 from stratosphere.chat import ChatSession
 from stratosphere.models import create_provider
 from stratosphere.models.claude import ClaudeChat
 from stratosphere.models.compatible import CompatibleChat
-from stratosphere.models.settings import BASE_URLS, DEFAULT_MODELS, KEY_ENVIRONMENTS, ModelSettings
+from stratosphere.models.settings import BASE_URLS, DEFAULT_MODELS, ModelSettings
 from stratosphere.models.streaming import ModelError
-from stratosphere.tui import StratosphereApp
 
 DIRECT = [p for p in DEFAULT_MODELS if p not in {"openrouter", "nvidia", "claude"}]
 KEY = "isolated-provider-secret"
@@ -335,36 +333,6 @@ def test_ollama_cloud_requires_its_own_key():
         base_url="https://ollama.com/v1",
     )
     assert create_provider(config).request_headers()["Authorization"] == f"Bearer {KEY}"
-
-
-@pytest.mark.parametrize("provider", DIRECT + ["claude"])
-async def test_onboarding_provider_isolation_and_submission(provider, monkeypatch, tmp_path):
-    monkeypatch.setenv("STRATOSPHERE_RESEARCH_DIR", str(tmp_path))
-    monkeypatch.setenv("STRATOSPHERE_PROVIDER", "openrouter")
-    monkeypatch.delenv("STRATOSPHERE_MODEL", raising=False)
-    monkeypatch.setenv(KEY_ENVIRONMENTS[provider], "" if provider == "ollama" else KEY)
-    app = StratosphereApp()
-    async with app.run_test(size=(110, 40)) as pilot:
-        app.query_one("#api-key", Input).value = "other-provider-key"
-        app.query_one("#base-url", Input).value = "https://other.example/v1"
-        app.query_one("#provider", Select).value = provider
-        await pilot.pause()
-        assert app.query_one("#api-key", Input).value == ("" if provider == "ollama" else KEY)
-        assert app.query_one("#base-url", Input).value == BASE_URLS[provider]
-        assert app.query_one("#model-id", Input).value == DEFAULT_MODELS[provider]
-        app.setup.apply_settings()
-        # Setup completion awaits widget removal; screen idle alone can precede set_model.
-        async with asyncio.timeout(5):
-            while app.settings is None or app.setup is not None:
-                await pilot.pause()
-        assert app.settings.provider == provider and app.setup is None
-        # Slash commands must remain usable with an empty local credential.
-        app.query_one("#prompt", Input).value = "/help"
-        app.query_one("#prompt", Input).focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        assert app.query_one("#prompt", Input).value == ""
-        assert app.session.history == []
 
 
 @pytest.mark.parametrize("provider", DIRECT + ["claude"])

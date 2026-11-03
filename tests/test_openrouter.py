@@ -3,7 +3,6 @@ import json
 import httpx
 import pytest
 from pydantic import SecretStr, ValidationError
-from textual.widgets import Input, Select
 
 from stratosphere.chat import ChatSession
 from stratosphere.models import create_provider
@@ -11,7 +10,6 @@ from stratosphere.models.nim import NimChat
 from stratosphere.models.openrouter import OpenRouterChat
 from stratosphere.models.settings import DEFAULT_MODELS, ModelSettings
 from stratosphere.models.streaming import ModelError
-from stratosphere.tui import StratosphereApp
 
 MODEL = DEFAULT_MODELS["openrouter"]
 SETTINGS = ModelSettings(provider="openrouter", model=MODEL, api_key=SecretStr("or-test-key"))
@@ -131,99 +129,3 @@ def test_provider_credentials_and_free_only_selection_are_explicit():
             model=MODEL.removesuffix(":free"),
             api_key=SecretStr("or-test-key"),
         )
-
-
-@pytest.mark.asyncio
-async def test_picker_never_carries_a_key_to_the_other_provider(monkeypatch):
-    monkeypatch.setenv("NVIDIA_API_KEY", "nim-private-test")
-    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
-    monkeypatch.delenv("STRATOSPHERE_PROVIDER", raising=False)
-    monkeypatch.delenv("STRATOSPHERE_MODEL", raising=False)
-    app = StratosphereApp()
-    async with app.run_test() as pilot:
-        screen = app.screen
-        assert screen.query_one("#provider", Select).value == "openrouter"
-        assert screen.query_one("#api-key", Input).value == ""
-        assert screen.query_one("#model-id", Input).value == MODEL
-        screen.query_one("#provider", Select).value = "nvidia"
-        await pilot.pause()
-        assert screen.query_one("#api-key", Input).value == "nim-private-test"
-        assert screen.query_one("#model-id", Input).value == DEFAULT_MODELS["nvidia"]
-        screen.query_one("#provider", Select).value = "openrouter"
-        await pilot.pause()
-        assert screen.query_one("#api-key", Input).value == ""
-        assert "nim-private-test" not in app.export_screenshot()
-
-
-@pytest.mark.asyncio
-async def test_switching_provider_does_not_forward_previous_chat_or_credential(monkeypatch):
-    monkeypatch.setenv("NVIDIA_API_KEY", "nim-test-key")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "or-test-key")
-    monkeypatch.delenv("STRATOSPHERE_MODEL", raising=False)
-    monkeypatch.delenv("STRATOSPHERE_PROVIDER", raising=False)
-    requests = []
-
-    class SwitchingStream(httpx.AsyncByteStream):
-        def __init__(self, content):
-            self.content = content
-
-        async def __aiter__(self):
-            yield frame(self.content).encode()
-            yield frame(finish="stop", usage={"cost": 0}).encode()
-            yield b"data: [DONE]\n\n"
-
-    def handler(request):
-        requests.append(request)
-        content = json.dumps({"action": "chat"}) if len(requests) % 2 else "OK"
-        return httpx.Response(
-            200,
-            headers={"content-type": "text/event-stream"},
-            stream=SwitchingStream(content),
-        )
-
-    def factory(settings):
-        kind = OpenRouterChat if settings.provider == "openrouter" else NimChat
-        return kind(settings, transport=httpx.MockTransport(handler))
-
-    app = StratosphereApp(provider_factory=factory)
-    async with app.run_test() as pilot:
-        app.screen.query_one("#api-key", Input).focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        field = app.query_one("#prompt", Input)
-        field.value = "private previous provider conversation"
-        field.focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        await app.response_worker.wait()
-        field.value = "/model"
-        field.focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        app.screen.query_one("#provider", Select).value = "nvidia"
-        await pilot.pause()
-        app.screen.query_one("#api-key", Input).focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        field.value = "new question"
-        field.focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        await app.response_worker.wait()
-    assert len(requests) == 4
-    assert requests[0].headers["authorization"] == "Bearer or-test-key"
-    assert requests[1].headers["authorization"] == "Bearer or-test-key"
-    assert all(r.headers["authorization"] == "Bearer nim-test-key" for r in requests[2:])
-    assert all(r.url.host == "integrate.api.nvidia.com" for r in requests[2:])
-    assert all(b"private previous provider conversation" not in r.content for r in requests[2:])
-    route = json.loads(json.loads(requests[2].content)["messages"][-1]["content"])
-    assert route == {
-        "request": "new question",
-        "active_strategy": None,
-        "pending_research": None,
-        "pending_intake": None,
-        "catalog": [],
-    }
-    assert [m["content"] for m in json.loads(requests[3].content)["messages"]][1:] == [
-        "new question",
-    ]

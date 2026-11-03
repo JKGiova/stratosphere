@@ -629,22 +629,6 @@ async def test_existing_baseline_is_pinned_before_new_agent_research(intake, dat
         )
 
 
-@pytest.mark.parametrize(
-    "text,action",
-    [
-        ("/develop " + "a" * 32, "develop"),
-        ("/develop " + "a" * 32 + " compare daily equities", "develop"),
-        ("/development-show " + "a" * 32, "development-show"),
-        ("/develop ../private", "message"),
-        ("/development-show " + "a" * 32 + " extra", "message"),
-    ],
-)
-def test_development_command_scope(text, action):
-    from stratosphere.commands import route_command
-
-    assert route_command(text).action == action
-
-
 def test_retained_hourly_scope_does_not_expire_with_provider_download_window():
     old = Market(
         symbol="BTC-USD",

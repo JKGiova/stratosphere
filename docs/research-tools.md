@@ -1,5 +1,9 @@
 # Strategy research tools and public-reader fallbacks
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 The orchestrator discovers sources and clarifies a strategy. Its strategy specialist develops a
 validated signal program through the persistent v2 loop. These tools expose application operations,
 not a general terminal. They cannot inspect accounts, retrieve credentials, execute acquired Python,

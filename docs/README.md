@@ -3,9 +3,13 @@
 [plan.md](../plan.md) owns scope, status, priorities and completion criteria.
 These are focused reference guides, not separate roadmaps.
 
+[Headless usage](usage.md) owns current entry points. The TUI and slash-command router are removed.
+Guides retaining slash-command examples describe historical interfaces and internal contracts;
+those examples are unavailable. Internal agent extraction and external-agent/MCP tools are pending.
+
 | Guide | Purpose |
 | --- | --- |
-| [Usage](usage.md) | Installation, startup, commands and supported workflow |
+| [Usage](usage.md) | Installation, headless entry points and rebuild limits |
 | [Architecture](architecture.md) | Components, state ownership and code locations |
 | [Strategy development](strategy-development.md) | Specialist handoff, compiled code, bounded revisions and market/interval comparison |
 | [Research tools](research-tools.md) | Specialist tool contract, optional public readers, fallback and verification |

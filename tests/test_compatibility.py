@@ -32,7 +32,7 @@ def test_wheel_boundaries_are_explicit(system, machine, version, libc, libc_vers
 def test_installed_core_matches_lock_and_does_not_claim_backtest_success():
     report = inspect_runtime()
     assert report["errors"] == []
-    assert report["packages"]["textual"]["imported"]
+    assert report["packages"]["pydantic"]["imported"]
     assert "separate" in report["scope"]
 
 

@@ -421,50 +421,6 @@ async def test_model_route_cannot_invent_creation_or_approval(campaigns, tmp_pat
     assert campaigns.calls == []
 
 
-@pytest.mark.engine
-async def test_tui_automatic_campaign_report_and_restart(campaigns, request_spec, tmp_path):
-    from test_research_tui import connect, send
-    from textual.widgets import DataTable
-
-    from stratosphere.research.service import ResearchService
-    from stratosphere.research.store import ResearchStore
-    from stratosphere.tui import StratosphereApp
-    from stratosphere.workflow.widgets import CampaignReview
-
-    class Provider:
-        async def stream(self, messages):
-            yield proposal(request_spec).model_dump_json()
-
-    async def online():
-        pass
-
-    research = ResearchService(ResearchStore(tmp_path / "ui"), online_check=online)
-    app = StratosphereApp(provider_factory=lambda settings: Provider(), research_service=research)
-    app.yahoo.runner = campaigns.yahoo.runner
-    app.yahoo.online_check = online
-    async with app.run_test(size=(144, 40)) as pilot:
-        await connect(app, pilot)
-        await send(app, pilot, "/create an hourly crossover research comparison")
-        await app.workers.wait_for_complete()
-        await pilot.pause()
-        assert not app.query(CampaignReview)
-        identity = app.campaigns.store.jobs()[0]
-        assert app.campaigns.plan(identity).schema_version == "agent-research-plan/2"
-        assert app.campaigns.store.read(identity, "approval.json")["human_approval"] is False
-        assert app.campaigns.store.state(identity) == "completed"
-        assert campaigns.calls.count("simulate") == 2
-        assert app.query_one("#reports", DataTable).row_count >= 1
-        report = app.campaigns.report(identity)
-    reopened = StratosphereApp(
-        provider_factory=lambda settings: Provider(), research_service=research
-    )
-    reopened.yahoo.online_check = online
-    async with reopened.run_test(size=(90, 28)) as pilot:
-        await reopened.handle_flow_command("flow-show", (identity,))
-        assert reopened.campaigns.report(identity) == report
-        assert campaigns.calls.count("simulate") == 2
-
-
 async def test_risk_agent_rechecks_expiry_after_inference(portfolio_basis):
     from stratosphere.workflow.risk import AdvisoryAgents
 

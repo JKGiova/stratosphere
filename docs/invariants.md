@@ -26,15 +26,16 @@ provenance; behavioral variants have distinct identities and recorded lineage.
 ## Application authority
 
 Strategy agents own analysis, evidence lookup, application-authorized testing and measured reports
-through the same validated application operations as slash commands. Keep plan approval and deterministic
+through validated application operations, including future external-agent adapters. Keep plan approval and deterministic
 runtime/risk gates outside model authority. Model output must not execute arbitrary SQL, imported
-code or live orders. Database service credentials must never reach the TUI, model prompts or native
+code or live orders. Database service credentials must never reach external agent tools, model prompts or native
 workers.
 
-## Report UI and verification
+## Headless interfaces and verification
 
-Reports replaces the Session panel. Preserve responsive layout/navigation and inspectable, verified
-report artifacts. Use plan.md as the development plan and completion criteria; do not mark a phase
+Keep the engine independent of terminal UI and external agent frameworks. Adapters cannot bypass
+application validation, budgets, approvals or risk gates. Preserve inspectable, verified report
+artifacts and historical readers. Use plan.md as the development plan and completion criteria; do not mark a phase
 complete around a narrower foundation. Local test results, real provider checks, hosted ownership
 checks and unverified integrations must remain distinguishable.
 

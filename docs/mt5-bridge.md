@@ -51,10 +51,10 @@ strict timestamp order and nonnegative volume/spread. `deals <start> <end>` acce
 epochs, with a 10,000-deal cap; request shorter windows if necessary. Raw responses, including
 rejected/invalid observations, remain in the local request journal.
 
-TUI read-only entry points: `/mt5`, `/mt5-status`, `/mt5-quote <symbol>`,
-`/mt5-symbol <symbol>`, `/mt5-positions`, `/mt5-orders`, `/portfolios`. Diagnostics are rendered
-privately and are not appended to strategy-model histories. The headless connector is the execution
-interface; it does not yet run the strategy-agent research/signal pipeline automatically.
+The package dispatcher also accepts these operations as `python -m stratosphere mt5 ...`.
+The former TUI/slash-command entry points have been removed. Account diagnostics are private
+operator operations and must not enter strategy-model histories or external strategy tools. The
+headless connector does not yet run the general research/signal pipeline automatically.
 
 The [overnight adapter](mt5-overnight.md) connects explicit calendar-driven strategies and bounded
 continuous agents to this EA, with its own exact demo approvals. It replaces the active

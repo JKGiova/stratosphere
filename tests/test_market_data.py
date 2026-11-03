@@ -290,16 +290,8 @@ def test_numeric_and_timestamp_wire_types_are_strict(fields):
 
 
 def test_capability_view_reports_bounded_purposes_without_claiming_a_paper_adapter():
-    from stratosphere.commands import route_command
     from stratosphere.market_data.routing import capabilities_markdown
 
-    for text, args in [
-        ("/data", ()),
-        ("/data binance-archive", ("binance-archive",)),
-        ("/data authored-fixture paper", ("authored-fixture", "paper")),
-    ]:
-        value = route_command(text)
-        assert value.action == "data" and value.args == args
     view = capabilities_markdown()
     assert "not implemented" in view and "fixture only" in view and "ECB_REFERENCE" in view
     assert "prior permission" in view.lower() and "IEX" not in view

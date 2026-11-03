@@ -1,5 +1,9 @@
 # Strategy-agent development
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 The orchestrator hands a complete sealed intake to an implementation specialist. A validated formal
 definition gets an exact registered strategy and stable agent; that agent owns compilation,
 backtests and measured-result revisions. The orchestrator does not place orders. Trading remains

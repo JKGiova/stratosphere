@@ -1,4 +1,9 @@
-# Setup and usage
+# Setup and headless usage
+
+stratosphere is being rebuilt as a strategy research engine and MT5 connector for external
+agents. The terminal UI, inline setup forms and slash-command router have been removed.
+Agent coordination and conversation belong to an external framework. A general external-agent
+interface, including MCP, is not implemented yet.
 
 ## Environment
 
@@ -6,94 +11,58 @@ The project targets Python 3.14 and uses `uv.lock`. On supported Linux/macOS pla
 
 ```sh
 uv sync --locked --extra engine --no-build-package nautilus-trader
-.venv/bin/python -m stratosphere
+.venv/bin/python -m stratosphere --help
 ```
 
 Intel macOS selects the [separate project's pinned engine wheel](intel-macos.md); Linux and Apple
-Silicon use upstream wheels. The external Intel release must be published and downloadable.
+Silicon use upstream wheels. Engine build/release tooling stays in that separate repository.
 
-## First run
+## Available entry points
 
-Configure the provider/model/key in the inline form. There is no application login. Model settings
-use the [native credential store](credentials.md). Broker login stays inside MT5; historical
-Alpaca/Liquid credentials are not restored. Research works without a broker connection. Escape dismisses model setup when inspecting non-model operations.
+Running the package without arguments prints help and starts no operation. The headless dispatcher
+exposes the existing MT5 connector and runtime compatibility inspector:
 
-Tab/Shift+Tab switch panels. Layout adapts to terminal dimensions; forms use their own field
-navigation. The app does not resize, maximize or make the terminal enter native fullscreen.
-Replies render Markdown. Chat, Library, Focus, Tests, Positions and Reports are the main views.
+```sh
+.venv/bin/python -m stratosphere mt5 --help
+.venv/bin/python -m stratosphere compatibility --help
+.venv/bin/python -m stratosphere compatibility --require-engine
+```
 
-## Legacy manual research path
+The original module entry points remain available:
 
-For new automatic campaigns, see the agent workflow below. The legacy path remains available:
+```sh
+.venv/bin/python -m stratosphere.mt5 --help
+.venv/bin/python -m stratosphere.phase0.compatibility --help
+```
 
-1. Use `/new` with a complete supported SMA description. Include exact periods, quantity, instrument,
-   closed-bar entry/exit and next-open execution assumptions.
-2. Review the specification, source evidence, capital and costs. Unsupported behavior must be resolved.
-3. Approve the exact displayed plan. No model response substitutes for approval.
-4. Inspect jobs, reports and detailed evidence. Use `/study` for a bounded variant comparison with a
-   separate final holdout. Read [research](research.md) before interpreting results.
+Compatibility inspection checks package versions/imports; it does not run a backtest or connect
+to MT5. MT5 read commands require a running terminal and the configured local EA bridge:
 
-## Commands by purpose
+```sh
+.venv/bin/python -m stratosphere mt5 account
+.venv/bin/python -m stratosphere mt5 rates XAUUSD H1 --count 512
+.venv/bin/python -m stratosphere mt5 positions
+```
 
-`/help` is generated from the application command router and is the full command reference.
+Broker login stays inside MT5. Account diagnostics are private operator operations, not strategy-model
+tools. Connection grants no trading authority. See [MT5 connector](mt5-bridge.md) for installation,
+exact deployment approval, finite limits and owned exits. Existing overnight deployment entry points
+remain documented in [overnight agents](mt5-overnight.md).
 
-| Purpose | Commands |
-| --- | --- |
-| Models/chat | `/model`, `/model-forget`, `/cancel`, `/clear` |
-| Views/selection | `/strategies`, `/agent [id]`, `/jobs`, `/reports`, `/portfolio` |
-| Yahoo historical research | `/yahoo`, `/yahoo-show`, `/yahoo-approve`, `/yahoo-cancel` ([guide](yahoo-backtesting.md)) |
-| Strategy development | `/develop <brief-id> [focus]`, `/development-show <campaign-id>` ([guide](strategy-development.md)) |
-| Strategy sources | `/discover <idea>`, `/paper-read "path.pdf" [brief]`, `/intake <source-id> [brief]`, `/intake-show <brief-id>` ([guide](agent-workflow.md)) |
-| Agent research | `/create <brief>`, `/flow`, `/flow-show`, `/flow-cancel` (v1 `/flow-approve` only for compatibility) |
-| Legacy research | `/new`, `/study`, `/approve <job> <digest>`, `/pause <job>`, `/resume <job>`, `/cancel <job>`, `/show <job>` |
-| Evidence | `/report <job>`, `/report-data`, `/analyze-report`, `/report-analyses`, `/report-analysis-show` |
-| Sources | `/source`, `/source-text`, `/source-file`, `/source-captions`, `/sources`, `/source-show` |
-| Source interpretation/import | `/conformance`, `/source-review`, `/source-register` and their list/show commands |
-| Dated local assessments | `/assess`, `/recommend`, `/assessment` |
-| Data capabilities | `/data` |
-| Internal account inspection | `/paper [positions|orders|fills|health] [page]`, `/paper-review`, `/paper-reviews`, `/paper-review-show` |
-| Exit | `/quit` |
+## Research and compatibility
 
-`/clear` clears the selected conversation and its ephemeral clarification draft, including saved
-strategy chat where applicable; immutable research/source evidence remains. Legacy `/paper` commands
-inspect authored journals. `/portfolios` shows the sole active MT5 role. Alpaca/Liquid setup and
-execution commands are retired; retained evidence is not transferred to MT5. Missing accounts are
-unavailable, not zero balances.
+Validated signal programs, application-generated Python, isolated native workers, registry identities,
+sealed reports and historical readers remain available in the Python modules. See
+[architecture](architecture.md) for their locations. There is no replacement general research CLI
+or external-agent tool server yet. Historical guides that describe slash commands document the
+removed interface; those commands are unavailable.
 
-To propose research, use `/create` with the strategy rules and requested Yahoo symbols, intervals
-and historical windows. The supported family and approval sequence are described in
-[agent workflow](agent-workflow.md).
+The internal model transports and research-agent runners remain while engine operations are
+extracted from them. Their presence does not mean the external-agent rebuild is complete.
+The full historical research-to-MT5 deployment path also remains unfinished. Historical Yahoo
+results or approvals cannot silently become CFD execution authority.
 
-## Quit and restart
-
-Approved research pauses on quit and retains checkpoints; interrupted jobs are not automatically
-started on launch. Saved credentials remain until forgotten. An actual trading-position keep/close
-exit workflow is planned but not implemented. Quitting never closes MT5 positions automatically.
-
-## Automatic research and strategy intake
-
-Use `/create <brief>` for a supported automatic Yahoo SMA campaign. New v2 campaigns run within
-finite application limits, without research approval. Unsupported ideas enter source discovery;
-this produces a cited strategy brief, not a substitute SMA implementation. A complete brief can
-hand off automatically to its implementation specialist for bounded compiled-code research. `/discover` and
-`/paper-read` explicitly start source-based strategy intake for other families. Ask follow-up
-questions or answer missing-rule questions in chat; `/intake-show` reopens retained briefs.
-See [agent workflow](agent-workflow.md) for source limits and
-[strategy development](strategy-development.md) for generated code, variant/market comparisons,
-retained failures and exact limits. `/develop <brief-id> [focus]` starts that handoff explicitly.
-
-Research reports do not activate MT5. The normal research-to-MT5 strategy executor remains
-unfinished; manual deployment approval has a separate exact account/implementation/limits contract.
-Historical `/strategy-finish`, `/strategy-approve` and `/portfolio-run` are retired and cannot
-activate an account. Existing historical records remain readable.
-
-## MT5 connector
-
-MT5 is the active broker connector; use `/mt5` and `/mt5-status` for setup/read-only diagnostics.
-Headless data and exact-deployment order commands: [MT5 connector](mt5-bridge.md). Alpaca/Liquid
-commands and their automatic execution setup are retired. Historical reports remain readable.
-
-New `/develop <brief-id> [focus]` handoffs use the persistent tool loop. Repeating the exact
-request resumes a compatible paused checkpoint without refilling its budgets. `/development-show
-<campaign-id>` reads its report/checkpoint without inference or native execution. The first
-evaluated revision without significant progress stops; see [strategy development](strategy-development.md).
+Private SQLite journals and artifacts remain in their existing native state locations.
+`STRATOSPHERE_RESEARCH_DIR` overrides the research root, not the account-wide MT5 journal.
+Removing the UI does not erase stored model credentials, reports, approvals or broker journals.
+No background worker or MT5 position is started, stopped or closed by displaying package help.

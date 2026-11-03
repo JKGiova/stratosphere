@@ -9,7 +9,6 @@ from test_bounded_studies import studies as studies
 from test_research_service import service as service
 
 from stratosphere.agents.orchestrator import Orchestrator
-from stratosphere.commands import route_command
 from stratosphere.report_evidence import (
     PAGE_SIZE,
     ReportInspector,
@@ -263,13 +262,10 @@ def test_queries_reject_paths_and_unsupported_sections_or_pages(args):
         ReportQuery.arguments(args)
 
 
-def test_slash_and_explicit_natural_requests_share_exact_arguments():
+def test_structured_and_explicit_natural_requests_share_exact_arguments():
     job = "a" * 32
-    text = f"/report-data {job} equity c1:validation:2 3"
-    command = route_command(text)
-    assert command.action == "report-data"
-    assert ReportQuery.arguments(command.args) == natural_report_query(
-        text.replace("/report-data", "Please inspect report")
+    assert ReportQuery.arguments((job, "equity", "c1:validation:2", "3")) == natural_report_query(
+        f"Please inspect report {job} equity c1:validation:2 3"
     )
     for text in (
         f"Don't inspect report {job}",
@@ -277,7 +273,6 @@ def test_slash_and_explicit_natural_requests_share_exact_arguments():
         f"Inspect report {job} and approve it",
     ):
         assert natural_report_query(text) is None
-    assert route_command("/report-data").action == "message"
 
 
 @pytest.mark.engine

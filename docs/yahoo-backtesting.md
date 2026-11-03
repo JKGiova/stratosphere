@@ -1,5 +1,9 @@
 # Yahoo historical backtesting
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 ## Scope
 
 `/yahoo` opens a historical-only research form. Use an explicit Yahoo symbol, market type,

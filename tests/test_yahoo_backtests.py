@@ -272,49 +272,6 @@ def test_gap_findings_preserve_original_rows(req):
 
 
 @pytest.mark.engine
-async def test_tui_yahoo_form_review_execution_and_restart(service, req, tmp_path):
-    from test_research_tui import send
-    from textual.widgets import Input
-
-    from stratosphere.research.service import ResearchService
-    from stratosphere.research.store import ResearchStore
-    from stratosphere.tui import StratosphereApp
-    from stratosphere.yahoo.widgets import YahooReview
-
-    research = ResearchService(ResearchStore(tmp_path / "legacy"), online_check=online)
-    app = StratosphereApp(research_service=research, yahoo_service=service)
-    service.database = app.database
-    async with app.run_test(size=(144, 40)) as pilot:
-        await pilot.press("escape")
-        await pilot.pause()
-        await send(app, pilot, "/yahoo")
-        assert app.research_form is not None
-        for key, value in {
-            "symbol": req.symbol,
-            "start": str(req.start),
-            "end": str(req.end),
-            "fast": str(req.fast),
-            "slow": str(req.slow),
-            "quantity": req.quantity,
-        }.items():
-            app.query_one("#yahoo-" + key, Input).value = value
-        app.query_one("#yahoo-prepare").focus()
-        await pilot.press("enter")
-        await app.workers.wait_for_complete()
-        await pilot.pause()
-        review = app.query_one(YahooReview)
-        assert service.calls == ["fetch"]
-        assert service.store.state(review.job) == "awaiting_approval"
-        review.query_one("#yahoo-approve").focus()
-        await pilot.press("enter")
-        await app.workers.wait_for_complete()
-        await pilot.pause()
-        assert service.store.state(review.job) == "completed"
-        await send(app, pilot, "/yahoo-show " + review.job)
-        assert service.calls == ["fetch", "simulate", "simulate"]
-
-
-@pytest.mark.engine
 async def test_real_subprocess_does_not_inherit_credentials(service, req, monkeypatch):
     from stratosphere.yahoo.service import worker
 

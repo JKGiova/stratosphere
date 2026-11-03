@@ -107,8 +107,8 @@ async def execute(args):
     return await bridge.read(args.command, **fields)
 
 
-def main():
-    args = parser().parse_args()
+def main(argv=None):
+    args = parser().parse_args(argv)
     try:
         value = asyncio.run(execute(args))
         result = json.dumps(value, indent=2) + "\n"

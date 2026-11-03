@@ -1,5 +1,9 @@
 # Model providers
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 ## Selection
 
 Configure a provider, exact model ID and allowed API base URL in onboarding or `/model`.

@@ -116,12 +116,14 @@ async def test_second_agent_stays_blocked_only_by_owned_slot_not_manual_exposure
 
 
 async def test_unrelated_nonzero_magic_is_not_adopted_and_manual_close_is_forbidden(tmp_path):
-    async with basket_fixture(tmp_path, manual_coexistence=True) as (runner, peer, _, _):
+    async with basket_fixture(tmp_path, manual_coexistence=True) as (runner, peer, _, clock):
         await runner.approve(runner.basket.digest)
         peer.positions = snapshot([manual("FRA40.cash", magic="777")])
         with pytest.raises(BridgeError, match="externally owned"):
             await MT5Trading(runner.bridge).close(runner.deployments["FRA40.cash"].digest, "900")
         assert peer.sent == 0
+        # This case inspects ownership outside entry windows, regardless of the wall clock.
+        clock[0] = min(w.entry_start for r in runner.reports.values() for w in r.windows) - 1
         assert (await runner.cycle())["action"] == "waiting_for_entry_window"
 
 

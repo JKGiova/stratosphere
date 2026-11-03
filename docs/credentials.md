@@ -1,5 +1,9 @@
 # Credentials
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 The selected model/provider/official endpoint/key uses macOS Keychain or Linux Secret Service
 through `keyring`, without plaintext or chained fallback. `/model` saves the selected configuration;
 startup restores it without inference. `/model-forget` removes it when no operation is running.

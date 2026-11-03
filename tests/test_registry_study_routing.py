@@ -1,18 +1,14 @@
-"""Chat and forced commands open the same exact-identity study review for registered variants."""
+"""Retained study routing preserves exact strategy ownership and finite proposals."""
 
 import json
 
 import pytest
 from test_bounded_studies import studies as studies
-from test_research_tui import connect, send
-from textual.widgets import DataTable, Input, TextArea
 
 from stratosphere.agents.orchestrator import Orchestrator
 from stratosphere.phase0.contracts import StrategySpec
 from stratosphere.research.service import ResearchService
 from stratosphere.research.store import ResearchError, ResearchStore
-from stratosphere.studies.widgets import StudyForm
-from stratosphere.tui import StratosphereApp
 
 
 class ProposalProvider:
@@ -100,100 +96,6 @@ async def test_unsupported_registered_behavior_stops_before_a_model_or_test(stud
     assert not provider.calls and not studies.store.jobs()
 
 
-async def test_inline_registry_form_pins_strategy_and_costs_through_approval_and_report(
-    studies, tmp_path
-):
-    provider = ProposalProvider()
-    research = ResearchService(
-        ResearchStore(tmp_path / "ui-research"), online_check=studies.online_check
-    )
-    app = StratosphereApp(
-        provider_factory=lambda settings: provider, research_service=research, study_service=studies
-    )
-    studies.database = app.database
-    first = app.database.register(
-        studies.test_plan.specification, "Registry baseline", {"kind": "authored"}
-    )
-    other_spec = StrategySpec.model_validate(
-        studies.test_plan.specification.model_dump()
-        | {"position_sizing": {"mode": "fixed_base", "amount": "0.02"}}
-    )
-    other = app.database.register(other_spec, "Other strategy", {"kind": "authored"})
-    async with app.run_test(size=(45, 12)) as pilot:
-        await connect(app, pilot)
-        app.session.select(first["public_id"])
-        await send(app, pilot, "/study")
-        assert isinstance(app.research_form, StudyForm) and app.research_form.registered
-        assert app.research_form.parent_job is None
-        app.query_one("#study-balance", Input).focus()
-        await pilot.pause()
-        assert app.query_one("#conversation").scrollable_content_region.contains_region(
-            app.query_one("#study-balance").region
-        )
-        app.query_one("#study-fee", Input).value = "0.002"
-        app.query_one(
-            "#study-hypothesis", TextArea
-        ).text = "Longer pairs reduce modeled costs; reject if they do not."
-        app.query_one("#study-candidates", Input).value = "3/8,4/10"
-        app.query_one("#study-budget", Input).value = "10"
-        # Selection changes must not silently retarget the form that is already being reviewed.
-        app.session.select(other["public_id"])
-        app.query_one("#prepare-study").focus()
-        await pilot.press("enter")
-        await app.research_worker.wait()
-        await pilot.pause()
-        (job,) = studies.store.jobs()
-        protocol = studies.store.protocol(job)
-        assert protocol.parent_strategy_id == first["public_id"]
-        assert protocol.config.fee_rate == "0.002" and not research.store.jobs()
-        assert not provider.calls and not any(c[0] in {"run", "fetch"} for c in studies.test_calls)
-        await send(app, pilot, f"/approve {job} {protocol.digest}")
-        await app.research_worker.wait()
-        await pilot.pause()
-        assert studies.store.state(job) == "completed"
-        assert app.query_one("#reports", DataTable).row_count == 1
-        await send(app, pilot, f"/report {job}")
-        assert app.active_view == "reports"
-        assert "holdout" in app.query_one("#report-preview").content.markup.lower()
-        for size in ((144, 40), (70, 50), (45, 12)):
-            await pilot.resize_terminal(*size)
-            await pilot.pause()
-            assert app.query_one("#reports-pane").display
-        assert (
-            studies.database.reports(first["public_id"])[0]["report"]["schema_version"]
-            == "study-report/2"
-        )
-        assert not studies.database.reports(other["public_id"])
-
-
-async def test_explicit_legacy_study_form_preserves_owner_and_cancel_without_model_routing(
-    studies, tmp_path
-):
-    provider = ProposalProvider()
-    research = ResearchService(
-        ResearchStore(tmp_path / "ui-research"), online_check=studies.online_check
-    )
-    app = StratosphereApp(
-        provider_factory=lambda settings: provider, research_service=research, study_service=studies
-    )
-    studies.database = app.database
-    record = app.database.register(
-        studies.test_plan.specification, "Selected baseline", {"kind": "authored"}
-    )
-    async with app.run_test(size=(144, 40)) as pilot:
-        await connect(app, pilot)
-        app.session.select(record["public_id"])
-        await send(app, pilot, "/study " + record["public_id"])
-        await pilot.pause()
-        assert isinstance(app.research_form, StudyForm) and app.research_form.registered
-        assert app.query_one("#study-candidates", Input).value == "3/8"
-        await pilot.press("escape")
-        await pilot.pause()
-        assert not app.research_form and not studies.store.jobs() and not research.store.jobs()
-
-    assert provider.calls == []
-
-
 async def test_explicit_parameter_pairs_are_application_owned_and_the_model_cannot_rewrite_them(
     studies, tmp_path
 ):
@@ -226,45 +128,6 @@ def test_parameter_references_exclude_urls_and_do_not_duplicate_textual_baseline
         (-3, 8),
         (4, -10),
     ]
-
-
-@pytest.mark.parametrize("kind", ["model", "connector"])
-async def test_escaped_credentials_in_registry_study_forms_are_rejected_before_storage(
-    studies, tmp_path, kind
-):
-    import time
-
-    from pydantic import SecretStr
-
-    from stratosphere.legacy.liquid import ReadSession
-
-    provider = ProposalProvider()
-    research = ResearchService(
-        ResearchStore(tmp_path / "ui-research"), online_check=studies.online_check
-    )
-    app = StratosphereApp(
-        provider_factory=lambda settings: provider, research_service=research, study_service=studies
-    )
-    studies.database = app.database
-    record = app.database.register(
-        studies.test_plan.specification, "Baseline", {"kind": "authored"}
-    )
-    async with app.run_test(size=(144, 40)) as pilot:
-        await connect(app, pilot)
-        app.session.select(record["public_id"])
-        await send(app, pilot, "/study")
-        key = 'private-"\\-credential'
-        if kind == "model":
-            app.settings = app.settings.model_copy(update={"api_key": SecretStr(key)})
-        else:
-            app.liquid.session = ReadSession(SecretStr(key), time.monotonic() + 60)
-        app.query_one("#study-hypothesis", TextArea).text = "A hypothesis containing " + key
-        app.query_one("#prepare-study").focus()
-        await pilot.press("enter")
-        await pilot.pause()
-        assert app.research_form is not None and not studies.store.jobs()
-        assert "Remove credentials" in str(app.query_one("#study-error").content)
-        assert not research.store.jobs() and not provider.calls
 
 
 @pytest.mark.parametrize("invent_target", [False, True])

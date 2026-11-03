@@ -1,5 +1,9 @@
 # Source intake and conversion
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 ## Available scope
 
 Sources retain attempts, access state, original/canonical URLs, raw-byte digests, snapshots and

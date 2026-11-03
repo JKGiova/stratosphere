@@ -1,5 +1,9 @@
 # Internal account and runtime foundations
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 These components process authored software-test data. They are not a Liquid adapter, real feed,
 running broker paper service or order transport. The active MT5 connector is described in [MT5 connector](mt5-bridge.md); it does not replace
 or relabel these authored journals. Alpaca/Liquid active routing is retired.

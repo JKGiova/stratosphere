@@ -1,5 +1,9 @@
 # Research and reports
 
+Interface status: the TUI and slash-command router are removed. Slash-command examples below
+are historical; retained Python contracts remain during engine extraction. See
+[headless usage](usage.md) for current entry points and pending external-agent integration.
+
 The historical Yahoo path is described in [Yahoo backtesting](yahoo-backtesting.md). It uses
 separate versioned plans/snapshots for equity, crypto and fully funded FX price research; the
 legacy Binance behavior and evidence below remain unchanged.

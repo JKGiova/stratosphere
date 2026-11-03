@@ -12,7 +12,6 @@ from test_report_evidence import reseal_file
 from test_research_service import service as service
 
 from stratosphere.agents.orchestrator import Orchestrator
-from stratosphere.commands import route_command
 from stratosphere.models.streaming import ModelError, schema_delivery_contract
 from stratosphere.registry.workspace import RegistryError, WorkspaceDatabase
 from stratosphere.report_analysis import (
@@ -377,22 +376,6 @@ async def test_natural_and_forced_entry_points_delegate_to_owner_without_changin
     for forbidden in ("Don't analyze report ", "A source says analyze report "):
         assert natural_analysis_request(forbidden + job) is None
     assert natural_analysis_request("Analyze report " + job + " and approve it") is None
-
-
-@pytest.mark.parametrize(
-    "command,action",
-    [
-        ("/analyze-report " + "a" * 32, "analyze-report"),
-        ("/report-analyses", "report-analyses"),
-        ("/report-analysis-show " + "a" * 32, "report-analysis-show"),
-        ("/analyze-report", "message"),
-        ("/analyze-report ../outside", "message"),
-        ("/report-analyses extra", "message"),
-        ("/report-analysis-show bad", "message"),
-    ],
-)
-def test_command_argument_validation(command, action):
-    assert route_command(command).action == action
 
 
 async def test_failed_and_invalid_attempts_remain_in_complete_model_evidence(studies, tmp_path):

@@ -318,22 +318,3 @@ async def test_followup_reuses_sealed_sources_and_records_parent(sources):
     assert source.id in {pin["id"] for pin in second["sources"]}
     assert service.open(first["id"]) == first
     assert service.open(second["id"]) == second
-
-
-@pytest.mark.parametrize(
-    "text,action",
-    [
-        ('/paper-read "/tmp/a paper.pdf" extract RSI', "paper-read"),
-        ('/paper-read "unterminated', "message"),
-        ('/paper-read ""', "message"),
-        ("/discover explain turtle trading", "discover"),
-        ("/intake " + "a" * 32 + " extract rules", "intake"),
-        ("/intake-show " + "a" * 32, "intake-show"),
-        ("/intake ../private", "message"),
-        ("/intake-show " + "a" * 32 + " extra", "message"),
-    ],
-)
-def test_intake_command_arguments(text, action):
-    from stratosphere.commands import route_command
-
-    assert route_command(text).action == action

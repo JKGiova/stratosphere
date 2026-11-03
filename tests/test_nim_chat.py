@@ -6,7 +6,6 @@ import pytest
 from pydantic import SecretStr
 
 from stratosphere.chat import ChatSession
-from stratosphere.commands import route_command
 from stratosphere.models.nim import ModelError, ModelSettings, NimChat
 
 KEY = "unit-test-secret"
@@ -133,13 +132,12 @@ async def test_incomplete_and_failed_streams(parts, expected):
 
 
 @pytest.mark.asyncio
-async def test_history_commits_only_completed_turns_and_commands_never_call_model():
+async def test_history_commits_only_completed_turns():
     requests = []
     client, _ = provider(
         [event("hello"), event(finish="stop"), "data: [DONE]\n\n"], requests=requests
     )
     session = ChatSession(client)
-    assert route_command("/portfolio").action == "portfolio"
     assert requests == []
     assert "".join([part async for part in session.respond("Hi")]) == "hello"
     assert session.history == [
@@ -190,11 +188,6 @@ async def test_cancellation_closes_stream_and_discards_turn():
     assert closed.is_set()
     assert session.history == []
     assert session.busy is False
-
-
-@pytest.mark.parametrize("text", ["/jobs extra", "/quit now", "/unknown", "/jobs; rm -rf /", "/"])
-def test_invalid_commands_have_no_effect(text):
-    assert route_command(text).action == "message"
 
 
 @pytest.mark.asyncio

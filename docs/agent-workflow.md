@@ -1,6 +1,11 @@
 # Agent workflow
 
-The active goal is orchestrator intake → exact strategy research agent → finished report → one user
+External agent frameworks now own crew coordination and conversations. The TUI and slash-command
+router are removed. The interfaces described below remain internal contracts during engine
+extraction; slash commands are historical and unavailable. A general external-agent/MCP adapter
+is not implemented. See [headless usage](usage.md) for current entry points.
+
+The target workflow is external orchestrator intake → exact strategy research agent → finished report → one user
 approval → portfolio capital allocation → strategy trigger and strategy-agent investment proposal
 → position risk review/sizing → deterministic execution gates. The orchestrator does not place
 orders. The strategy agent evaluates a trigger; the position risk agent proposes exposure, capital

@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 PINNED = {
-    "textual": "8.2.8",
     "langgraph": "1.2.15",
     "pydantic": "2.14.1",
     "httpx": "0.28.1",
@@ -109,11 +108,11 @@ def inspect_runtime(require_engine: bool = False) -> dict:
     }
 
 
-def main() -> None:
+def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description="Inspect phase 0 runtime compatibility")
     parser.add_argument("--require-engine", action="store_true")
     parser.add_argument("--output", type=Path)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     report = inspect_runtime(args.require_engine)
     text = json.dumps(report, indent=2) + "\n"
     if args.output:

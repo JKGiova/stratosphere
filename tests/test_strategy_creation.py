@@ -4,7 +4,6 @@ import asyncio
 import json
 
 import pytest
-from test_research_tui import ui_service as ui_service
 
 from stratosphere.agents.creation import PROMPT, creation_request
 from stratosphere.agents.orchestrator import Orchestrator
@@ -204,25 +203,6 @@ async def test_registration_transaction_rollback_and_exact_replay(app, monkeypat
     assert record["resolution"] == "retained_creation"
     assert len(app.database.jobs(identity)) == 1
     assert app.research.store.state(job) == "awaiting_approval"
-
-
-async def test_tui_rejects_retired_creation_schema_without_running_legacy_workflow(ui_service):
-    from test_research_tui import connect, send
-
-    from stratosphere.research.widgets import ResearchReview
-    from stratosphere.tui import StratosphereApp
-
-    provider = Provider()
-    tui = StratosphereApp(provider_factory=lambda settings: provider, research_service=ui_service)
-    async with tui.run_test(size=(144, 40)) as pilot:
-        await connect(tui, pilot)
-        await send(tui, pilot, "/create an hourly SMA candidate")
-        await tui.workers.wait_for_complete()
-        await pilot.pause()
-        assert not tui.query(ResearchReview)
-        assert ui_service.calls == []
-        assert tui.session.last_action is None
-        assert not ui_service.store.jobs()
 
 
 @pytest.mark.engine

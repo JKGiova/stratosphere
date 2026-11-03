@@ -1,44 +1,44 @@
 # stratosphere
 
-A personal terminal workspace for quantitative strategy research, part of **tradingsphere**.
-Linux and macOS are the initial targets. The repository is public; credentials and operational evidence stay private.
+A personal headless strategy research engine and guarded MT5 connector, part of **tradingsphere**.
+Linux and macOS are the initial targets. The repository is public; credentials and operational
+evidence stay private.
 
 ## Start
 
 From the configured project environment:
 
 ```sh
-.venv/bin/python -m stratosphere
+.venv/bin/python -m stratosphere --help
+.venv/bin/python -m stratosphere mt5 --help
+.venv/bin/python -m stratosphere compatibility --help
 ```
 
-Set up a model in the inline form or with `/model`. Saved credentials use the native OS store.
-Use `/help` for commands and Tab/Shift+Tab to switch panels. The terminal keeps its window size.
-See [setup and usage](docs/usage.md) for installation and the research workflow.
+See [setup and headless usage](docs/usage.md) for installation and available operations.
 
-## Current state
+## Rebuild scope
 
-- Responsive TUI, selectable model providers and a local library with separate strategy-agent histories.
-- Approved NautilusTrader research for the supported BTC/USDT hourly, long-only SMA crossover family.
-- [Yahoo historical research](docs/yahoo-backtesting.md), with bounded agent campaigns via `/create` and manual runs via `/yahoo`.
-- Bounded variant studies and retained reports with explicit costs, failures and holdout attribution.
-- [Source-grounded strategy intake](docs/agent-workflow.md) from public references and local PDFs.
-- [Strategy-agent development](docs/strategy-development.md): compiled SMA/EMA/RSI expression programs, native backtests, bounded revisions and sampled market comparisons. Arbitrary source conversion remains unfinished.
-- [MT5 local data/order connector](docs/mt5-bridge.md), with a compiled Expert Advisor, exact account/session pins, typed data reads and guarded market entry/owned exits.
-- [Overnight agents](docs/mt5-overnight.md): paper-grounded CFD adaptation, local calendars and bounded agents. Explicit v2 deployments isolate one agent position from manual exposure with account margin checks. This replaces the active Gold Golden Cross pilot.
-- Alpaca/Liquid active commands and automatic credential restoration are retired; historical formats, journals and readers remain separate.
-- Gold MT5 history acquired and structurally validated across all 21 standard intervals; coarse intervals reach 2004.
+The target is one engine for strategy validation, market data, reproducible backtesting, evidence
+and approved MT5 deployment. Agents run in an external framework and call engine operations.
+The TUI, inline forms and slash-command router have been removed. A general external-agent/MCP
+interface and the extraction of remaining internal agent orchestration are still pending.
 
-The [agent workflow rebuild](docs/agent-workflow.md) remains in progress. Automatic research and
-the headless MT5 connector are implemented separately: faithful broker-CFD research, final report
-ownership validation and general automatic strategy/risk-agent execution are not connected yet.
-The overnight adapter is a separate operator-defined deployment with its own exact approval.
-MT5 trading requires an exact user-approved deployment and native enablement. One demo connector
-round-trip passed; strategy-driven broker execution, FTMO rules, sustained operation and recovery
-remain verification gates. There is no
-release deadline.
+Existing code retains validated SMA/EMA/RSI expression programs, application-generated Python,
+bounded NautilusTrader/Yahoo research, stable strategy identities and versioned report readers.
+The [MT5 local connector](docs/mt5-bridge.md) supports typed data reads, exact deployment approval,
+guarded market entries and owned exits. The separately approved
+[overnight adapter](docs/mt5-overnight.md) remains available during extraction.
+
+The general research-to-MT5 pipeline remains unfinished. Source conformance, faithful broker-CFD
+research, final report ownership validation, sustained operation, recovery and FTMO rules remain
+verification gates. One demo connector round-trip is not release readiness.
+
+MT5 trading requires an exact user-approved deployment and native enablement. Connecting never
+activates trading. Historical Alpaca/Liquid readers, approvals and journals remain separate and
+cannot grant MT5 authority. Credentials use native OS secure storage; broker login stays inside MT5.
 
 ## Development
 
-Start with [plan.md](plan.md): current scope, unfinished work, priorities and completion criteria.
-The [documentation index](docs/README.md) links the focused guides.
-The current priority is the requested research-to-portfolio workflow rebuild, with tests at each stage.
+[plan.md](plan.md) is the single development plan. The [documentation index](docs/README.md) links
+the focused guides. NautilusTrader wheel production belongs to
+`JKGiova/nautilus-trader-macos-intel`; this repository consumes pinned artifacts.

@@ -4,9 +4,9 @@
 
 | Component | Responsibility | Code |
 | --- | --- | --- |
-| TUI | Panels, inline forms, chat, explicit commands and job controls | `src/stratosphere/tui.py`, `commands.py`, `workspace.py` |
-| Model transport | Provider-specific text streaming and exact workflow-schema delivery | `src/stratosphere/models/`, `chat.py` |
-| Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/workflow/` (active), `agents/` (compatibility helpers) |
+| Headless dispatcher | Help, MT5 connector commands and runtime compatibility inspection | `src/stratosphere/__main__.py` |
+| Retained model transport | Provider-specific text streaming and exact workflow-schema delivery | `src/stratosphere/models/`, `chat.py` |
+| Orchestrator/strategy sessions | Route requests to stable strategy owners with isolated histories | `src/stratosphere/workflow/`, `agents/` (retained during engine extraction) |
 | Local library | Canonical identities, duplicate reuse, provenance, lineage, jobs and reports | `src/stratosphere/registry/` |
 | Strategy development | Typed formalization, application code generation, stable-agent research, finite native comparisons/revisions | `src/stratosphere/development/` |
 | Yahoo historical research | Isolated yfinance acquisition, separate approved price-research plans and native runs | `src/stratosphere/yahoo/` |
@@ -17,8 +17,11 @@
 | Historical paper workflow | Retained packages/approval, journal, reviews, signals and fixtures; no active broker routing | `src/stratosphere/workflow/portfolios.py`, `execution.py` |
 | Authored account/runtime | Journals, reservations, risk gates, observation processing and inspection | `src/stratosphere/paper/` |
 
-Application services are authoritative. Natural-language and slash routes must reuse their
-validation and approval boundaries. Models cannot grant permission or mutate an active strategy.
+Application services are authoritative. External-agent adapters must reuse their validation and
+approval boundaries. Models cannot grant permission or mutate an active strategy. The TUI, its
+widgets/layout/style code and slash-command router have been removed. There is no general
+external-agent/MCP interface yet. Internal research runners and model transports remain until
+their engine operations are extracted; they are not the target crew architecture.
 The replacement research-to-portfolio lifecycle is described in [agent workflow](agent-workflow.md).
 
 The persistent specialist separates typed decisions (`development/agent.py`), allowlisted tools
@@ -40,17 +43,17 @@ folder on macOS and XDG state directory on Linux. Operational data is not commit
 
 ## Process boundaries
 
-The TUI invokes validated services. Trusted native research runs in separate credential-free
+The headless MT5 commands invoke validated services. Trusted native research runs in separate credential-free
 workers. Imported source is never executed just because it was acquired. Strategy development executes only exact application-compiled Python specializations in
 credential-free children, with pinned definition/code/input/runtime and finite reservations.
 Arbitrary model/acquired Python is unsupported; this is not independent executable attestation.
 
-The authored observation worker is separate from the TUI and requires its own approved streams,
+The authored observation worker requires its own approved streams,
 queue and OS ownership lock. It has no real provider feed or order transport. Reading status never
 starts or modifies it. The MT5 EA runs inside the existing terminal; the application invokes its local typed interface.
 Exact deployment approval and native enablement are separate from data access. See the
 [connector guide](mt5-bridge.md) for current lifecycle and verification limits. Historical Alpaca
-runner code is compatibility material and is no longer routed by the TUI.
+runner code is compatibility material and has no active broker routing.
 
 ## Compatibility
 

@@ -4,8 +4,9 @@
 These are focused reference guides, not separate roadmaps.
 
 The [software module split](../plan.md#software-modules-and-chat-coordination) records the six
-selected modules and the pending chat-coordination proposal. Detailed interfaces remain under
-discussion. Shared decisions and integration priorities stay in `plan.md`.
+selected modules. [Module coordination](coordination/README.md) indexes their current reports and
+defines handoff between manually launched Codex jobs. Detailed interfaces remain under discussion;
+shared decisions and integration priorities stay in `plan.md`.
 
 [Headless usage](usage.md) owns current entry points. The TUI and slash-command router are removed.
 Guides retaining slash-command examples describe historical interfaces and internal contracts;

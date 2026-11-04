@@ -11,6 +11,7 @@
 
 ## Development workflow
 
+- For manually launched module jobs, follow [module coordination](docs/coordination/README.md): read the current plan and module reports before work, update only the assigned module's report, and leave cross-module scope/plan changes as proposals for the owner. The owner launches each Codex job; do not send notifications or automatically launch further jobs.
 - Use Graphify for codebase work. If `graphify-out/graph.json` is missing, run `graphify extract . --code-only --no-cluster` from the project root. After every step that changes project files, run `graphify update .` before starting the next step. Verify graph conclusions against source; if extraction or update fails, report the limitation and continue useful work.
 - Write code, comments, documentation and Git material in English.
 - Keep changes and their history on GitHub. Publish only the intended scope; preserve unrelated working-tree changes.

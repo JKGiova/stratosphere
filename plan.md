@@ -88,21 +88,19 @@ remains in the owning modules under the existing invariants: exact human deploym
 deterministic risk limits, immutable evidence, durable uncertainty and historical compatibility.
 Removing headings does not authorize removing safeguards, journals or readers.
 
-### Coordination proposal — awaiting agreement
+### Agreed manual job coordination
 
-Use shared Markdown as durable coordination state: one current report per module, including the
-interface it provides/consumes, completed changes, evidence, dependencies, blockers and next action.
-Each chat reads relevant reports before work and updates only its own report after a meaningful
-step. Shared interface changes must identify affected modules and consumer acknowledgements.
+The owner manually launches every Codex job. Shared Markdown reports carry module state between
+jobs; there are no notifications, background polling or automatic job launches. Each module job
+reads the current plan and module reports before work and updates only its assigned module report.
+Cross-module scope/interface changes and changes to this plan stay proposals for owner review.
 
-Markdown edits alone cannot wake idle chats. Automatic notifications require a separate explicit
-delivery mechanism; the proposed approach combines the reports with targeted chat messages on
-interface/dependency changes. Notification policy and parallel implementation/isolation are still
-open decisions. Do not install a background poller or create/reorganize more chats before agreement.
-
-This chat coordinates shared decisions. `plan.md` remains the sole development plan; reports track
-state/evidence rather than becoming competing plans. Research, faithful MT5 CFD deployment and
-operational acceptance remain distinct gates under the existing focused guides and invariants.
+[Module coordination](docs/coordination/README.md) owns the job procedure and report index.
+`plan.md` remains the sole development plan; reports track current interfaces, changes, evidence,
+dependencies and blockers. They are not separate roadmaps or chronological diaries. Research,
+faithful MT5 CFD deployment and operational acceptance remain distinct gates under the existing
+focused guides and invariants. Separate chats/reports provide no filesystem isolation for concurrent
+code edits; any parallel implementation arrangement remains a separate decision.
 
 ## Verification and release gate
 

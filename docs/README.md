@@ -3,9 +3,9 @@
 [plan.md](../plan.md) owns scope, status, priorities and completion criteria.
 These are focused reference guides, not separate roadmaps.
 
-The [CLI/MCP component plans](../plan.md#climcp-rebuild-component-plans) define the scope,
-dependencies and acceptance criteria for the nine focused component chats. Shared decisions and
-integration priorities stay in `plan.md`; the chats start with read-only planning.
+The [software module split](../plan.md#software-modules-and-chat-coordination) records the six
+selected modules and the pending chat-coordination proposal. Detailed interfaces remain under
+discussion. Shared decisions and integration priorities stay in `plan.md`.
 
 [Headless usage](usage.md) owns current entry points. The TUI and slash-command router are removed.
 Guides retaining slash-command examples describe historical interfaces and internal contracts;
